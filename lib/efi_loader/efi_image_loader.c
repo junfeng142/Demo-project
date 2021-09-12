@@ -1,17 +1,15 @@
+// SPDX-License-Identifier: GPL-2.0+
 /*
  *  EFI image loader
  *
  *  based partly on wine code
  *
  *  Copyright (c) 2016 Alexander Graf
- *
- *  SPDX-License-Identifier:     GPL-2.0+
  */
 
 #include <common.h>
 #include <efi_loader.h>
 #include <pe.h>
-#include <asm/global_data.h>
 
 const efi_guid_t efi_global_variable_guid = EFI_GLOBAL_VARIABLE_GUID;
 const efi_guid_t efi_guid_device_path = DEVICE_PATH_GUID;
@@ -21,25 +19,25 @@ const efi_guid_t efi_simple_file_system_protocol_guid =
 const efi_guid_t efi_file_info_guid = EFI_FILE_INFO_GUID;
 
 static int machines[] = {
-#if defined(CONFIG_ARM64)
+#if defined(__aarch64__)
 	IMAGE_FILE_MACHINE_ARM64,
-#elif defined(CONFIG_ARM)
+#elif defined(__arm__)
 	IMAGE_FILE_MACHINE_ARM,
 	IMAGE_FILE_MACHINE_THUMB,
 	IMAGE_FILE_MACHINE_ARMNT,
 #endif
 
-#if defined(CONFIG_X86_64)
+#if defined(__x86_64__)
 	IMAGE_FILE_MACHINE_AMD64,
-#elif defined(CONFIG_X86)
+#elif defined(__i386__)
 	IMAGE_FILE_MACHINE_I386,
 #endif
 
-#if defined(CONFIG_CPU_RISCV_32)
+#if defined(__riscv) && (__riscv_xlen == 32)
 	IMAGE_FILE_MACHINE_RISCV32,
 #endif
 
-#if defined(CONFIG_CPU_RISCV_64)
+#if defined(__riscv) && (__riscv_xlen == 64)
 	IMAGE_FILE_MACHINE_RISCV64,
 #endif
 	0 };
@@ -50,20 +48,21 @@ static int machines[] = {
  * If the program counter is located within the image the offset to the base
  * address is shown.
  *
+ * @obj:	EFI object
  * @image:	loaded image
  * @pc:		program counter (use NULL to suppress offset output)
  * @return:	status code
  */
-efi_status_t efi_print_image_info(struct efi_loaded_image *image, void *pc)
+static efi_status_t efi_print_image_info(struct efi_loaded_image_obj *obj,
+					 struct efi_loaded_image *image,
+					 void *pc)
 {
-	if (!image)
-		return EFI_INVALID_PARAMETER;
 	printf("UEFI image");
 	printf(" [0x%p:0x%p]",
-	       image->reloc_base, image->reloc_base + image->reloc_size - 1);
-	if (pc && pc >= image->reloc_base &&
-	    pc < image->reloc_base + image->reloc_size)
-		printf(" pc=0x%zx", pc - image->reloc_base);
+	       obj->reloc_base, obj->reloc_base + obj->reloc_size - 1);
+	if (pc && pc >= obj->reloc_base &&
+	    pc < obj->reloc_base + obj->reloc_size)
+		printf(" pc=0x%zx", pc - obj->reloc_base);
 	if (image->file_path)
 		printf(" '%pD'", image->file_path);
 	printf("\n");
@@ -84,6 +83,7 @@ void efi_print_image_infos(void *pc)
 		list_for_each_entry(handler, &efiobj->protocols, link) {
 			if (!guidcmp(handler->guid, &efi_guid_loaded_image)) {
 				efi_print_image_info(
+					(struct efi_loaded_image_obj *)efiobj,
 					handler->protocol_interface, pc);
 			}
 		}
@@ -91,10 +91,15 @@ void efi_print_image_infos(void *pc)
 }
 
 static efi_status_t efi_loader_relocate(const IMAGE_BASE_RELOCATION *rel,
-			unsigned long rel_size, void *efi_reloc)
+			unsigned long rel_size, void *efi_reloc,
+			unsigned long pref_address)
 {
+	unsigned long delta = (unsigned long)efi_reloc - pref_address;
 	const IMAGE_BASE_RELOCATION *end;
 	int i;
+
+	if (delta == 0)
+		return EFI_SUCCESS;
 
 	end = (const IMAGE_BASE_RELOCATION *)((const char *)rel + rel_size);
 	while (rel < end - 1 && rel->SizeOfBlock) {
@@ -104,7 +109,6 @@ static efi_status_t efi_loader_relocate(const IMAGE_BASE_RELOCATION *rel,
 			uint32_t offset = (uint32_t)(*relocs & 0xfff) +
 					  rel->VirtualAddress;
 			int type = *relocs >> EFI_PAGE_SHIFT;
-			unsigned long delta = (unsigned long)efi_reloc;
 			uint64_t *x64 = efi_reloc + offset;
 			uint32_t *x32 = efi_reloc + offset;
 			uint16_t *x16 = efi_reloc + offset;
@@ -124,6 +128,20 @@ static efi_status_t efi_loader_relocate(const IMAGE_BASE_RELOCATION *rel,
 			case IMAGE_REL_BASED_DIR64:
 				*x64 += (uint64_t)delta;
 				break;
+#ifdef __riscv
+			case IMAGE_REL_BASED_RISCV_HI20:
+				*x32 = ((*x32 & 0xfffff000) + (uint32_t)delta) |
+					(*x32 & 0x00000fff);
+				break;
+			case IMAGE_REL_BASED_RISCV_LOW12I:
+			case IMAGE_REL_BASED_RISCV_LOW12S:
+				/* We know that we're 4k aligned */
+				if (delta & 0xfff) {
+					printf("Unsupported reloc offset\n");
+					return EFI_LOAD_ERROR;
+				}
+				break;
+#endif
 			default:
 				printf("Unknown Relocation off %x type %x\n",
 				       offset, type);
@@ -180,7 +198,8 @@ static void efi_set_code_and_data_type(
  * piece of memory. On successful load it then returns the entry point for
  * the binary. Otherwise NULL.
  */
-void *efi_load_pe(void *efi, struct efi_loaded_image *loaded_image_info)
+void *efi_load_pe(struct efi_loaded_image_obj *handle, void *efi,
+		  struct efi_loaded_image *loaded_image_info)
 {
 	IMAGE_NT_HEADERS32 *nt;
 	IMAGE_DOS_HEADER *dos;
@@ -192,6 +211,7 @@ void *efi_load_pe(void *efi, struct efi_loaded_image *loaded_image_info)
 	unsigned long rel_size;
 	int rel_idx = IMAGE_DIRECTORY_ENTRY_BASERELOC;
 	void *entry;
+	uint64_t image_base;
 	uint64_t image_size;
 	unsigned long virt_size = 0;
 	int supported = 0;
@@ -235,6 +255,7 @@ void *efi_load_pe(void *efi, struct efi_loaded_image *loaded_image_info)
 	if (nt->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC) {
 		IMAGE_NT_HEADERS64 *nt64 = (void *)nt;
 		IMAGE_OPTIONAL_HEADER64 *opt = &nt64->OptionalHeader;
+		image_base = opt->ImageBase;
 		image_size = opt->SizeOfImage;
 		efi_set_code_and_data_type(loaded_image_info, opt->Subsystem);
 		efi_reloc = efi_alloc(virt_size,
@@ -250,6 +271,7 @@ void *efi_load_pe(void *efi, struct efi_loaded_image *loaded_image_info)
 		virt_size = ALIGN(virt_size, opt->SectionAlignment);
 	} else if (nt->OptionalHeader.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
 		IMAGE_OPTIONAL_HEADER32 *opt = &nt->OptionalHeader;
+		image_base = opt->ImageBase;
 		image_size = opt->SizeOfImage;
 		efi_set_code_and_data_type(loaded_image_info, opt->Subsystem);
 		efi_reloc = efi_alloc(virt_size,
@@ -280,7 +302,8 @@ void *efi_load_pe(void *efi, struct efi_loaded_image *loaded_image_info)
 	}
 
 	/* Run through relocations */
-	if (efi_loader_relocate(rel, rel_size, efi_reloc) != EFI_SUCCESS) {
+	if (efi_loader_relocate(rel, rel_size, efi_reloc,
+				(unsigned long)image_base) != EFI_SUCCESS) {
 		efi_free_pages((uintptr_t) efi_reloc,
 			       (virt_size + EFI_PAGE_MASK) >> EFI_PAGE_SHIFT);
 		return NULL;
@@ -288,14 +311,14 @@ void *efi_load_pe(void *efi, struct efi_loaded_image *loaded_image_info)
 
 	/* Flush cache */
 	flush_cache((ulong)efi_reloc,
-		    ALIGN(virt_size, CONFIG_SYS_CACHELINE_SIZE));
+		    ALIGN(virt_size, EFI_CACHELINE_SIZE));
 	invalidate_icache_all();
 
 	/* Populate the loaded image interface bits */
 	loaded_image_info->image_base = efi;
 	loaded_image_info->image_size = image_size;
-	loaded_image_info->reloc_base = efi_reloc;
-	loaded_image_info->reloc_size = virt_size;
+	handle->reloc_base = efi_reloc;
+	handle->reloc_size = virt_size;
 
 	return entry;
 }

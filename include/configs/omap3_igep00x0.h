@@ -9,8 +9,6 @@
 #ifndef __IGEP00X0_H
 #define __IGEP00X0_H
 
-#define CONFIG_NR_DRAM_BANKS            2
-
 #include <configs/ti_omap3_common.h>
 
 /*
@@ -20,13 +18,7 @@
 #undef CONFIG_SPL_TEXT_BASE
 #define CONFIG_SPL_TEXT_BASE		0x40200000
 
-#define CONFIG_MISC_INIT_R
-
 #define CONFIG_REVISION_TAG		1
-
-/* GPIO banks */
-#define CONFIG_OMAP3_GPIO_2		/* GPIO32..63   is in GPIO bank 2 */
-#define CONFIG_OMAP3_GPIO_4		/* GPIO96..127  is in GPIO bank 4 */
 
 /* TPS65950 */
 #define PBIASLITEVMODE1			(1 << 8)
@@ -91,7 +83,6 @@
 
 #endif
 
-#define CONFIG_MTD_PARTITIONS
 #define CONFIG_SYS_MTDPARTS_RUNTIME
 
 /* OneNAND config */

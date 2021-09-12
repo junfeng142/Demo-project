@@ -5,9 +5,6 @@
 #ifndef __CONFIG_SOCFPGA_COMMON_H__
 #define __CONFIG_SOCFPGA_COMMON_H__
 
-/* Virtual target or real hardware */
-#undef CONFIG_SOCFPGA_VIRTUAL_TARGET
-
 /*
  * High level configuration
  */
@@ -23,7 +20,6 @@
 /*
  * Memory configurations
  */
-#define CONFIG_NR_DRAM_BANKS		1
 #define PHYS_SDRAM_1			0x0
 #define CONFIG_SYS_MALLOC_LEN		(64 * 1024 * 1024)
 #define CONFIG_SYS_MEMTEST_START	PHYS_SDRAM_1
@@ -35,10 +31,21 @@
 #define CONFIG_SYS_INIT_RAM_ADDR	0xFFE00000
 #define CONFIG_SYS_INIT_RAM_SIZE	0x40000 /* 256KB */
 #endif
-#define CONFIG_SYS_INIT_SP_OFFSET		\
-	(CONFIG_SYS_INIT_RAM_SIZE - GENERATED_GBL_DATA_SIZE)
+
+/*
+ * Some boards (e.g. socfpga_sr1500) use 8 bytes at the end of the internal
+ * SRAM as bootcounter storage. Make sure to not put the stack directly
+ * at this address to not overwrite the bootcounter by checking, if the
+ * bootcounter address is located in the internal SRAM.
+ */
+#if ((CONFIG_SYS_BOOTCOUNT_ADDR > CONFIG_SYS_INIT_RAM_ADDR) &&	\
+     (CONFIG_SYS_BOOTCOUNT_ADDR < (CONFIG_SYS_INIT_RAM_ADDR +	\
+				   CONFIG_SYS_INIT_RAM_SIZE)))
+#define CONFIG_SYS_INIT_SP_ADDR		CONFIG_SYS_BOOTCOUNT_ADDR
+#else
 #define CONFIG_SYS_INIT_SP_ADDR			\
-	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_SP_OFFSET)
+	(CONFIG_SYS_INIT_RAM_ADDR + CONFIG_SYS_INIT_RAM_SIZE)
+#endif
 
 #define CONFIG_SYS_SDRAM_BASE		PHYS_SDRAM_1
 
@@ -78,9 +85,8 @@
 /*
  * Ethernet on SoC (EMAC)
  */
-#if defined(CONFIG_CMD_NET) && !defined(CONFIG_SOCFPGA_VIRTUAL_TARGET)
+#ifdef CONFIG_CMD_NET
 #define CONFIG_DW_ALTDESCRIPTOR
-#define CONFIG_MII
 #endif
 
 /*
@@ -93,13 +99,11 @@
 /*
  * L4 OSC1 Timer 0
  */
+#ifndef CONFIG_TIMER
 /* This timer uses eosc1, whose clock frequency is fixed at any condition. */
 #define CONFIG_SYS_TIMERBASE		SOCFPGA_OSC1TIMER0_ADDRESS
 #define CONFIG_SYS_TIMER_COUNTS_DOWN
 #define CONFIG_SYS_TIMER_COUNTER	(CONFIG_SYS_TIMERBASE + 0x4)
-#ifdef CONFIG_SOCFPGA_VIRTUAL_TARGET
-#define CONFIG_SYS_TIMER_RATE		2400000
-#else
 #define CONFIG_SYS_TIMER_RATE		25000000
 #endif
 
@@ -165,8 +169,6 @@ unsigned int cm_get_l4_sp_clk_hz(void);
 /* Enable multiple SPI NOR flash manufacturers */
 #ifndef CONFIG_SPL_BUILD
 #define CONFIG_SPI_FLASH_MTD
-#define CONFIG_MTD_DEVICE
-#define CONFIG_MTD_PARTITIONS
 #endif
 /* QSPI reference clock */
 #ifndef __ASSEMBLY__
@@ -182,16 +184,6 @@ unsigned int cm_get_qspi_controller_clk_hz(void);
  * Serial Driver
  */
 #define CONFIG_SYS_NS16550_SERIAL
-#define CONFIG_SYS_NS16550_REG_SIZE	-4
-#ifdef CONFIG_SOCFPGA_VIRTUAL_TARGET
-#define CONFIG_SYS_NS16550_CLK		1000000
-#elif defined(CONFIG_TARGET_SOCFPGA_GEN5)
-#define CONFIG_SYS_NS16550_COM1		SOCFPGA_UART0_ADDRESS
-#define CONFIG_SYS_NS16550_CLK		100000000
-#elif defined(CONFIG_TARGET_SOCFPGA_ARRIA10)
-#define CONFIG_SYS_NS16550_COM1        SOCFPGA_UART1_ADDRESS
-#define CONFIG_SYS_NS16550_CLK		50000000
-#endif
 
 /*
  * USB
@@ -245,16 +237,33 @@ unsigned int cm_get_qspi_controller_clk_hz(void);
 /*
  * SPL
  *
- * SRAM Memory layout:
+ * SRAM Memory layout for gen 5:
  *
  * 0xFFFF_0000 ...... Start of SRAM
  * 0xFFFF_xxxx ...... Top of stack (grows down)
  * 0xFFFF_yyyy ...... Malloc area
  * 0xFFFF_zzzz ...... Global Data
  * 0xFFFF_FF00 ...... End of SRAM
+ *
+ * SRAM Memory layout for Arria 10:
+ * 0xFFE0_0000 ...... Start of SRAM (bottom)
+ * 0xFFEx_xxxx ...... Top of stack (grows down to bottom)
+ * 0xFFEy_yyyy ...... Global Data
+ * 0xFFEz_zzzz ...... Malloc area (grows up to top)
+ * 0xFFE3_FFFF ...... End of SRAM (top)
  */
 #define CONFIG_SPL_TEXT_BASE		CONFIG_SYS_INIT_RAM_ADDR
 #define CONFIG_SPL_MAX_SIZE		CONFIG_SYS_INIT_RAM_SIZE
+
+#if defined(CONFIG_TARGET_SOCFPGA_ARRIA10)
+/* SPL memory allocation configuration, this is for FAT implementation */
+#ifndef CONFIG_SYS_SPL_MALLOC_START
+#define CONFIG_SYS_SPL_MALLOC_SIZE	0x00010000
+#define CONFIG_SYS_SPL_MALLOC_START	(CONFIG_SYS_INIT_RAM_SIZE - \
+					 CONFIG_SYS_SPL_MALLOC_SIZE + \
+					 CONFIG_SYS_INIT_RAM_ADDR)
+#endif
+#endif
 
 /* SPL SDMMC boot support */
 #ifdef CONFIG_SPL_MMC_SUPPORT
@@ -282,7 +291,11 @@ unsigned int cm_get_qspi_controller_clk_hz(void);
 /*
  * Stack setup
  */
+#if defined(CONFIG_TARGET_SOCFPGA_GEN5)
 #define CONFIG_SPL_STACK		CONFIG_SYS_INIT_SP_ADDR
+#elif defined(CONFIG_TARGET_SOCFPGA_ARRIA10)
+#define CONFIG_SPL_STACK		CONFIG_SYS_SPL_MALLOC_START
+#endif
 
 /* Extra Environment */
 #ifndef CONFIG_SPL_BUILD

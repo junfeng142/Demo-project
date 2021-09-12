@@ -10,11 +10,6 @@
  * High Level Configuration Options (easy to change)
  */
 
-/*
- * TEXT_BASE needs to be below 16MiB, since this area is scrubbed
- * for DDR ECC byte filling in the SPL before loading the main
- * U-Boot into it.
- */
 #define CONFIG_SYS_TCLK		200000000	/* 200MHz */
 
 /*
@@ -35,7 +30,6 @@
 #define CONFIG_ENV_SIZE			(64 << 10) /* 64KiB */
 #define CONFIG_ENV_SECT_SIZE		(256 << 10) /* 256KiB sectors */
 
-#define CONFIG_PHY_MARVELL		/* there is a marvell phy */
 #define PHY_ANEG_TIMEOUT	8000	/* PHY needs a longer aneg time */
 
 /* PCIe support */

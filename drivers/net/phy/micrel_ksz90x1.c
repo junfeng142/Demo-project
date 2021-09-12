@@ -8,13 +8,13 @@
  * (C) Copyright 2017 Adaptrum, Inc.
  * Written by Alexandru Gagniuc <alex.g@adaptrum.com> for Adaptrum, Inc.
  */
-
-#include <config.h>
 #include <common.h>
 #include <dm.h>
 #include <errno.h>
 #include <micrel.h>
 #include <phy.h>
+#include <asm/io.h>
+#include <asm/arch/clock.h>
 
 /*
  * KSZ9021 - KSZ9031 common
@@ -331,6 +331,10 @@ static int ksz9031_phy_extwrite(struct phy_device *phydev, int addr,
 static int ksz9031_config(struct phy_device *phydev)
 {
 	int ret;
+	struct sunxi_ccm_reg *const ccm =
+		(struct sunxi_ccm_reg *)SUNXI_CCM_BASE;
+
+	setbits_le32(&ccm->gmac_clk_cfg, CCM_GMAC_CTRL_TX_CLK_DELAY(4));
 
 	ret = ksz9031_of_config(phydev);
 	if (ret)

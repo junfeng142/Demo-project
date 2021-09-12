@@ -70,7 +70,6 @@ int sunxi_gpio_set_pull(u32 pin, u32 val)
 	return 0;
 }
 
-
 int sunxi_gpio_parse_pin_name(const char *pin_name)
 {
 	int pin;

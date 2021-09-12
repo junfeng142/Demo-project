@@ -15,6 +15,7 @@
 #include <miiphy.h>
 #include <malloc.h>
 #include <pci.h>
+#include <reset.h>
 #include <linux/compiler.h>
 #include <linux/err.h>
 #include <linux/kernel.h>
@@ -279,6 +280,15 @@ int designware_eth_init(struct dw_eth_dev *priv, u8 *enetaddr)
 	int ret;
 
 	writel(readl(&dma_p->busmode) | DMAMAC_SRST, &dma_p->busmode);
+
+	/*
+	 * When a MII PHY is used, we must set the PS bit for the DMA
+	 * reset to succeed.
+	 */
+	if (priv->phydev->interface == PHY_INTERFACE_MODE_MII)
+		writel(readl(&mac_p->conf) | MII_PORTSELECT, &mac_p->conf);
+	else
+		writel(readl(&mac_p->conf) & ~MII_PORTSELECT, &mac_p->conf);
 
 	start = get_timer(0);
 	while (readl(&dma_p->busmode) & DMAMAC_SRST) {
@@ -664,6 +674,7 @@ int designware_eth_probe(struct udevice *dev)
 	u32 iobase = pdata->iobase;
 	ulong ioaddr;
 	int ret;
+	struct reset_ctl_bulk reset_bulk;
 #ifdef CONFIG_CLK
 	int i, err, clock_nb;
 
@@ -709,6 +720,12 @@ int designware_eth_probe(struct udevice *dev)
 		}
 	}
 #endif
+
+	ret = reset_get_bulk(dev, &reset_bulk);
+	if (ret)
+		dev_warn(dev, "Can't get reset: %d\n", ret);
+	else
+		reset_deassert_bulk(&reset_bulk);
 
 #ifdef CONFIG_DM_PCI
 	/*
@@ -821,6 +838,8 @@ static const struct udevice_id designware_eth_ids[] = {
 	{ .compatible = "altr,socfpga-stmmac" },
 	{ .compatible = "amlogic,meson6-dwmac" },
 	{ .compatible = "amlogic,meson-gx-dwmac" },
+	{ .compatible = "amlogic,meson-gxbb-dwmac" },
+	{ .compatible = "amlogic,meson-axg-dwmac" },
 	{ .compatible = "st,stm32-dwmac" },
 	{ }
 };

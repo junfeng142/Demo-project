@@ -1,2 +1,0 @@
-# orangepizero_spi_uboot
-orangepizero_spiflash读写

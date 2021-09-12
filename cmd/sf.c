@@ -556,7 +556,6 @@ static int do_spi_flash(cmd_tbl_t *cmdtp, int flag, int argc,
 	++argv;
 
 	if (strcmp(cmd, "probe") == 0) {
-		do_spi();
 		ret = do_spi_flash_probe(argc, argv);
 		goto done;
 	}

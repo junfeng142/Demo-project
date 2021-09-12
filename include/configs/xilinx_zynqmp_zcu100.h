@@ -24,12 +24,6 @@
 				{0, {{I2C_MUX_PCA9548, 0x75, 7} } }, \
 				}
 
-#define CONFIG_ZYNQMP_XHCI_LIST {ZYNQMP_USB0_XHCI_BASEADDR, \
-				 ZYNQMP_USB1_XHCI_BASEADDR}
-
-#define CONFIG_USB_HOST_ETHER
-#define CONFIG_USB_ETHER_ASIX
-
 #include <configs/xilinx_zynqmp.h>
 
 #endif /* __CONFIG_ZYNQMP_ZCU100_H */
