@@ -1,21 +1,23 @@
 name: FunKey-OS Build
 
 on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
   workflow_dispatch:
-    branches: [ master ]
 
+env:
+  UPLOAD_IMAGE: false
+  UPLOAD_RELEASE: false
+  TZ: Asia/Shanghai
+  
 jobs:
   build:
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Install dependencies
+    - name: Checkout
+      uses: actions/checkout@main
+      
+    - name: Initialization environment
       run: |
         sudo apt-get update
         sudo apt-get install -y -q --no-install-recommends make binutils build-essential gcc g++ patch bzip2 perl cpio unzip rsync file bc wget python python-dev xxd libncurses5-dev cvs git mercurial rsync liblscp-dev subversion python3 python3-dev python3-distutils python3-setuptools ca-certificates openssh-client expect locales sudo procps
@@ -24,13 +26,46 @@ jobs:
         sudo rm -rf /var/lib/apt/lists/*
         sudo sed -i 's/# \(en_US.UTF-8\)/\1/' /etc/locale.gen
         sudo locale-gen --purge --lang en_US.UTF-8
+        
     - name: Build SDK
       run: make sdk
+
     - name: Build FunKey-OS
       run: make
-    - uses: actions/upload-artifact@v2
+
+    - name: Upload image directory
+      uses: actions/upload-artifact@main
+      if: env.UPLOAD_IMAGE == 'true' && !cancelled()
       with:
         name: Upload artifacts
         path: |
           images/*
           br.log
+
+    - name: Generate release tag
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        touch release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Upload image to release
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: images/*
+
+    - name: Remove old Releases
+      uses: dev-drprasad/delete-older-releases@v0.1.0
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      with:
+        keep_latest: 3
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
