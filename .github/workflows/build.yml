@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  UPLOAD_IMAGE: false
+  UPLOAD_IMAGE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
   
