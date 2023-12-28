@@ -31,9 +31,7 @@ jobs:
       run: make sdk
 
     - name: Build FunKey-OS
-      run: |
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
+      run: make
 
     - name: Upload image directory
       uses: actions/upload-artifact@main
