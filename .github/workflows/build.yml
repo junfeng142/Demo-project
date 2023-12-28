@@ -31,14 +31,16 @@ jobs:
       run: make sdk
 
     - name: Build FunKey-OS
-      run: make
+      run: |
+        echo -e "$(nproc) thread compile"
+        make -j$(nproc) || make -j1 || make -j1 V=s
 
     - name: Upload image directory
       uses: actions/upload-artifact@main
       if: env.UPLOAD_IMAGE == 'true' && !cancelled()
       with:
         name: FunKey-OS${{ env.FILE_DATE }}
-        path: images/*.img
+        path: images/*
         
     - name: Generate release tag
       id: tag
@@ -56,8 +58,8 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        files: images/*.img
-
+        files: images/*
+        
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@v0.1.0
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
