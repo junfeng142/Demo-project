@@ -40,7 +40,8 @@ jobs:
       if: env.UPLOAD_IMAGE == 'true' && !cancelled()
       with:
         name: FunKey-OS${{ env.FILE_DATE }}
-        path: images
+        path: |
+          images/*
         
     - name: Generate release tag
       id: tag
@@ -58,7 +59,7 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        files: images
+        files: images/*.img
         
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@v0.1.0
