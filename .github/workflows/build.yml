@@ -5,7 +5,7 @@ on:
 
 env:
   UPLOAD_IMAGE: true
-  UPLOAD_RELEASE: false
+  UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
   
 jobs:
