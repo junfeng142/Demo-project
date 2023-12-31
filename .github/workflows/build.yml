@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 
 env:
-  UPLOAD_IMAGE: true
+  UPLOAD_IMAGE: false
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
   
@@ -59,7 +59,8 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        files: images/*.img
+        files: |
+          images/*
         
     - name: Remove old Releases
       uses: dev-drprasad/delete-older-releases@v0.1.0
