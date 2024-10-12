@@ -1,1 +1,8 @@
-这是一个用于测试armv7的编译项目
+GNGEO : A NeoGeo emulator for linux (fit for funkeys320x240)
+
+### Cross-Compile build
+
+```
+make
+
+```
