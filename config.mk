@@ -4,7 +4,7 @@ VERSION = 0.3
 # Customize below to fit your system
 
 # paths
-CROSS_COMPILE ?= /home/funkey-sdk/bin/arm-linux-
+CROSS_COMPILE ?= /opt/FunKey-sdk-2.3.0/bin/arm-linux-
 CC = ${CROSS_COMPILE}gcc
 SYSROOT	?= $(shell ${CC} --print-sysroot)
 
