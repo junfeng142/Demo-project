@@ -9,7 +9,7 @@ GMENU2X_SITE_METHOD = git
 GMENU2X_SITE = https://github.com/FunKey-Project/gmenu2x.git
 GMENU2X_LICENSE = GPL-2.0
 
-GMENU2X_DEPENDENCIES = sdl sdl_ttf sdl_gfx dejavu libpng fonts-droid
+GMENU2X_DEPENDENCIES = sdl sdl_image sdl_mixer sdl_ttf sdl_gfx dejavu libpng fonts-droid
 
 GMENU2X_CONF_OPTS = -DBIND_CONSOLE=ON
 
@@ -25,7 +25,7 @@ else
 GMENU2X_CONF_OPTS += -DCPUFREQ=OFF
 endif
 
-GMENU2X_CONF_OPTS += -DSCREEN_WIDTH=240 -DSCREEN_HEIGHT=240 -DSCREEN_DEPTH=16
+GMENU2X_CONF_OPTS += -DSCREEN_WIDTH=320 -DSCREEN_HEIGHT=240 -DSCREEN_DEPTH=16
 
 ifeq ($(BR2_PACKAGE_LIBOPK),y)
 GMENU2X_DEPENDENCIES += libopk

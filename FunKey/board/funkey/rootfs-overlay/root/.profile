@@ -50,14 +50,8 @@ cancel_sched_powerdown() {
 # Relocate HOME into the r/w partition
 export HOME=/mnt/FunKey
 mkdir -p "${HOME}"
-export MEDNAFEN_HOME=$HOME/.mednafen
-mkdir -p "${MEDNAFEN_HOME}"
-cp "/usr/games/lynxboot.img" "/usr/games/mednafen-09x.cfg" "${MEDNAFEN_HOME}/"
 export GMENU2X_HOME="$HOME/.gmenu2x"
 mkdir -p "${GMENU2X_HOME}"
-export RETROFE_HOME="$HOME/.retrofe"
-mkdir -p "${RETROFE_HOME}"
-mkdir -p "${RETROFE_HOME}/layouts"
 
 # Resize the console to the terminal dimensions
 resize() {

@@ -13,11 +13,11 @@ SELF=$(basename $0)
 # Find out the root partition number from the kernel command line
 root_part=$(cat /proc/cmdline | sed -n 's|^.*root=\([^ ]*\).*|\1|p')
 root_part_num=${root_part#/dev/mmcblk0p}
-if [ "${root_part_num}" -eq 1 ]; then
+if [ "${root_part_num}" -eq 0 ]; then
     die_notif 0 "recovery mode"
 elif [ "${root_part_num}" = "{$root_part}" ]; then
     die_notif 1 "${root_part} is not an SD card partition, aborting"
-elif [ "${root_part_num}" -ne 2 ]; then
+elif [ "${root_part_num}" -ne 1 ]; then
     die_notif 2 "unknown partition layout, aborting"
 fi
 let swap_part_num=${root_part_num}+1
@@ -36,7 +36,7 @@ resize_rootfs_partition () {
     local rootfs_part_line=$(fdisk -l /dev/mmcblk0 2>/dev/null | grep ${root_part})
     set ${rootfs_part_line}
     local rootfs_part_size=${6}
-    if [ "${rootfs_part_size}" = "1G" ]; then
+    if [ "${rootfs_part_size}" = "125M" ]; then
 	info "root partition is already resized"
 	return 0
     fi
@@ -59,7 +59,7 @@ n
 p
 ${root_part_num}
 ${part_start}
-+1G
++125M
 w
 EOF
 
@@ -76,7 +76,7 @@ resize_rootfs_filesystem () {
     local rootfs_line=$(df | grep /dev/root)
     set ${rootfs_line}
     local rootfs_size=${2}
-    if [ ${rootfs_size} -gt 1000000 ]; then
+    if [ ${rootfs_size} -gt 125000 ]; then
 	info "rootfs already resized"
 	return 0
     fi
@@ -114,7 +114,7 @@ ${swap_part_num}
 
 +128M
 t
-${wap_part_num}
+${swap_part_num}
 82
 w
 EOF
