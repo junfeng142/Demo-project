@@ -1,8 +1,8 @@
 # credits @GXB
 
 TARGET  = gngeo
-CHAINPREFIX     ?= /home/funkey-sdk
-CROSS_COMPILE   ?= /home/funkey-sdk/bin/arm-linux-
+CHAINPREFIX     ?= /opt/FunKey-sdk-2.3.0
+CROSS_COMPILE   ?= /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-
 CC      = $(CROSS_COMPILE)gcc
 CXX     = $(CROSS_COMPILE)g++
 LD      = $(CROSS_COMPILE)gcc
@@ -16,6 +16,7 @@ CFLAGS = $(PKGS_CFLAGS)
 CFLAGS += -D_GNU_SOURCE=1 -D_REENTRANT -DARM
 CFLAGS += -O3 -fstrength-reduce -frerun-loop-opt -funroll-loops -ffast-math -fexpensive-optimizations -fomit-frame-pointer -fno-strict-aliasing
 LDFLAGS = $(PKGS_LIBS)
+LDFLAGS += -lm
 OBJS    = \
   src/messages.o \
   src/drv.o \
