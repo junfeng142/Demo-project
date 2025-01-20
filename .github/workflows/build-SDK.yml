@@ -32,7 +32,6 @@ jobs:
       run: |
         df -hT $PWD
         git clone https://github.com/junfeng142/Demo-project.git -b FunKeyOS FunKeyOS
-        ln -sf /workdir/FunKeyOS $GITHUB_WORKSPACE/FunKeyOS
     
     - name: Build SDK
       run: |
