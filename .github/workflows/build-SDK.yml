@@ -28,7 +28,6 @@ jobs:
         sudo locale-gen --purge --lang en_US.UTF-8
         
     - name: Clone source code
-      working-directory: /workdir
       run: |
         df -hT $PWD
         git clone https://github.com/junfeng142/Demo-project.git -b FunKeyOS FunKeyOS
