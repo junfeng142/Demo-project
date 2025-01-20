@@ -27,6 +27,13 @@ jobs:
         sudo sed -i 's/# \(en_US.UTF-8\)/\1/' /etc/locale.gen
         sudo locale-gen --purge --lang en_US.UTF-8
         
+    - name: Clone source code
+      working-directory: /workdir
+      run: |
+        df -hT $PWD
+        git clone https://github.com/junfeng142/Demo-project.git -b FunKeyOS FunKeyOS
+        ln -sf /workdir/FunKeyOS $GITHUB_WORKSPACE/FunKeyOS
+    
     - name: Build SDK
       run: |
         cd FunKeyOS 
