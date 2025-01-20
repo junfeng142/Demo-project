@@ -28,7 +28,9 @@ jobs:
         sudo locale-gen --purge --lang en_US.UTF-8
         
     - name: Build SDK
-      run: make sdk
+      run: |
+        cd FunKeyOS 
+        make sdk
 
     - name: Upload image directory
       uses: actions/upload-artifact@main
