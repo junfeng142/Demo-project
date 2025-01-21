@@ -1,0 +1,29 @@
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099- -lSDL_ttf -lSDL_image -ldl -lm -lpthread
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099- -lSDL_ttf -lSDL_image -ldl -lm -lpthread -lz
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099- -lpng -lSDL_ttf -lSDL_image -ldl -lm -lpthread -lz
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099- -L/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/lib -lSDL -lpthread -lpng -lSDL_ttf -lSDL_image -ldl -lm -lpthread -lz
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -c /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099-.o
+/tmp/pcsx-conf--1689099-.c:1:12: fatal error: tslib.h: No such file or directory
+    1 |   #include <tslib.h>
+      |            ^~~~~~~~~
+compilation terminated.
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099- -L/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/lib -lSDL -lpthread -lpng -lSDL_ttf -lSDL_image -ldl -lm -lpthread -lz -lEGL -lGLES_CM
+/tmp/pcsx-conf--1689099-.c:1:10: fatal error: GLES/gl.h: No such file or directory
+    1 | #include <GLES/gl.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099- -L/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/lib -lSDL -lpthread -lpng -lSDL_ttf -lSDL_image -ldl -lm -lpthread -lz -lEGL -lGLESv1_CM
+/tmp/pcsx-conf--1689099-.c:1:10: fatal error: GLES/gl.h: No such file or directory
+    1 | #include <GLES/gl.h>
+      |          ^~~~~~~~~~~
+compilation terminated.
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -c /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099-.o
+/tmp/pcsx-conf--1689099-.c:1:12: fatal error: inc_libc64_mini.h: No such file or directory
+    1 |   #include <inc_libc64_mini.h>
+      |            ^~~~~~~~~~~~~~~~~~~
+compilation terminated.
+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc -mfpu=neon -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -D_FILE_OFFSET_BITS=64 -c /tmp/pcsx-conf--1689099-.c -o /tmp/pcsx-conf--1689099-.o -Wno-unused-result
+/tmp/pcsx-conf--1689099-.c: In function 'test':
+/tmp/pcsx-conf--1689099-.c:1:31: warning: implicit declaration of function 'fread' [-Wimplicit-function-declaration]
+    1 | void test(void *f, void *d) { fread(d, 1, 1, f); }
+      |                               ^~~~~
