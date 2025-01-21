@@ -35,7 +35,7 @@ jobs:
     - name: Build SDK
       run: |
         cd FunKeyOS 
-        make sdk
+        make sdk all
 
     - name: Generate release tag
       id: tag
