@@ -36,9 +36,11 @@ jobs:
       run: |
         cd FunKeyOS 
         make sdk
-    - uses: actions/upload-artifact@v2
+
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v1
       with:
         name: Upload artifacts
-        path: |
+        files: |
           FunKeyOS/images/FunKey-sdk*
    
