@@ -10,12 +10,13 @@
 # Description: OpenWrt DIY script part 1 (Before Update feeds)
 #
 
+# create folder
+mkdir -p opk
+mkdir -p /opt/FunKey-sdk-2.3.0
+
 # download sdk
 wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-1309/FunKey-sdk-2.3.0.tar.gz
 tar -zxvf FunKey-sdk-2.3.0.tar.gz -C /opt/FunKey-sdk-2.3.0
-
-# create opk folder
-mkdir -p opk
 
 # cannonball build
 [ -d cannonball ] && patch -p1 < ./configs/fit_for_cannonball_build.patch
