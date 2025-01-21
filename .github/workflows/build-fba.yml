@@ -1,14 +1,14 @@
-name: gngeo-opk Build
+name: fba-opk Build
 
 on:
   workflow_dispatch:
 
 env:
   REPO_URL: https://github.com/junfeng142/Demo-project.git
-  REPO_BRANCH: gngeo
-  PKG_NAME: gngeo
+  REPO_BRANCH: fba
+  PKG_NAME: fba
   BIN_DIR: /
-  CONFIG_FILE: configs/gngeo.config
+  CONFIG_FILE: configs/fba.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
@@ -56,7 +56,7 @@ jobs:
       run: |
         cd $PKG_NAME
         echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
+        make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
@@ -70,8 +70,8 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        mv frontend/$PKG_NAM.* /workdir/opk
-        mv $PKG_NAME$BIN_DIR$PKG_NAME /workdir/opk
+        mv frontend/$PKG_NAM.* opk/
+        mv $PKG_NAME$BIN_DIR$PKG_NAME opk/
         cd opk
         /workdir/tools/mksquashfs ./* $PKG_NAME_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
