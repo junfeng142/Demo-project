@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=FCEUX
+Name[ch]=FCEUX
+Comment=NES/Famicom emulator
+Comment[ch]=NES/红白机模拟器
+Icon=fceux
+Exec=fceux %f
+Categories=emulators
+SelectorDir=/mnt/NES
+SelectorFilter=nes,NES,fds,FDS

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=GamBatte
+Name[ch]=GamBatte
+Comment=GB/GBC emulator
+Comment[ch]=GB/GBC模拟器
+Icon=gambatte
+Exec=gambatte %f
+Categories=emulators
+SelectorDir=/mnt/GamBatte
+SelectorFilter=gb,GB,gbc,GBC

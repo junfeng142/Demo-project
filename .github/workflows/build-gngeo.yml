@@ -8,8 +8,8 @@ env:
   REPO_BRANCH: gngeo
   PKG_NAME: gngeo
   BIN_DIR: /
-  CONFIG_FILE: config/gngeo.config
-  DIY_SH: scripts/diy.sh
+  CONFIG_FILE: configs/gngeo.config
+  DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -49,7 +49,6 @@ jobs:
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
         chmod +x $DIY_SH
-        cd $PKG_NAME
         $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
@@ -71,6 +70,7 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
+        mv frontend/$PKG_NAM.* /workdir/opk
         mv $PKG_NAME$BIN_DIR$PKG_NAME /workdir/opk
         cd opk
         /workdir/tools/mksquashfs ./* $PKG_NAME_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
@@ -81,7 +81,7 @@ jobs:
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
-        name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        name: ${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
         
     - name: Generate release tag
@@ -100,4 +100,4 @@ jobs:
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
-        files: ${{ env.FIRMWARE }}/*
+        files: ${{ env.FIRMWARE }}/*.opk

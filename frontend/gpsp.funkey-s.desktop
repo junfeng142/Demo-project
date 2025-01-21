@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=GBA
+Name[ch]=GBA
+Comment=Game Boy Advance emulator
+Comment[ch]=GBA模拟器
+Icon=gpsp
+Exec=gpsp %f
+Categories=emulators
+SelectorDir=/mnt/GBA
+SelectorFilter=gba,GBA

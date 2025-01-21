@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=MD
+Name[ch]=MD
+Comment=SEGA MEGA DRIVE emulator
+Comment[ch]=世嘉MD模拟器
+Icon=picodrive
+Exec=picodrive %f
+Categories=emulators
+SelectorDir=/mnt/MD
+SelectorFilter=md,MD,smd,SMD,gen,GEN,bin,BIN,sms,SMS,gg,GG,sg,SG,cue,CUE,chd,CHD,cso,CSO,iso,ISO,32x,32X,pco,PCO

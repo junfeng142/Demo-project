@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=ST-SDL
+Name[ch]=终端
+Comment=ST Terminal
+Comment[ch]=SDL版终端工具
+Exec=st
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=st
+Categories=applications;

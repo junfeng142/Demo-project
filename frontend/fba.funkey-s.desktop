@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=FBA
+Comment=Final Burn Alpha SDL
+Icon=fba
+Exec=fba %f
+Categories=emulators;
+SelectorDir=/mnt/FBA
+SelectorFilter=zip,ZIP

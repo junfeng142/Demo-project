@@ -1,0 +1,13 @@
+[Desktop Entry]
+Name=NGP
+Name[ch]=NGP
+Comment=NeoGeo Pocket emulator
+Comment[ch]=NeoGeo便携式掌机模拟器
+Exec=ngp %f
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=ngp
+Categories=emulators;
+SelectorDir=/mnt/NGP
+SelectorFilter=ngp,NGP,ngc,NGC
