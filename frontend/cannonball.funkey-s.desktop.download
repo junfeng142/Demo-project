@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=CannonBall
+Name[ch]=CannonBall
+Comment=Enhanced OutRun engine v0.3
+Comment[ch]=超级赛车v0.3
+Exec=cannonball
+Icon=cannonball
+Categories=games

@@ -70,8 +70,8 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        mv frontend/$PKG_NAM.* /workdir/opk
-        mv $PKG_NAME$BIN_DIR$PKG_NAME /workdir/opk
+        mv frontend/$PKG_NAM.* opk/
+        mv $PKG_NAME$BIN_DIR$PKG_NAME opk/
         cd opk
         /workdir/tools/mksquashfs ./* $PKG_NAME_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
