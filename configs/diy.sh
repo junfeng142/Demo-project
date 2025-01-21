@@ -14,7 +14,7 @@
 mkdir -p opk
 
 # download sdk
-cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-1309/FunKey-sdk-2.3.0.tar.gz
+cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2154/FunKey-sdk-2.3.0.tar.gz
 cd && mv FunKey-sdk-2.3.0.tar.gz /opt
 cd && tar xvf /opt/FunKey-sdk-2.3.0.tar.gz
 
