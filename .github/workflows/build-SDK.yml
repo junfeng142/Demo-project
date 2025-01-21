@@ -37,10 +37,22 @@ jobs:
         cd FunKeyOS 
         make sdk
 
+    - name: Generate release tag
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        touch release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+
     - name: Upload firmware to release
       uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        name: Upload artifacts
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
         files: |
           FunKeyOS/images/FunKey-sdk*
    
