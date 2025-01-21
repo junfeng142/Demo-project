@@ -41,9 +41,6 @@ jobs:
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
-        cd /opt
-        wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-1309/FunKey-sdk-2.3.0.tar.gz
-        tar xvf FunKey-sdk-2.3.0.tar.gz
 
     - name: Load custom configuration
       run: |
