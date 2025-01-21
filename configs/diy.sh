@@ -12,11 +12,11 @@
 
 # create folder
 mkdir -p opk
-mkdir -p /opt/FunKey-sdk-2.3.0
 
 # download sdk
-wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-1309/FunKey-sdk-2.3.0.tar.gz
-tar -zxvf FunKey-sdk-2.3.0.tar.gz -C /opt/FunKey-sdk-2.3.0
+cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-1309/FunKey-sdk-2.3.0.tar.gz
+cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+cd && mv FunKey-sdk-2.3.0 /opt
 
 # cannonball build
 [ -d cannonball ] && patch -p1 < ./configs/fit_for_cannonball_build.patch
