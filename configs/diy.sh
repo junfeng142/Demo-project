@@ -10,6 +10,10 @@
 # Description: OpenWrt DIY script part 1 (Before Update feeds)
 #
 
+# download sdk
+wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-1309/FunKey-sdk-2.3.0.tar.gz
+tar -zxvf FunKey-sdk-2.3.0.tar.gz -C /opt/FunKey-sdk-2.3.0
+
 # create opk folder
 mkdir -p opk
 
