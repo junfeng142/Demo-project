@@ -4,10 +4,11 @@ on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/junfeng142/openwrt.git
-  REPO_BRANCH: c-wrt
+  REPO_URL: https://github.com/junfeng142/Demo-project.git
+  REPO_BRANCH: gngeo
   PKG_NAME: gngeo
-  CONFIG_FILE: config/jdcloud.config
+  BIN_DIR: /
+  CONFIG_FILE: config/gngeo.config
   DIY_SH: scripts/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
@@ -40,6 +41,9 @@ jobs:
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
+        cd /opt
+        wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-1309/FunKey-sdk-2.3.0.tar.gz
+        tar xvf FunKey-sdk-2.3.0.tar.gz
 
     - name: Load custom configuration
       run: |
@@ -67,8 +71,9 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        cd openwrt/bin/targets/*/*
-        rm -rf packages
+        mv $PKG_NAME$BIN_DIR$PKG_NAME /workdir/opk
+        cd opk
+        /workdir/tools/mksquashfs ./* $PKG_NAME_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
         
