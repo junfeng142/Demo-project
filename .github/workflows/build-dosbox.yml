@@ -56,9 +56,9 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
+        export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
         cd $PKG_NAME/$PKG_NAME
         ./autogen.sh SDL_CONFIG=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config ./configure --host=arm-linux --disable-opengl --disable-alsa-midi --disable-dynamic-x86 --disable-fpu-x86 --enable-core-inline CXXFLAGS="-g -O2 -march=armv7ve+simd -mfpu=neon-vfpv4 -mfloat-abi=hard -mtune=cortex-a7 -pipe -fno-builtin -fno-common -ffast-math -fomit-frame-pointer -fexpensive-optimizations -frename-registers" LIBS="-lSDL_gfx -lSDL_image"
-        export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
