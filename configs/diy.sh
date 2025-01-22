@@ -14,9 +14,9 @@
 mkdir -p opk
 
 # download sdk
-cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
-cd && mv FunKey-sdk-2.3.0.tar.gz /opt
-cd && tar xvf /opt/FunKey-sdk-2.3.0.tar.gz
+wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
+tar xvf FunKey-sdk-2.3.0.tar.gz
+mv FunKey-sdk-2.3.0 /opt
 
 # cannonball build
 if [ -d "cannonball" ]; then
