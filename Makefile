@@ -9,7 +9,7 @@
 #
 
 # Specify the name of the executable file
-NAME = fbasdl
+NAME = fba
 
 # Check for changes in header files
 DEPEND = 1
