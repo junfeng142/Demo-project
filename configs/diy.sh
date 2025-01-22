@@ -39,7 +39,10 @@ fi
 [ -f race-od.man.txt ] && patch -p1 < fit_for_ngp_build.patch
 
 # picodrive build
-[ -f picodrive.map ] && patch -p1 < fit_for_picodrive_build.patch
+if [ -f picodrive.map ]; then
+    patch -p1 < fit_for_picodrive_build.patch
+    mv platform/opendingux/data/skin _opk/
+fi
 
 # pocketsnes build
 if [ -d "pocketsnes" ]; then
