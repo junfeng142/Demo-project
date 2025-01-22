@@ -23,7 +23,7 @@ fi
 [ -d dosbox ] && patch -p1 < fit_for_dosbox_build.patch
 
 # fceux build
-[ -f fceux.png ] patch -p1 < fit_for_fceux_build.patch
+[ -f fceux.png ] && patch -p1 < fit_for_fceux_build.patch
 
 # gambatte build
 [ -d gambatte_sdl ] && patch -p1 < fit_for_gambatte_build.patch
