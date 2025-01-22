@@ -11,12 +11,12 @@
 #
 
 # create folder
-mkdir -p opk
+mkdir -p ../opk
 
 # cannonball build
 if [ -d "cannonball" ]; then
-    sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' cannonball/Makefile.funkey
-    sed -i 's/musleabihf/gnueabihf/g' cannonball/Makefile.funkey
+    sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey
+    sed -i 's/musleabihf/gnueabihf/g' Makefile.funkey
 fi
 
 # dosbox build
