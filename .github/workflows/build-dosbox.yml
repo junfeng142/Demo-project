@@ -6,7 +6,7 @@ on:
 env:
   REPO_URL: https://github.com/jbanes/rs97-dosbox.git
   REPO_BRANCH: master
-  PKG_NAME: doxbox
+  PKG_NAME: dosbox
   BIN_DIR: /
   CONFIG_FILE: configs/doxbox.config
   DIY_SH: configs/diy.sh
