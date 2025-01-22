@@ -23,7 +23,7 @@ fi
 [ -d dosbox ] && patch -p1 < ./configs/fit_for_dosbox_build.patch
 
 # fceux build
-[ -d fceux ] && patch -p1 < ./configs/fit_for_fecux_build.patch
+[ -d fceux ] && patch -p1 < ./configs/fit_for_fceux_build.patch
 
 # gambatte build
 [ -d gambatte ] && patch -p1 < ./configs/fit_for_gambatte_build.patch
