@@ -51,6 +51,7 @@ jobs:
         mv configs/*.patch $PKG_NAME/
         chmod +x $DIY_SH
         cd $PKG_NAME
+        git submodule update --init
         $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
