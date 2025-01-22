@@ -1,6 +1,6 @@
-diff -uprN a/fceux/Makefile b/fceux/Makefile
---- a/fceux/Makefile	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/Makefile	2025-01-22 10:08:44.582264456 +0800
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2024-10-13 05:26:19.000000000 +0800
++++ b/Makefile	2025-01-22 10:08:44.582264456 +0800
 @@ -219,8 +219,8 @@ OBJS = $(CORE_OBJS) $(BOARDS_OBJS) $(INP
  	$(COMMON_DRIVER_OBJS) $(DRIVER_OBJS)
  
@@ -21,9 +21,9 @@ diff -uprN a/fceux/Makefile b/fceux/Makefile
  endif
  endif
  OPTIMIZE += -ffast-math -ftree-vectorize -fno-strict-aliasing -fipa-pta
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp b/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp	2025-01-22 10:08:45.250240023 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/cheat_browser.cpp b/src/drivers/dingux-sdl/gui/cheat_browser.cpp
+--- a/src/drivers/dingux-sdl/gui/cheat_browser.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/cheat_browser.cpp	2025-01-22 10:08:45.250240023 +0800
 @@ -234,7 +234,7 @@ RESTART:
  				goto RESTART;
  			}
@@ -60,9 +60,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp b/fceux/src/driv
  				if (index < offset_end-1) {
  					index = offset_end-1;
  
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp	2025-01-22 10:08:45.274239145 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/control_settings.cpp b/src/drivers/dingux-sdl/gui/control_settings.cpp
+--- a/src/drivers/dingux-sdl/gui/control_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/control_settings.cpp	2025-01-22 10:08:45.274239145 +0800
 @@ -193,7 +193,7 @@ int RunControlSettings()
  				done= err;
  			}	
@@ -99,9 +99,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp b/fceux/src/d
  #if defined(RETROFW) || defined(LEPUS)
  			    	if (index >= 4 && index <= 7) {
  #else
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp b/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp	2025-01-22 10:08:45.318237536 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/file_browser.cpp b/src/drivers/dingux-sdl/gui/file_browser.cpp
+--- a/src/drivers/dingux-sdl/gui/file_browser.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/file_browser.cpp	2025-01-22 10:08:45.318237536 +0800
 @@ -156,7 +156,7 @@ RESTART:
  				goto RESTART;
  			}
@@ -138,9 +138,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp b/fceux/src/drive
  				if (index < offset_end-1) {
  					index = offset_end-1;
  
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp b/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp	2025-01-22 10:08:45.262239584 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/gui_submenu.cpp b/src/drivers/dingux-sdl/gui/gui_submenu.cpp
+--- a/src/drivers/dingux-sdl/gui/gui_submenu.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/gui_submenu.cpp	2025-01-22 10:08:45.262239584 +0800
 @@ -45,7 +45,7 @@ RESTART:
  			}
  		}
@@ -177,9 +177,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp b/fceux/src/driver
  			if (index < offset_end-1) {
  				index = offset_end-1;
  
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp	2025-01-22 10:08:45.262239584 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/main_settings.cpp b/src/drivers/dingux-sdl/gui/main_settings.cpp
+--- a/src/drivers/dingux-sdl/gui/main_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/main_settings.cpp	2025-01-22 10:08:45.262239584 +0800
 @@ -165,7 +165,7 @@ int RunMainSettings() {
  		readkey();
  		if (parsekey(DINGOO_B))
@@ -207,9 +207,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp b/fceux/src/driv
  				DINGOO_A))
  			st_menu[index].update(g_key);
  
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp	2025-01-22 10:08:45.306237974 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/overclock_settings.cpp b/src/drivers/dingux-sdl/gui/overclock_settings.cpp
+--- a/src/drivers/dingux-sdl/gui/overclock_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/overclock_settings.cpp	2025-01-22 10:08:45.306237974 +0800
 @@ -96,7 +96,7 @@ int RunOverclockSettings()
  		#endif
  		if (parsekey(DINGOO_B)) done = 1;
@@ -237,9 +237,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp b/fceux/src
  			oc_menu[index].update(g_key);
  		}
  
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp	2025-01-22 10:08:45.206241632 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/palette_settings.cpp b/src/drivers/dingux-sdl/gui/palette_settings.cpp
+--- a/src/drivers/dingux-sdl/gui/palette_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/palette_settings.cpp	2025-01-22 10:08:45.206241632 +0800
 @@ -119,7 +119,7 @@ int RunPaletteSettings()
  		// Parse input
  		readkey();
@@ -258,9 +258,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp b/fceux/src/d
  			if (index < (menu_size - 1)) {
  				index++;
  
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp b/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp	2025-01-22 10:08:45.250240023 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/settings_menu.cpp b/src/drivers/dingux-sdl/gui/settings_menu.cpp
+--- a/src/drivers/dingux-sdl/gui/settings_menu.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/settings_menu.cpp	2025-01-22 10:08:45.250240023 +0800
 @@ -67,7 +67,7 @@ int RunSettingsMenu() {
  		if (parsekey(DINGOO_B))
  			done = 1;
@@ -279,9 +279,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp b/fceux/src/driv
  			if (index < SETTINGS_MENUSIZE - 1) {
  				index++;
  				spy += 16;
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp	2025-01-22 10:08:45.262239584 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/sound_settings.cpp b/src/drivers/dingux-sdl/gui/sound_settings.cpp
+--- a/src/drivers/dingux-sdl/gui/sound_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/sound_settings.cpp	2025-01-22 10:08:45.262239584 +0800
 @@ -193,7 +193,7 @@ int RunSoundSettings() {
  		#endif
  		if (parsekey(DINGOO_B))
@@ -309,9 +309,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp b/fceux/src/dri
  			sd_menu[index].update(g_key);
  
  		// Draw stuff
-diff -uprN a/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp
---- a/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp	2025-01-22 10:08:45.250240023 +0800
+diff -uprN a/src/drivers/dingux-sdl/gui/video_settings.cpp b/src/drivers/dingux-sdl/gui/video_settings.cpp
+--- a/src/drivers/dingux-sdl/gui/video_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/gui/video_settings.cpp	2025-01-22 10:08:45.250240023 +0800
 @@ -213,7 +213,7 @@ int RunVideoSettings()
  		// Parse input
  		readkey();
@@ -339,9 +339,9 @@ diff -uprN a/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp b/fceux/src/dri
  			vd_menu[index].update(g_key);
    
  		// Draw stuff
-diff -uprN a/fceux/src/drivers/dingux-sdl/keyscan.h b/fceux/src/drivers/dingux-sdl/keyscan.h
---- a/fceux/src/drivers/dingux-sdl/keyscan.h	2024-10-13 05:26:19.000000000 +0800
-+++ b/fceux/src/drivers/dingux-sdl/keyscan.h	2025-01-22 10:08:45.194242072 +0800
+diff -uprN a/src/drivers/dingux-sdl/keyscan.h b/src/drivers/dingux-sdl/keyscan.h
+--- a/src/drivers/dingux-sdl/keyscan.h	2024-10-13 05:26:19.000000000 +0800
++++ b/src/drivers/dingux-sdl/keyscan.h	2025-01-22 10:08:45.194242072 +0800
 @@ -51,34 +51,34 @@
  
  #define MKK_COUNT (SDLK_LAST+1)
