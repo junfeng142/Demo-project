@@ -11,43 +11,39 @@
 #
 
 # create folder
-mkdir -p ../opk
+mkdir -p _opk
 
 # cannonball build
-if [ -d "cannonball" ]; then
-    sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' cannonball/Makefile.funkey
-    sed -i 's/musleabihf/gnueabihf/g' cannonball/Makefile.funkey
+if [ -f "Makefile.funkey" ]; then
+    sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey
+    sed -i 's/musleabihf/gnueabihf/g' Makefile.funkey
 fi
 
 # dosbox build
-[ -d dosbox ] && patch -p1 < ./configs/fit_for_dosbox_build.patch
+[ -d dosbox ] && patch -p1 < fit_for_dosbox_build.patch
 
 # fceux build
-patch -p1 < ../configs/fit_for_fceux_build.patch
+[ -f fceux.png ]patch -p1 < fit_for_fceux_build.patch
 
 # gambatte build
-[ -d gambatte ] && patch -p1 < ./configs/fit_for_gambatte_build.patch
+[ -d gambatte_sdl ] && patch -p1 < fit_for_gambatte_build.patch
 
 # gpsp build
-if [ -d "gpsp" ]; then
-    patch -p1 < ./configs/fit_for_gpsp_build.patch
-    cp ./gpsp/borders/border1.png ./opk/border.png
-    cp ./gpsp/game_config.txt ./opk/game_config.txt
+if [ -f "game_config.txt" ]; then
+    patch -p1 < fit_for_gpsp_build.patch
+    cp borders/border1.png _opk/border.png
+    cp game_config.txt _opk/
 fi
 
 # ngp build
-[ -d ngp ] && patch -p1 < ./configs/fit_for_ngp_build.patch
+[ -f race-od.man.txt ] && patch -p1 < fit_for_ngp_build.patch
 
 # picodrive build
-[ -d picodrive ] && patch -p1 < ./configs/fit_for_picodrive_build.patch
+[ -f picodrive.map ] && patch -p1 < fit_for_picodrive_build.patch
 
 # pocketsnes build
 if [ -d "pocketsnes" ]; then
-    patch -p1 < ./configs/fit_for_pocketsnes_build.patch
-    cp ./pocketsnes/dist/backdrop.png ./opk/backdrop.png
+    patch -p1 < fit_for_pocketsnes_build.patch
+    cp dist/backdrop.png _opk/
 fi
 
-# download sdk
-wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
-tar xvf FunKey-sdk-2.3.0.tar.gz
-mv FunKey-sdk-2.3.0 /opt
