@@ -1,14 +1,14 @@
-name: cannonball-opk Build
+name: dosbox-opk Build
 
 on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/DrUm78/Cannonball-C.git
-  REPO_BRANCH: v0.3-funkey-s
-  PKG_NAME: cannonball
+  REPO_URL: https://github.com/jbanes/rs97-dosbox.git
+  REPO_BRANCH: master
+  PKG_NAME: doxbox
   BIN_DIR: /
-  CONFIG_FILE: configs/cannonball.config
+  CONFIG_FILE: configs/doxbox.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
@@ -26,7 +26,7 @@ jobs:
     - name: Initialization environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y -q --no-install-recommends make cmake wget autogen autoconf automake -y
+        sudo apt-get install -y -q --no-install-recommends build-essential make cmake wget autogen autoconf automake -y
         sudo apt-get -y autoremove
         sudo apt-get -y clean
         sudo rm -rf /var/lib/apt/lists/*
@@ -56,9 +56,10 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME
-        echo -e "$(nproc) thread compile"
-        make -f Makefile.funkey
+        cd $PKG_NAME/$PKG_NAME
+        ./autogen.sh SDL_CONFIG=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config ./configure --host=arm-linux --disable-opengl --disable-alsa-midi --disable-dynamic-x86 --disable-fpu-x86 --enable-core-inline CXXFLAGS="-g -O2 -march=armv7ve+simd -mfpu=neon-vfpv4 -mfloat-abi=hard -mtune=cortex-a7 -pipe -fno-builtin -fno-common -ffast-math -fomit-frame-pointer -fexpensive-optimizations -frename-registers" LIBS="-lSDL_gfx -lSDL_image"
+        export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
+        make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
@@ -73,7 +74,7 @@ jobs:
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
-        mv ${PKG_NAME}${BIN_DIR}${PKG_NAME} $PKG_NAME/_opk/
+        mv ${PKG_NAME}/${PKG_NAME}${BIN_DIR}${PKG_NAME} $PKG_NAME/_opk/
         tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
