@@ -11,7 +11,7 @@
 #
 
 # create folder
-mkdir -p opk
+mkdir -p ../opk
 
 # cannonball build
 if [ -d "cannonball" ]; then
