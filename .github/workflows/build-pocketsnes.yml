@@ -1,14 +1,14 @@
-name: picodrive-opk Build
+name: pocketsnes-opk Build
 
 on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/irixxxx/picodrive.git
-  REPO_BRANCH: v2.02
-  PKG_NAME: picodrive
-  BIN_DIR: /
-  CONFIG_FILE: configs/picodrive.config
+  REPO_URL: https://github.com/m45t3r/PocketSNES.git
+  REPO_BRANCH: master
+  PKG_NAME: pocketsnes
+  BIN_DIR: /dist/
+  CONFIG_FILE: configs/pocketsnes.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
@@ -57,7 +57,7 @@ jobs:
       id: compile
       run: |
         cd $PKG_NAME
-        ./tools/release.sh
+        echo -e "$(nproc) thread compile"
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
@@ -74,7 +74,6 @@ jobs:
       run: |
         mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
         mv ${PKG_NAME}${BIN_DIR}${PKG_NAME} $PKG_NAME/_opk/
-        cp -r ${PKG_NAME}/skin $PKG_NAME/_opk/
         tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
