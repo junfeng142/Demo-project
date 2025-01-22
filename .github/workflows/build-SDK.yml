@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 env:
-  UPLOAD_IMAGE: false
-  UPLOAD_RELEASE: true
+  UPLOAD_IMAGE: true
+  UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
   
 jobs:
@@ -36,6 +36,14 @@ jobs:
       run: |
         cd FunKeyOS 
         make sdk all
+        
+    - name: Upload image
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_IMAGE == 'true'
+      with:
+        name: FunKeyOS${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        files: |
+          FunKeyOS/images/*.img
 
     - name: Generate release tag
       id: tag

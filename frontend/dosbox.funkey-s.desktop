@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=DOSBOX
+Name[ch]=DOSBOX
+Comment=Microsoft DOS Intel PC emulator
+Comment[ch]=微软DOC-PC模拟器
+Icon=dosbox
+Exec=dosbox %f
+Categories=games;
+SelectorDir=/mnt/DOS
+SelectorFilter=bat,BAT

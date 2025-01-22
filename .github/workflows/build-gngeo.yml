@@ -68,8 +68,9 @@ jobs:
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         mv frontend/$PKG_NAME.* opk/
-        mv $PKG_NAME$BIN_DIR$PKG_NAME opk/
-        tools/mksquashfs opk/* opk/$PKG_NAME_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        mv ${{ PKG_NAME }}${{ BIN_DIR }}${{ PKG_NAME }} opk/
+        tools/mksquashfs opk/* opk/${{ PKG_NAME }}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        cd opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
         

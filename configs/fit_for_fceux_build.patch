@@ -1,0 +1,392 @@
+diff -uprN a/fceux/Makefile b/fceux/Makefile
+--- a/fceux/Makefile	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/Makefile	2025-01-22 10:08:44.582264456 +0800
+@@ -219,8 +219,8 @@ OBJS = $(CORE_OBJS) $(BOARDS_OBJS) $(INP
+ 	$(COMMON_DRIVER_OBJS) $(DRIVER_OBJS)
+ 
+ ifneq ($(LINUX),yes)
+-TOOLCHAIN?=/opt/miyoo
+-CROSS_COMPILE?=arm-linux-
++TOOLCHAIN?=/opt/FunKey-sdk-2.3.0
++CROSS_COMPILE?=arm-funkey-linux-gnueabihf-
+ endif
+ BINDIR=$(TOOLCHAIN)/usr/bin
+ CC = $(BINDIR)/$(CROSS_COMPILE)gcc
+@@ -271,7 +271,7 @@ else ifeq ($(DEVICE),lepus)
+     OPTIMIZE += -mips32
+ else
+ ifneq ($(LINUX),yes)
+-    OPTIMIZE += -march=armv5te -mtune=arm926ej-s
++    OPTIMIZE += -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4
+ endif
+ endif
+ OPTIMIZE += -ffast-math -ftree-vectorize -fno-strict-aliasing -fipa-pta
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp b/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/cheat_browser.cpp	2025-01-22 10:08:45.250240023 +0800
+@@ -234,7 +234,7 @@ RESTART:
+ 				goto RESTART;
+ 			}
+ 
+-			if (parsekey(DINGOO_UP, 1)) {
++			if (parsekey(DINGOO_UP, 0)) {
+ 				if (index > offset_start){
+ 					index--;
+ 					spy -= 15;
+@@ -250,7 +250,7 @@ RESTART:
+ 				}
+ 			}
+ 
+-			if (parsekey(DINGOO_DOWN, 1)) {
++			if (parsekey(DINGOO_DOWN, 0)) {
+ 				if (index < offset_end - 1){
+ 					index++;
+ 					spy += 15;
+@@ -266,7 +266,7 @@ RESTART:
+ 				}
+ 			}
+ 
+-			if (parsekey(DINGOO_LEFT, 1)) {
++			if (parsekey(DINGOO_LEFT, 0)) {
+ 				if (index > offset_start) {
+ 					index = offset_start;
+ 
+@@ -280,7 +280,7 @@ RESTART:
+ 					goto RESTART;
+ 			}
+ 
+-			if (parsekey(DINGOO_RIGHT, 1)) {
++			if (parsekey(DINGOO_RIGHT, 0)) {
+ 				if (index < offset_end-1) {
+ 					index = offset_end-1;
+ 
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/control_settings.cpp	2025-01-22 10:08:45.274239145 +0800
+@@ -193,7 +193,7 @@ int RunControlSettings()
+ 				done= err;
+ 			}	
+ 
+-			if (parsekey(DINGOO_UP, 1)) {
++			if (parsekey(DINGOO_UP, 0)) {
+ 				if (index > 0) {
+ 					index--;
+ 					spy -= 15;
+@@ -203,7 +203,7 @@ int RunControlSettings()
+ 				}
+ 			}
+ 
+-			if (parsekey(DINGOO_DOWN, 1)) {
++			if (parsekey(DINGOO_DOWN, 0)) {
+ 				if (index < CONTROL_MENUSIZE - 1) {
+ 					index++;
+ 					spy += 15;
+@@ -213,7 +213,7 @@ int RunControlSettings()
+ 				}
+ 			}
+ 
+-			if (parsekey(DINGOO_LEFT, 1)) {
++			if (parsekey(DINGOO_LEFT, 0)) {
+ #if defined(RETROFW) || defined(LEPUS)
+ 				if (index >= 4 && index <= 7) {
+ #else
+@@ -223,7 +223,7 @@ int RunControlSettings()
+ 				}
+ 			}
+ 
+-			if (parsekey(DINGOO_RIGHT, 1)) {
++			if (parsekey(DINGOO_RIGHT, 0)) {
+ #if defined(RETROFW) || defined(LEPUS)
+ 			    	if (index >= 4 && index <= 7) {
+ #else
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp b/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/file_browser.cpp	2025-01-22 10:08:45.318237536 +0800
+@@ -156,7 +156,7 @@ RESTART:
+ 				goto RESTART;
+ 			}
+ 
+-			if (parsekey(DINGOO_UP, 1)) {
++			if (parsekey(DINGOO_UP, 0)) {
+ 				if (index > offset_start){
+ 					index--;
+ 					spy -= 15;
+@@ -172,7 +172,7 @@ RESTART:
+ 				}
+ 			}
+ 
+-			if (parsekey(DINGOO_DOWN, 1)) {
++			if (parsekey(DINGOO_DOWN, 0)) {
+ 				if (index < offset_end - 1){
+ 					index++;
+ 					spy += 15;
+@@ -188,7 +188,7 @@ RESTART:
+ 				}
+ 			}
+ 
+-			if (parsekey(DINGOO_LEFT, 1)) {
++			if (parsekey(DINGOO_LEFT, 0)) {
+ 				if (index > offset_start) {
+ 					index = offset_start;
+ 
+@@ -202,7 +202,7 @@ RESTART:
+ 					goto RESTART;
+ 			}
+ 
+-			if (parsekey(DINGOO_RIGHT, 1)) {
++			if (parsekey(DINGOO_RIGHT, 0)) {
+ 				if (index < offset_end-1) {
+ 					index = offset_end-1;
+ 
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp b/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/gui_submenu.cpp	2025-01-22 10:08:45.262239584 +0800
+@@ -45,7 +45,7 @@ RESTART:
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_UP, 1)) {
++		if (parsekey(DINGOO_UP, 0)) {
+ 			if (index > 0) {
+ 				index--;
+ 
+@@ -64,7 +64,7 @@ RESTART:
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_DOWN, 1)) {
++		if (parsekey(DINGOO_DOWN, 0)) {
+ 			if (index < (menu_size - 1)) {
+ 				index++;
+ 
+@@ -83,7 +83,7 @@ RESTART:
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_LEFT, 1)) {
++		if (parsekey(DINGOO_LEFT, 0)) {
+ 			if (index > offset_start) {
+ 				index = offset_start;
+ 
+@@ -97,7 +97,7 @@ RESTART:
+ 				goto RESTART;
+ 		}
+ 
+-		if (parsekey(DINGOO_RIGHT, 1)) {
++		if (parsekey(DINGOO_RIGHT, 0)) {
+ 			if (index < offset_end-1) {
+ 				index = offset_end-1;
+ 
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/main_settings.cpp	2025-01-22 10:08:45.262239584 +0800
+@@ -165,7 +165,7 @@ int RunMainSettings() {
+ 		readkey();
+ 		if (parsekey(DINGOO_B))
+ 			done = 1;
+-		if (parsekey(DINGOO_UP, 1)) {
++		if (parsekey(DINGOO_UP, 0)) {
+ 			if (index > 0) {
+ 				index--;
+ 
+@@ -184,7 +184,7 @@ int RunMainSettings() {
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_DOWN, 1)) {
++		if (parsekey(DINGOO_DOWN, 0)) {
+ 			if (index < (menu_size - 1)) {
+ 				index++;
+ 
+@@ -203,7 +203,7 @@ int RunMainSettings() {
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_LEFT, 1) || parsekey(DINGOO_RIGHT, 1) || parsekey(
++		if (parsekey(DINGOO_LEFT, 0) || parsekey(DINGOO_RIGHT, 0) || parsekey(
+ 				DINGOO_A))
+ 			st_menu[index].update(g_key);
+ 
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/overclock_settings.cpp	2025-01-22 10:08:45.306237974 +0800
+@@ -96,7 +96,7 @@ int RunOverclockSettings()
+ 		#endif
+ 		if (parsekey(DINGOO_B)) done = 1;
+ 
+-		if (parsekey(DINGOO_UP, 1)) {
++		if (parsekey(DINGOO_UP, 0)) {
+ 			if (index > 0) {
+ 				index--;
+ 
+@@ -115,7 +115,7 @@ int RunOverclockSettings()
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_DOWN, 1)) {
++		if (parsekey(DINGOO_DOWN, 0)) {
+ 			if (index < (menu_size - 1)) {
+ 				index++;
+ 
+@@ -134,7 +134,7 @@ int RunOverclockSettings()
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_RIGHT, 1) || parsekey(DINGOO_LEFT, 1)) {
++		if (parsekey(DINGOO_RIGHT, 0) || parsekey(DINGOO_LEFT, 0)) {
+ 			oc_menu[index].update(g_key);
+ 		}
+ 
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/palette_settings.cpp	2025-01-22 10:08:45.206241632 +0800
+@@ -119,7 +119,7 @@ int RunPaletteSettings()
+ 		// Parse input
+ 		readkey();
+ 		if (parsekey(DINGOO_B)) done = 1;
+-		if (parsekey(DINGOO_UP, 1)) {
++		if (parsekey(DINGOO_UP, 0)) {
+ 			if (index > 0) {
+ 				index--;
+ 
+@@ -138,7 +138,7 @@ int RunPaletteSettings()
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_DOWN, 1)) {
++		if (parsekey(DINGOO_DOWN, 0)) {
+ 			if (index < (menu_size - 1)) {
+ 				index++;
+ 
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp b/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/settings_menu.cpp	2025-01-22 10:08:45.250240023 +0800
+@@ -67,7 +67,7 @@ int RunSettingsMenu() {
+ 		if (parsekey(DINGOO_B))
+ 			done = 1;
+ 
+-		if (parsekey(DINGOO_UP, 1)) {
++		if (parsekey(DINGOO_UP, 0)) {
+ 			if (index > 0) {
+ 				index--;
+ 				spy -= 16;
+@@ -77,7 +77,7 @@ int RunSettingsMenu() {
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_DOWN, 1)) {
++		if (parsekey(DINGOO_DOWN, 0)) {
+ 			if (index < SETTINGS_MENUSIZE - 1) {
+ 				index++;
+ 				spy += 16;
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/sound_settings.cpp	2025-01-22 10:08:45.262239584 +0800
+@@ -193,7 +193,7 @@ int RunSoundSettings() {
+ 		#endif
+ 		if (parsekey(DINGOO_B))
+ 			done = 1;
+-		if (parsekey(DINGOO_UP, 1)) {
++		if (parsekey(DINGOO_UP, 0)) {
+ 			if (index > 0) {
+ 				index--;
+ 
+@@ -212,7 +212,7 @@ int RunSoundSettings() {
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_DOWN, 1)) {
++		if (parsekey(DINGOO_DOWN, 0)) {
+ 			if (index < (menu_size - 1)) {
+ 				index++;
+ 
+@@ -231,7 +231,7 @@ int RunSoundSettings() {
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_RIGHT, 1) || parsekey(DINGOO_LEFT, 1))
++		if (parsekey(DINGOO_RIGHT, 0) || parsekey(DINGOO_LEFT, 0))
+ 			sd_menu[index].update(g_key);
+ 
+ 		// Draw stuff
+diff -uprN a/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp b/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp
+--- a/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/gui/video_settings.cpp	2025-01-22 10:08:45.250240023 +0800
+@@ -213,7 +213,7 @@ int RunVideoSettings()
+ 		// Parse input
+ 		readkey();
+ 		if (parsekey(DINGOO_B)) done = 1;
+-		if (parsekey(DINGOO_UP, 1)) {
++		if (parsekey(DINGOO_UP, 0)) {
+ 			if (index > 0) {
+ 				index--;
+ 
+@@ -232,7 +232,7 @@ int RunVideoSettings()
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_DOWN, 1)) {
++		if (parsekey(DINGOO_DOWN, 0)) {
+ 			if (index < (menu_size - 1)) {
+ 				index++;
+ 
+@@ -251,7 +251,7 @@ int RunVideoSettings()
+ 			}
+ 		}
+ 
+-		if (parsekey(DINGOO_RIGHT, 1) || parsekey(DINGOO_LEFT, 1))
++		if (parsekey(DINGOO_RIGHT, 0) || parsekey(DINGOO_LEFT, 0))
+ 			vd_menu[index].update(g_key);
+   
+ 		// Draw stuff
+diff -uprN a/fceux/src/drivers/dingux-sdl/keyscan.h b/fceux/src/drivers/dingux-sdl/keyscan.h
+--- a/fceux/src/drivers/dingux-sdl/keyscan.h	2024-10-13 05:26:19.000000000 +0800
++++ b/fceux/src/drivers/dingux-sdl/keyscan.h	2025-01-22 10:08:45.194242072 +0800
+@@ -51,34 +51,34 @@
+ 
+ #define MKK_COUNT (SDLK_LAST+1)
+ 
+-#define DINGOO_UP SDLK_UP
+-#define DINGOO_DOWN SDLK_DOWN
+-#define DINGOO_LEFT SDLK_LEFT
+-#define DINGOO_RIGHT SDLK_RIGHT
++#define DINGOO_UP SDLK_u
++#define DINGOO_DOWN SDLK_d
++#define DINGOO_LEFT SDLK_l
++#define DINGOO_RIGHT SDLK_r
+ #ifdef MIYOO
+-#define DINGOO_A SDLK_LALT
+-#define DINGOO_B SDLK_LCTRL
+-#define DINGOO_X SDLK_LSHIFT
+-#define DINGOO_Y SDLK_SPACE
++#define DINGOO_A SDLK_a
++#define DINGOO_B SDLK_b
++#define DINGOO_X SDLK_x
++#define DINGOO_Y SDLK_y
+ #else
+ #define DINGOO_A SDLK_LCTRL
+ #define DINGOO_B SDLK_LALT
+ #define DINGOO_X SDLK_SPACE
+ #define DINGOO_Y SDLK_LSHIFT
+ #endif
+-#define DINGOO_L SDLK_TAB
+-#define DINGOO_R SDLK_BACKSPACE
++#define DINGOO_L SDLK_m
++#define DINGOO_R SDLK_n
+ #define DINGOO_L2 SDLK_PAGEUP
+ #define DINGOO_R2 SDLK_PAGEDOWN
+ #ifdef MIYOO
+ #define DINGOO_L3 SDLK_RALT
+ #define DINGOO_R3 SDLK_RSHIFT
+ #endif
+-#define DINGOO_START SDLK_RETURN
+-#define DINGOO_SELECT SDLK_ESCAPE
++#define DINGOO_START SDLK_s
++#define DINGOO_SELECT SDLK_k
+ #ifdef RETROFW
+ #ifdef MIYOO
+-#define DINGOO_MENU SDLK_RCTRL
++#define DINGOO_MENU SDLK_q
+ #else
+ #define DINGOO_MENU SDLK_END
+ #endif
