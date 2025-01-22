@@ -1,14 +1,14 @@
-name: fba-opk Build
+name: gpsp-opk Build
 
 on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/junfeng142/Demo-project.git
-  REPO_BRANCH: fba
-  PKG_NAME: fba
-  BIN_DIR: /bin/
-  CONFIG_FILE: configs/fba.config
+  REPO_URL: https://github.com/Apaczer/gpsp.git
+  REPO_BRANCH: 1.2.3
+  PKG_NAME: gpsp
+  BIN_DIR: /miyoo/
+  CONFIG_FILE: configs/gpsp.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
@@ -56,7 +56,7 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME
+        cd $PKG_NAME/miyoo
         echo -e "$(nproc) thread compile"
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT

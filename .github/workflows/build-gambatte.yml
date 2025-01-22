@@ -1,14 +1,14 @@
-name: fba-opk Build
+name: gambatte-opk Build
 
 on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/junfeng142/Demo-project.git
-  REPO_BRANCH: fba
-  PKG_NAME: fba
-  BIN_DIR: /bin/
-  CONFIG_FILE: configs/fba.config
+  REPO_URL: https://github.com/bardeci/gambatte-dms.git
+  REPO_BRANCH: 20231203
+  PKG_NAME: gambatte
+  BIN_DIR: /dist/
+  CONFIG_FILE: configs/gambatte.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
