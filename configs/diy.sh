@@ -37,6 +37,7 @@ fi
 if [ -d "gpsp" ]; then
     patch -p1 < ./configs/fit_for_gpsp_build.patch
     cp ./gpsp/borders/border1.png ./opk/border.png
+    cp ./gpsp/game_config.txt ./opk/game_config.txt
 fi
 
 # ngp build
