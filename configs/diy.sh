@@ -13,11 +13,6 @@
 # create folder
 mkdir -p opk
 
-# download sdk
-wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
-tar xvf FunKey-sdk-2.3.0.tar.gz
-mv FunKey-sdk-2.3.0 /opt
-
 # cannonball build
 if [ -d "cannonball" ]; then
     sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' cannonball/Makefile.funkey
@@ -27,8 +22,8 @@ fi
 # dosbox build
 [ -d dosbox ] && patch -p1 < ./configs/fit_for_dosbox_build.patch
 
-# fecux build
-[ -d fecux ] && patch -p1 < ./configs/fit_for_fecux_build.patch
+# fceux build
+[ -d fceux ] && patch -p1 < ./configs/fit_for_fecux_build.patch
 
 # gambatte build
 [ -d gambatte ] && patch -p1 < ./configs/fit_for_gambatte_build.patch
@@ -52,3 +47,7 @@ if [ -d "pocketsnes" ]; then
     cp ./pocketsnes/dist/backdrop.png ./opk/backdrop.png
 fi
 
+# download sdk
+wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
+tar xvf FunKey-sdk-2.3.0.tar.gz
+mv FunKey-sdk-2.3.0 /opt
