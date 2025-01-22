@@ -19,7 +19,10 @@ cd && mv FunKey-sdk-2.3.0.tar.gz /opt
 cd && tar xvf /opt/FunKey-sdk-2.3.0.tar.gz
 
 # cannonball build
-[ -d cannonball ] && patch -p1 < ./configs/fit_for_cannonball_build.patch
+if [ -d "cannonball" ]; then
+    sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' cannonball/Makefile.funkey
+    sed -i 's/musleabihf/gnueabihf/g' cannonball/Makefile.funkey
+fi
 
 # dosbox build
 [ -d dosbox ] && patch -p1 < ./configs/fit_for_dosbox_build.patch
