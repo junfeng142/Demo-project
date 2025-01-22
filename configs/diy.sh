@@ -14,7 +14,7 @@
 mkdir -p _opk
 
 # cannonball build
-if [ -f "Makefile.funkey" ]; then
+if [ -d "cannonboard" ]; then
     sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey
     sed -i 's/musleabihf/gnueabihf/g' Makefile.funkey
 fi

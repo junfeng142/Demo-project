@@ -41,11 +41,16 @@ jobs:
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
+        cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
+        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+        sudo mv FunKey-sdk-2.3.0 /opt
 
     - name: Load custom configuration
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
+        mv configs/*.patch $PKG_NAME/
         chmod +x $DIY_SH
+        cd $PKG_NAME
         $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
@@ -67,10 +72,10 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        mv frontend/$PKG_NAME.* opk/
-        mv $PKG_NAME$BIN_DIR$PKG_NAME opk/
-        tools/mksquashfs opk/* opk/$PKG_NAME_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-        cd opk
+        mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
+        mv $PKG_NAME$BIN_DIR/* $PKG_NAME/_opk/
+        tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
         
