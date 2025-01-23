@@ -1,14 +1,14 @@
-name: gngeo-opk Build
+name: st-opk Build
 
 on:
   workflow_dispatch:
 
 env:
   REPO_URL: https://github.com/junfeng142/Demo-project.git
-  REPO_BRANCH: gngeo
-  PKG_NAME: gngeo
+  REPO_BRANCH: st
+  PKG_NAME: st
   BIN_DIR: /
-  CONFIG_FILE: configs/gngeo.config
+  CONFIG_FILE: configs/st.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
