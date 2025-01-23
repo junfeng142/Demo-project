@@ -173,7 +173,7 @@
 #define PREFIX                      "[SDL] "
 
 #ifdef FUNKEYS
-    #define SHOT_PATH               "/mnt/Screenshots"
+    #define SHOT_PATH               "/mnt/drastic/Screenshots"
 #else
     #define SHOT_PATH               "/mnt/SDCARD/Screenshots"
 #endif
