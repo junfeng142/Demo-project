@@ -73,7 +73,7 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
+        [ -e frontend/$PKG_NAME.* ] && mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
         mv ${PKG_NAME}${BIN_DIR} $PKG_NAME/_opk/
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
