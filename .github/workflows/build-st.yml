@@ -5,7 +5,7 @@ on:
 
 env:
   REPO_URL: https://github.com/junfeng142/Demo-project.git
-  REPO_BRANCH: st
+  REPO_BRANCH: st-sdl
   PKG_NAME: st
   BIN_DIR: /
   CONFIG_FILE: configs/st.config

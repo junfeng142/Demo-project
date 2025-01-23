@@ -45,7 +45,7 @@ jobs:
         cd && tar xvf toolchain.tar.gz
         sudo mv mmiyoo /opt
         sudo mv prebuilt /opt
-        sudo export PATH=/opt/mmiyoo/bin/:$PATH
+        export PATH=/opt/mmiyoo/bin/:$PATH
 
     - name: Load custom configuration
       run: |
