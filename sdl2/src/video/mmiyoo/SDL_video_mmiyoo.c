@@ -5229,6 +5229,7 @@ void MMIYOO_VideoQuit(_THIS)
     lang_unload();
 }
 
+#if defined(MMIYOO) || defined(QX1000) || defined(FUNKEYS)
 #if defined(MMIYOO) || defined(QX1000)
 static const char *DIS_MODE0_640[] = {
     "640*480",
@@ -5297,7 +5298,7 @@ static const char *DIS_MODE1_752[] = {
     "501*376",
     "501*376",
 };
-
+#endif
 static const char *POS[] = {
     "Top-Right", "Top-Left", "Bottom-Left", "Bottom-Right"
 };
@@ -5632,6 +5633,8 @@ int handle_menu(int key)
         break;
     }
 
+#if defined(MMIYOO) || defined(QX1000)
+  
     if (cur_sel == MENU_DIS) {
         dis_mode = nds.dis_mode;
     }
@@ -5756,7 +5759,7 @@ int handle_menu(int key)
             }
         }
         draw_info(cvt, to_lang(MENU_ITEM[cc]), SX + sx, SY + (h * idx), col0, 0);
-
+#endif
         sx = 0;
         switch (cc) {
         case MENU_LANG:
@@ -5844,6 +5847,8 @@ int handle_menu(int key)
         idx+= 1;
     }
 
+#if defined(MMIYOO) || defined(QX1000)
+  
     sx = nds.enable_752x560 ? 540 : 450;
     sy = nds.enable_752x560 ? 430 : 360;
     if ((cur_sel == MENU_OVERLAY) && (nds.overlay.sel < nds.overlay.max) && (nds.overlay.img)) {
@@ -6145,7 +6150,7 @@ int handle_menu(int key)
             break;
         }
     }
-
+#endif
     GFX_Copy(cvt->pixels, cvt->clip_rect, cvt->clip_rect, cvt->pitch, 0, E_MI_GFX_ROTATE_180);
     GFX_Flip();
     need_reload_bg = RELOAD_BG_COUNT;
