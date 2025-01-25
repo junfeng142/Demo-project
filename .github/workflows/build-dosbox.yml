@@ -7,7 +7,7 @@ env:
   REPO_URL: https://github.com/jbanes/rs97-dosbox.git
   REPO_BRANCH: master
   PKG_NAME: dosbox
-  BIN_DIR: /
+  BIN_DIR: /dosbox/src/
   CONFIG_FILE: configs/doxbox.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
@@ -58,7 +58,7 @@ jobs:
       run: |
         export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
         cd $PKG_NAME/$PKG_NAME
-        ./autogen.sh SDL_CONFIG=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config ./configure --host=arm-linux --disable-opengl --disable-alsa-midi --disable-dynamic-x86 --disable-fpu-x86 --enable-core-inline CXXFLAGS="-g -O2 -march=armv7ve+simd -mfpu=neon-vfpv4 -mfloat-abi=hard -mtune=cortex-a7 -pipe -fno-builtin -fno-common -ffast-math -fomit-frame-pointer -fexpensive-optimizations -frename-registers" LIBS="-lSDL_gfx -lSDL_image"
+        ./gcw0.sh
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
@@ -73,7 +73,7 @@ jobs:
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
-        mv ${PKG_NAME}/${PKG_NAME}${BIN_DIR}${PKG_NAME} $PKG_NAME/_opk/
+        mv ${PKG_NAME}${BIN_DIR}${PKG_NAME} $PKG_NAME/_opk/
         tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
