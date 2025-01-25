@@ -47,3 +47,29 @@ diff -uprN a/dosbox/config.h b/dosbox/config.h
  
  /* define to 1 if you have XKBlib.h and X11 lib */
  /* #undef C_X11_XKB */
+
+diff -uprN a/dosbox/gcw0.sh b/dosbox/gcw0.sh
+--- a/dosbox/gcw0.sh	2025-01-25 09:15:19.517357984 +0800
++++ b/dosbox/gcw0.sh	2025-01-25 09:37:54.047350635 +0800
+@@ -1,19 +1,5 @@
+ #!/bin/sh
+ 
+-./configure --host=mipsel-linux --disable-opengl --disable-alsa-midi --disable-dynamic-x86 --disable-fpu-x86 --enable-core-inline CXXFLAGS="-g -O2 -G0 -march=mips32 -mtune=mips32 -pipe -fno-builtin -fno-common -mno-shared -ffast-math -fomit-frame-pointer -fexpensive-optimizations -frename-registers" LIBS="-lSDL_gfx -lSDL_image"
++./autogen.sh
++SDL_CONFIG=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config ./configure --host=arm-funkey-linux-gnueabihf --disable-opengl --disable-alsa-midi --disable-dynamic-x86 --disable-fpu-x86 --enable-core-inline CXXFLAGS="-g -O2 -march=armv7ve+simd -mfpu=neon-vfpv4 -mfloat-abi=hard -mtune=cortex-a7 -pipe -fno-builtin -fno-common -ffast-math -fomit-frame-pointer -fexpensive-optimizations -frename-registers" LIBS="-lSDL_gfx -lSDL_image"
+ 
+-OLD="\/\* #undef C_ATTRIBUTE_ALWAYS_INLINE \*\/"
+-NEW="#define C_ATTRIBUTE_ALWAYS_INLINE 1"
+-sed -i "s/$OLD/$NEW/g" config.h
+-
+-OLD="\/\* #undef C_DYNREC \*\/"
+-NEW="#define C_DYNREC 1"
+-sed -i "s/$OLD/$NEW/g" config.h
+-
+-OLD="#define C_TARGETCPU UNKNOWN"
+-NEW="#define C_TARGETCPU MIPSEL"
+-sed -i "s/$OLD/$NEW/g" config.h
+-
+-OLD="\/\* #undef C_UNALIGNED_MEMORY \*\/"
+-NEW="#define C_UNALIGNED_MEMORY 1"
+-sed -i "s/$OLD/$NEW/g" config.h
