@@ -1,6 +1,6 @@
 diff -uprN a/Makefile b/Makefile
 --- a/Makefile	1970-01-01 08:00:00.000000000 +0800
-+++ b/Makefile	2025-02-03 08:52:45.568726124 +0800
++++ b/Makefile	2025-02-03 14:47:04.809003884 +0800
 @@ -0,0 +1,21 @@
 +
 +export CROSS=/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-
@@ -13,8 +13,8 @@ diff -uprN a/Makefile b/Makefile
 +
 +include SDL2.mk
 +
-+SDL2_INC = -I./SDL2/include -I./opengl/include
-+LIBS = -L./SDL2/lib -L./opengl/lib
++SDL2_INC = -I/opt/SDL2/include -I/opt/opengl/include
++LIBS = -L/opt/SDL2/lib -L/opt/opengl/lib
 +
 +.PHONY: sdl2
 +sdl2:
@@ -1403,7 +1403,7 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.h b/SDL2-2.30.10/src
 +
 diff -uprN a/SDL2.mk b/SDL2.mk
 --- a/SDL2.mk	1970-01-01 08:00:00.000000000 +0800
-+++ b/SDL2.mk	2025-02-03 14:11:07.558975699 +0800
++++ b/SDL2.mk	2025-02-03 14:47:30.799004224 +0800
 @@ -0,0 +1,46 @@
 +SDL2_CFG = --host=arm-funkey-linux-gnueabihf
 +SDL2_CFG+= --build=x86_64-linux-gnu
@@ -1437,8 +1437,8 @@ diff -uprN a/SDL2.mk b/SDL2.mk
 +SDL2_CFG+= --disable-diskaudio
 +SDL2_CFG+= --disable-pulseaudio
 +SDL2_CFG+= --disable-dummyaudio
-+SDL2_CFG+= LDFLAGS="-Lopengl/lib -LSDL2/lib"
-+SDL2_CFG+= CPPFLAGS="-Iopengl/include -ISDL2/include/SDL2"
++SDL2_CFG+= LDFLAGS="-L/opt/opengl/lib -L/opt/SDL2/lib"
++SDL2_CFG+= CPPFLAGS="-I/opt/opengl/include -I/opt/SDL2/include/SDL2"
 +
 +.PHONY: SDL2
 +SDL2:
