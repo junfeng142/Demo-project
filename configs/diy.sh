@@ -50,3 +50,7 @@ if [ -d "pocketsnes" ]; then
     cp dist/backdrop.png _opk/
 fi
 
+# libsdl2 build
+if [ -d "SDL2" ]; then
+    patch -p1 < fit_for_sdl2_build.patch
+fi
