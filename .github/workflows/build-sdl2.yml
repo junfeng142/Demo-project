@@ -47,13 +47,14 @@ jobs:
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
         mv configs/*.patch $PKG_NAME/ && mv tools/*.tar.gz $PKG_NAME/
         chmod +x $DIY_SH
-        cd $PKG_NAME && wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
-        tar xvf SDL2-2.30.10.tar.gz
+        cd $PKG_NAME 
         mkdir -p SDL2/ opengl/
         tar -zxvf SDL2.tar.gz -C SDL2/
         tar -zxvf opengl.tar.gz -C opengl/
-        sudo mv SDL2 /opt && sudo mv opengl /opt
+        wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
+        tar xvf SDL2-2.30.10.tar.gz
         $GITHUB_WORKSPACE/$DIY_SH
+        sudo mv SDL2/ opengl/ /opt
 
     - name: Compile the firmware
       id: compile
