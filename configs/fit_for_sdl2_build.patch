@@ -1406,7 +1406,7 @@ diff -uprN a/SDL2.mk b/SDL2.mk
 --- a/SDL2.mk	1970-01-01 08:00:00.000000000 +0800
 +++ b/SDL2.mk	2025-02-03 08:54:04.748727159 +0800
 @@ -0,0 +1,47 @@
-+SDL2_CFG = --prefix=$mydir/SDL2
++SDL2_CFG = --prefix="$mydir/SDL2"
 +SDL2_CFG+= --host=arm-funkey-linux-gnueabihf
 +SDL2_CFG+= --build=x86_64-linux-gnu
 +SDL2_CFG+= --target=arm-funkey-linux-gnueabihf
