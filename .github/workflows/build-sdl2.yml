@@ -38,8 +38,8 @@ jobs:
         df -hT $PWD
         sudo mkdir -p $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
-        cd $PKG_NAME && wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
-        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+        sudo cd $PKG_NAME && wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
+        cd && tar xvf SDL2-2.30.10.tar.gz
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         cd && tar xvf FunKey-sdk-2.3.0.tar.gz
         sudo mv FunKey-sdk-2.3.0 /opt
