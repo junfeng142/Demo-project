@@ -1437,8 +1437,8 @@ diff -uprN a/SDL2.mk b/SDL2.mk
 +SDL2_CFG+= --disable-diskaudio
 +SDL2_CFG+= --disable-pulseaudio
 +SDL2_CFG+= --disable-dummyaudio
-+SDL2_CFG+= LDFLAGS="-L./opengl/lib -L./SDL2/lib"
-+SDL2_CFG+= CPPFLAGS="-I./opengl/include -I./SDL2/include/SDL2"
++SDL2_CFG+= LDFLAGS="-Lopengl/lib -LSDL2/lib"
++SDL2_CFG+= CPPFLAGS="-Iopengl/include -ISDL2/include/SDL2"
 +
 +.PHONY: SDL2
 +SDL2:
