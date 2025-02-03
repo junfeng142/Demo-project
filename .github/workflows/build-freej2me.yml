@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/bqcuong/miyoo-j2me.git
-  REPO_BRANCH: main
+  REPO_URL: https://github.com/aweigit/freej2me-miyoomini.git
+  REPO_BRANCH: master
   PKG_NAME: freej2me
   BIN_DIR: /
   CONFIG_FILE: configs/freej2me.config
