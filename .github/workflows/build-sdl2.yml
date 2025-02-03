@@ -1,0 +1,87 @@
+name: sdl2-lib Build
+
+on:
+  workflow_dispatch:
+
+env:
+  PKG_NAME: SDL2-30-10
+  BIN_DIR: /SDL2
+  CONFIG_FILE: configs/SDL2.config
+  DIY_SH: configs/diy.sh
+  UPLOAD_FIRMWARE: true
+  TZ: Asia/Shanghai
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+      
+    - name: Initialization environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y -q --no-install-recommends build-essential make cmake wget autogen autoconf automake -y
+        sudo apt-get -y autoremove
+        sudo apt-get -y clean
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo sed -i 's/# \(en_US.UTF-8\)/\1/' /etc/locale.gen
+        sudo locale-gen --purge --lang en_US.UTF-8
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+        
+    - name: Clone source code
+      working-directory: /workdir
+      run: |
+        df -hT $PWD
+        sudo mkdir -p $PKG_NAME
+        ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
+        cd $PKG_NAME && wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
+        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+        cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
+        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+        sudo mv FunKey-sdk-2.3.0 /opt
+
+    - name: Load custom configuration
+      run: |
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
+        mv configs/*.patch $PKG_NAME/
+        chmod +x $DIY_SH
+        cd $PKG_NAME
+        sudo mkdir -p SDL2/ opengl/
+        tar -zxvf ../tools/SDL2.tar.gz -C ./SDL2
+        tar -zxvf ../tools/opengl.tar.gz -C ./opengl
+        $GITHUB_WORKSPACE/$DIY_SH
+
+    - name: Compile the firmware
+      id: compile
+      run: |
+        cd $PKG_NAME
+        make SDL2_cfg
+        make SDL2
+        make -C SDL2-2.30.10 install
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+
+    - name: Organize files
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        cd ${PKG_NAME}${BIN_DIR}
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Upload firmware directory
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: ${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+        
