@@ -50,7 +50,7 @@ jobs:
         cd $PKG_NAME && wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
         tar xvf SDL2-2.30.10.tar.gz
         mkdir -p SDL2/ opengl/
-        mv tar -zxvf SDL2.tar.gz -C SDL2/
+        tar -zxvf SDL2.tar.gz -C SDL2/
         tar -zxvf opengl.tar.gz -C opengl/
         $GITHUB_WORKSPACE/$DIY_SH
 
