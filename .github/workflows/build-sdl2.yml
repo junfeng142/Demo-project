@@ -52,6 +52,7 @@ jobs:
         mkdir -p SDL2/ opengl/
         tar -zxvf SDL2.tar.gz -C SDL2/
         tar -zxvf opengl.tar.gz -C opengl/
+        sudo mv SDL2 /opt && sudo mv opengl /opt
         $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
