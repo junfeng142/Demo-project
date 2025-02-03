@@ -1,0 +1,1454 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	1970-01-01 08:00:00.000000000 +0800
++++ b/Makefile	2025-02-03 08:52:45.568726124 +0800
+@@ -0,0 +1,21 @@
++
++export CROSS=/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-
++export CC=${CROSS}gcc
++export AR=${CROSS}ar
++export AS=${CROSS}as
++export LD=${CROSS}ld
++export CXX=${CROSS}g++
++export RANLIB=${CROSS}ranlib
++
++include SDL2.mk
++
++SDL2_INC = -I./SDL2/include -I./opengl/include
++LIBS = -L./SDL2/lib -L./opengl/lib
++
++.PHONY: sdl2
++sdl2:
++	$(CC) -D_REENTRANT ./sdl2.c $(SDL2_INC) -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_gfx -lSDL2_ttf -lEGL -lGLESv2 $(LIBS) -o ./test
++
++.PHONY: test
++test:
++	$(CC) -D_REENTRANT ./sdl2.c $(SDL2_INC) -lSDL2 -lSDL2_mixer -lSDL2_image -lSDL2_gfx -lSDL2_ttf -lEGL -lGLESv2 $(LIBS) -o ./test
+\ No newline at end of file
+diff -uprN a/SDL2-2.30.10/configure.ac b/SDL2-2.30.10/configure.ac
+--- a/SDL2-2.30.10/configure.ac	2025-01-30 20:55:49.539498694 +0800
++++ b/SDL2-2.30.10/configure.ac	2025-02-01 17:53:31.383390436 +0800
+@@ -2465,6 +2465,18 @@ CheckDummyVideo()
+     fi
+ }
+ 
++CheckMMIYOOVideo()
++{
++    if test x$enable_video = xyes; then
++        AC_DEFINE(SDL_VIDEO_DRIVER_MMIYOO, 1, [ ])
++        AC_DEFINE(SDL_VIDEO_RENDER_MMIYOO, 1, [ ])
++        SOURCES="$SOURCES $srcdir/src/video/mmiyoo/*.c"
++        have_video=yes
++        EXTRA_LDFLAGS="$EXTRA_LDFLAGS -lEGL -lGLESv2"
++        SUMMARY_video="${SUMMARY_video} mmiyoo"
++    fi
++}
++
+ CheckOffscreenVideo()
+ {
+     AC_ARG_ENABLE(video-offscreen,
+@@ -2805,7 +2817,7 @@ CheckInputKD()
+         struct kbentry kbe;
+         kbe.kb_table = KG_CTRL;
+         ioctl(0, KDGKBENT, &kbe);
+-    ]])], [use_input_kd=yes],[])
++    ]])], [use_input_kd=no],[])
+     AC_MSG_RESULT($use_input_kd)
+     if test x$use_input_kd = xyes; then
+         AC_DEFINE(SDL_INPUT_LINUXKD, 1, [ ])
+@@ -3784,6 +3796,7 @@ case "$host" in
+                 CheckQNXVideo
+                 ;;
+         esac
++        CheckMMIYOOVideo
+         CheckVisibilityHidden
+         CheckWerror
+         CheckDeclarationAfterStatement
+diff -uprN a/SDL2-2.30.10/include/SDL_config.h.in b/SDL2-2.30.10/include/SDL_config.h.in
+--- a/SDL2-2.30.10/include/SDL_config.h.in	2025-01-30 20:55:23.529498835 +0800
++++ b/SDL2-2.30.10/include/SDL_config.h.in	2025-01-30 20:53:16.029499527 +0800
+@@ -495,4 +495,8 @@
+ /* Libdecor get min/max content size functions */
+ #undef SDL_HAVE_LIBDECOR_GET_MIN_MAX
+ 
++#undef SDL_VIDEO_DRIVER_MMIYOO
++#undef SDL_VIDEO_RENDER_MMIYOO
++
++
+ #endif /* SDL_config_h_ */
+diff -uprN a/SDL2-2.30.10/src/render/SDL_render.c b/SDL2-2.30.10/src/render/SDL_render.c
+--- a/SDL2-2.30.10/src/render/SDL_render.c	2025-01-30 20:54:23.079499163 +0800
++++ b/SDL2-2.30.10/src/render/SDL_render.c	2025-01-30 20:52:11.999499874 +0800
+@@ -124,6 +124,9 @@ static const SDL_RenderDriver *render_dr
+ #if SDL_VIDEO_RENDER_VITA_GXM
+     &VITA_GXM_RenderDriver,
+ #endif
++#if SDL_VIDEO_RENDER_MMIYOO
++    &MMIYOO_RenderDriver,
++#endif
+ #if SDL_VIDEO_RENDER_SW
+     &SW_RenderDriver
+ #endif
+diff -uprN a/SDL2-2.30.10/src/render/SDL_sysrender.h b/SDL2-2.30.10/src/render/SDL_sysrender.h
+--- a/SDL2-2.30.10/src/render/SDL_sysrender.h	2025-01-30 20:54:23.129499163 +0800
++++ b/SDL2-2.30.10/src/render/SDL_sysrender.h	2025-01-30 20:52:11.999499874 +0800
+@@ -305,6 +305,7 @@ extern SDL_RenderDriver DirectFB_RenderD
+ extern SDL_RenderDriver METAL_RenderDriver;
+ extern SDL_RenderDriver PS2_RenderDriver;
+ extern SDL_RenderDriver PSP_RenderDriver;
++extern SDL_RenderDriver MMIYOO_RenderDriver;
+ extern SDL_RenderDriver SW_RenderDriver;
+ extern SDL_RenderDriver VITA_GXM_RenderDriver;
+ 
+diff -uprN a/SDL2-2.30.10/src/video/SDL_sysvideo.h b/SDL2-2.30.10/src/video/SDL_sysvideo.h
+--- a/SDL2-2.30.10/src/video/SDL_sysvideo.h	2025-01-30 20:54:55.679498986 +0800
++++ b/SDL2-2.30.10/src/video/SDL_sysvideo.h	2025-01-30 20:51:12.079500200 +0800
+@@ -459,6 +459,7 @@ typedef struct VideoBootStrap
+ extern VideoBootStrap COCOA_bootstrap;
+ extern VideoBootStrap X11_bootstrap;
+ extern VideoBootStrap DirectFB_bootstrap;
++extern VideoBootStrap MMIYOO_bootstrap;
+ extern VideoBootStrap WINDOWS_bootstrap;
+ extern VideoBootStrap WINRT_bootstrap;
+ extern VideoBootStrap HAIKU_bootstrap;
+diff -uprN a/SDL2-2.30.10/src/video/SDL_video.c b/SDL2-2.30.10/src/video/SDL_video.c
+--- a/SDL2-2.30.10/src/video/SDL_video.c	2025-01-30 20:54:55.679498986 +0800
++++ b/SDL2-2.30.10/src/video/SDL_video.c	2025-01-30 20:51:12.079500200 +0800
+@@ -85,6 +85,9 @@ static VideoBootStrap *bootstrap[] = {
+ #ifdef SDL_VIDEO_DRIVER_DIRECTFB
+     &DirectFB_bootstrap,
+ #endif
++#if SDL_VIDEO_DRIVER_MMIYOO
++    &MMIYOO_bootstrap,
++#endif
+ #ifdef SDL_VIDEO_DRIVER_WINDOWS
+     &WINDOWS_bootstrap,
+ #endif
+diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.c b/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.c
+--- a/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.c	1970-01-01 08:00:00.000000000 +0800
++++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.c	2025-02-01 18:02:43.143385271 +0800
+@@ -0,0 +1,307 @@
++/*
++  Customized version for Miyoo-Mini handheld.
++  Only tested under Miyoo-Mini stock OS (original firmware) with Parasyte compatible layer.
++
++  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
++  Copyright (C) 2022-2022 Steward Fu <steward.fu@gmail.com>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++#include "../../SDL_internal.h"
++
++#if SDL_VIDEO_DRIVER_MMIYOO
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <sys/mman.h>
++#include <dirent.h>
++#include <linux/input.h>
++
++#include "../../events/SDL_events_c.h"
++#include "../../core/linux/SDL_evdev.h"
++#include "../../thread/SDL_systhread.h"
++
++#include "SDL_video_mmiyoo.h"
++#include "SDL_event_mmiyoo.h"
++
++
++#define UP      22
++#define DOWN    32
++#define LEFT    38
++#define RIGHT   19
++#define A       30
++#define B       48
++#define X       45
++#define Y       21
++#define L1      50
++#define R1      49
++#define START   31
++#define SELECT  37
++#define MENU    16
++
++MMIYOO_EventInfo evt = {0};
++
++static int running = 0;
++static int event_fd = -1;
++static SDL_sem *event_sem = NULL;
++static SDL_Thread *thread = NULL;
++static uint32_t hotkey = 0;
++static uint32_t pre_keypad_bitmaps = 0;
++
++const SDL_Scancode code[]={
++    SDLK_u,         // UP
++    SDLK_d,         // DOWN
++    SDLK_l,         // LEFT
++    SDLK_r,         // RIGHT
++    SDLK_a,         // A
++    SDLK_b,         // B
++    SDLK_x,         // X
++    SDLK_y,         // Y
++    SDLK_m,         // L1
++    SDLK_n,         // R1
++    SDLK_PAGEDOWN,  // L2
++    SDLK_PAGEUP,    // R2
++    SDLK_k,         // SELECT
++    SDLK_s,         // START
++    SDLK_q,         // MENU
++    SDLK_0,         // QUICK SAVE
++    SDLK_1,         // QUICK LOAD
++    SDLK_2,         // FAST FORWARD
++    SDLK_3,         // EXIT
++    SDLK_HOME,      // MENU (Onion system)
++};
++
++static void release_all_keys(void)
++{
++    int cc = 0;
++
++    for (cc=0; cc<=MYKEY_LAST_BITS; cc++) {
++        if (evt.keypad.bitmaps & 1) {
++            SDL_SendKeyboardKey(SDL_RELEASED, SDL_GetScancodeFromKey(code[cc]));
++        }
++        evt.keypad.bitmaps>>= 1;
++    }
++}
++
++static int hit_hotkey(uint32_t bit)
++{
++    uint32_t mask = (1 << bit) | (1 << MYKEY_START);
++
++    return (hotkey ^ mask) ? 0 : 1;
++}
++
++static void set_key(uint32_t bit, int val)
++{
++    if (val) {
++        hotkey|= (1 << bit);
++        evt.keypad.bitmaps|= (1 << bit);
++        if (bit == MYKEY_START) {
++            hotkey = (1 << MYKEY_START);
++        }
++    }
++    else {
++        hotkey&= ~(1 << bit);
++        evt.keypad.bitmaps&= ~(1 << bit);
++    }
++}
++
++int EventUpdate(void *data)
++{
++    struct input_event ev = {0};
++
++    uint32_t l1 = L1;
++    uint32_t r1 = R1;
++    uint32_t a = A;
++    uint32_t b = B;
++    uint32_t x = X;
++    uint32_t y = Y;
++    uint32_t up = UP;
++    uint32_t down = DOWN;
++    uint32_t left = LEFT;
++    uint32_t right = RIGHT;
++    int hotkey_mask = 0;
++
++    while (running) {
++        SDL_SemWait(event_sem);
++
++        up = UP;
++        down = DOWN;
++        left = LEFT;
++        right = RIGHT;
++        a = A;
++        b = B;
++        x = X;
++        y = Y;
++
++        if (event_fd > 0) {
++            if (read(event_fd, &ev, sizeof(struct input_event))) {
++                if ((ev.type == EV_KEY) && (ev.value != 2)) {
++                    //printf(PREFIX"code:%d, value:%d\n", ev.code, ev.value);
++                    if (ev.code == l1)      { set_key(MYKEY_L1,    ev.value); }
++                    if (ev.code == r1)      { set_key(MYKEY_R1,    ev.value); }
++                    if (ev.code == up)      { set_key(MYKEY_UP,    ev.value); }
++                    if (ev.code == down)    { set_key(MYKEY_DOWN,  ev.value); }
++                    if (ev.code == left)    { set_key(MYKEY_LEFT,  ev.value); }
++                    if (ev.code == right)   { set_key(MYKEY_RIGHT, ev.value); }
++                    if (ev.code == a)       { set_key(MYKEY_A,     ev.value); }
++                    if (ev.code == b)       { set_key(MYKEY_B,     ev.value); }
++                    if (ev.code == x)       { set_key(MYKEY_X,     ev.value); }
++                    if (ev.code == y)       { set_key(MYKEY_Y,     ev.value); }
++                    switch (ev.code) {
++                    case START:  set_key(MYKEY_START, ev.value);  break;
++                    case SELECT: set_key(MYKEY_SELECT, ev.value); break;
++                    case MENU:   set_key(MYKEY_MENU, ev.value);   break;
++                    }
++
++                    hotkey_mask = 1;
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_UP)) {
++                        set_key(MYKEY_UP, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_DOWN)) {
++                        set_key(MYKEY_DOWN, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_LEFT)) {
++
++                        set_key(MYKEY_LEFT, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_RIGHT)) {
++                        set_key(MYKEY_R2, 1);
++                        set_key(MYKEY_RIGHT, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_A)) {
++                        set_key(MYKEY_A, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_B)) {
++                        set_key(MYKEY_B, 0);
++                    }
++
++                    if (hit_hotkey(MYKEY_X)) {
++                        set_key(MYKEY_X, 0);
++                    }
++
++                    if (hit_hotkey(MYKEY_Y)) {
++                        set_key(MYKEY_Y, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_SELECT)) {
++                        set_key(MYKEY_EXIT, 1);
++                        set_key(MYKEY_SELECT, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_R1)) {
++                        set_key(MYKEY_QSAVE, 1);
++                        set_key(MYKEY_R1, 0);
++                    }
++
++                    if (hotkey_mask && hit_hotkey(MYKEY_L1)) {
++                        set_key(MYKEY_QLOAD, 1);
++                        set_key(MYKEY_L1, 0);
++                    }
++                }
++
++            }
++        }
++        SDL_SemPost(event_sem);
++        usleep(1000000 / 60);
++    }
++    
++    return 0;
++}
++
++void MMIYOO_EventInit(void)
++{
++    pre_keypad_bitmaps = 0;
++    memset(&evt, 0, sizeof(evt));
++
++    event_fd = open("/dev/input/event0", O_RDONLY | O_NONBLOCK | O_CLOEXEC);
++    if(event_fd < 0){
++        printf(PREFIX"failed to open /dev/input/event0\n");
++    }
++
++    if((event_sem =  SDL_CreateSemaphore(1)) == NULL) {
++        SDL_SetError("Can't create input semaphore");
++        return;
++    }
++
++    running = 1;
++    if((thread = SDL_CreateThreadInternal(EventUpdate, "MMIYOOInputThread", 4096, NULL)) == NULL) {
++        SDL_SetError("Can't create input thread");
++        return;
++    }
++}
++
++void MMIYOO_EventDeinit(void)
++{
++    running = 0;
++    SDL_WaitThread(thread, NULL);
++    SDL_DestroySemaphore(event_sem);
++    if(event_fd > 0) {
++        close(event_fd);
++        event_fd = -1;
++    }
++}
++
++void MMIYOO_PumpEvents(_THIS)
++{
++    SDL_SemWait(event_sem);
++    if (pre_keypad_bitmaps != evt.keypad.bitmaps) {
++        int cc = 0;
++        uint32_t bit = 0;
++        uint32_t changed = pre_keypad_bitmaps ^ evt.keypad.bitmaps;
++
++        for (cc=0; cc<=MYKEY_LAST_BITS; cc++) {
++            bit = 1 << cc;
++            if (changed & bit) {
++                SDL_SendKeyboardKey((evt.keypad.bitmaps & bit) ? SDL_PRESSED : SDL_RELEASED, SDL_GetScancodeFromKey(code[cc]));
++            }
++        }
++        if (pre_keypad_bitmaps & (1 << MYKEY_R2)) {
++            set_key(MYKEY_R2, 0);
++        }
++        if (pre_keypad_bitmaps & (1 << MYKEY_L2)) {
++            set_key(MYKEY_L2, 0);
++        }
++        if (pre_keypad_bitmaps & (1 << MYKEY_QSAVE)) {
++            set_key(MYKEY_QSAVE, 0);
++        }
++        if (pre_keypad_bitmaps & (1 << MYKEY_QLOAD)) {
++            set_key(MYKEY_QLOAD, 0);
++        }
++        if (pre_keypad_bitmaps & (1 << MYKEY_FF)) {
++            set_key(MYKEY_FF, 0);
++        }
++        if (pre_keypad_bitmaps & (1 << MYKEY_MENU_ONION)) {
++            set_key(MYKEY_MENU_ONION, 0);
++        }
++        if (pre_keypad_bitmaps & (1 << MYKEY_EXIT)) {
++            release_all_keys();
++        }
++        pre_keypad_bitmaps = evt.keypad.bitmaps;
++    }    
++    SDL_SemPost(event_sem);
++}
++
++#endif
++
+diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.h b/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.h
+--- a/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.h	1970-01-01 08:00:00.000000000 +0800
++++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.h	2025-02-01 18:02:43.143385271 +0800
+@@ -0,0 +1,67 @@
++/*
++  Customized version for Miyoo-Mini handheld.
++  Only tested under Miyoo-Mini stock OS (original firmware) with Parasyte compatible layer.
++
++  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
++  Copyright (C) 2022-2022 Steward Fu <steward.fu@gmail.com>
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++
++#ifndef __SDL_EVENT_MMIYOO_H__
++#define __SDL_EVENT_MMIYOO_H__
++
++#include "../../SDL_internal.h"
++#include "SDL_event_mmiyoo.h"
++
++#define MYKEY_UP            0
++#define MYKEY_DOWN          1
++#define MYKEY_LEFT          2
++#define MYKEY_RIGHT         3
++#define MYKEY_A             4
++#define MYKEY_B             5
++#define MYKEY_X             6
++#define MYKEY_Y             7
++#define MYKEY_L1            8
++#define MYKEY_R1            9
++#define MYKEY_L2            10
++#define MYKEY_R2            11
++#define MYKEY_SELECT        12
++#define MYKEY_START         13
++#define MYKEY_MENU          14
++#define MYKEY_QSAVE         15
++#define MYKEY_QLOAD         16
++#define MYKEY_FF            17
++#define MYKEY_EXIT          18
++#define MYKEY_MENU_ONION    19
++#define MYKEY_POWER         20
++#define MYKEY_VOLUP         21
++#define MYKEY_VOLDOWN       22
++
++#define MYKEY_LAST_BITS     19 // ignore POWER, VOL-, VOL+ keys
++
++typedef struct _MMIYOO_EventInfo {
++    struct _keypad{
++        uint32_t bitmaps;
++    } keypad;
++} MMIYOO_EventInfo;
++
++extern void MMIYOO_EventInit(void);
++extern void MMIYOO_EventDeinit(void);
++extern void MMIYOO_PumpEvents(_THIS);
++
++#endif
++
+diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_render_mmiyoo.c b/SDL2-2.30.10/src/video/mmiyoo/SDL_render_mmiyoo.c
+--- a/SDL2-2.30.10/src/video/mmiyoo/SDL_render_mmiyoo.c	1970-01-01 08:00:00.000000000 +0800
++++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_render_mmiyoo.c	2025-02-01 18:02:43.143385271 +0800
+@@ -0,0 +1,394 @@
++/*
++  Customized version for Miyoo-Mini handheld.
++  Only tested under Miyoo-Mini stock OS (original firmware) with Parasyte compatible layer.
++
++  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
++  Copyright (C) 2022-2022 Steward Fu <steward.fu@gmail.com>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++#include "../../SDL_internal.h"
++
++#if SDL_VIDEO_RENDER_MMIYOO
++
++#include <unistd.h>
++#include <stdbool.h>
++
++#include "SDL_hints.h"
++#include "../../render/SDL_sysrender.h"
++#include "SDL_video_mmiyoo.h"
++
++static int threading_mode = 0;
++extern GFX gfx;
++
++struct _NDS_TEXTURE {
++    int pitch;
++    const void *pixels;
++    SDL_Texture *texture;
++};
++
++static struct _NDS_TEXTURE ntex[10] = {0};
++
++typedef struct MMIYOO_TextureData {
++    void *data;
++    unsigned int size;
++    unsigned int width;
++    unsigned int height;
++    unsigned int bits;
++    unsigned int format;
++    unsigned int pitch;
++} MMIYOO_TextureData;
++
++typedef struct {
++    SDL_Texture *boundTarget;
++    SDL_bool initialized;
++    unsigned int bpp;
++    SDL_bool vsync;
++} MMIYOO_RenderData;
++
++static int update_texture(void *chk, void *new, const void *pixels, int pitch)
++{
++    int cc = 0;
++
++    for (cc=0; cc<10; cc++) {
++        if (ntex[cc].texture == chk) {
++            ntex[cc].texture = new;
++            ntex[cc].pixels = pixels;
++            ntex[cc].pitch = pitch;
++            return cc;
++        }
++    }
++    return -1;
++}
++
++const void* get_pixels(void *chk)
++{
++    int cc = 0;
++
++    for (cc=0; cc<10; cc++) {
++        if (ntex[cc].texture == chk) {
++            return ntex[cc].pixels;
++        }
++    }
++    return NULL;
++}
++
++static int get_pitch(void *chk)
++{
++    int cc = 0;
++
++    for (cc=0; cc<10; cc++) {
++        if (ntex[cc].texture == chk) {
++            return ntex[cc].pitch;
++        }
++    }
++    return -1;
++}
++
++static void MMIYOO_WindowEvent(SDL_Renderer *renderer, const SDL_WindowEvent *event)
++{
++}
++
++static int MMIYOO_CreateTexture(SDL_Renderer *renderer, SDL_Texture *texture)
++{
++    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData *)SDL_calloc(1, sizeof(*mmiyoo_texture));
++
++    if(!mmiyoo_texture) {
++        printf(PREFIX"Failed to create texture\n");
++        return SDL_OutOfMemory();
++    }
++
++    mmiyoo_texture->width = texture->w;
++    mmiyoo_texture->height = texture->h;
++    mmiyoo_texture->format = texture->format;
++
++    switch(mmiyoo_texture->format) {
++    case SDL_PIXELFORMAT_RGB565:
++        mmiyoo_texture->bits = 16;
++        break;
++    case SDL_PIXELFORMAT_ARGB8888:
++        mmiyoo_texture->bits = 32;
++        break;
++    default:
++        return -1;
++    }
++
++    mmiyoo_texture->pitch = mmiyoo_texture->width * SDL_BYTESPERPIXEL(texture->format);
++    mmiyoo_texture->size = mmiyoo_texture->height * mmiyoo_texture->pitch;
++    mmiyoo_texture->data = SDL_calloc(1, mmiyoo_texture->size);
++
++    if(!mmiyoo_texture->data) {
++        printf(PREFIX"Failed to create texture data\n");
++        SDL_free(mmiyoo_texture);
++        return SDL_OutOfMemory();
++    }
++
++    mmiyoo_texture->data = SDL_calloc(1, mmiyoo_texture->size);
++    texture->driverdata = mmiyoo_texture;
++    update_texture(NULL, texture, NULL, 0);
++    GFX_Clear();
++    return 0;
++}
++
++static int MMIYOO_LockTexture(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *rect, void **pixels, int *pitch)
++{
++    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData*)texture->driverdata;
++
++    *pixels = mmiyoo_texture->data;
++    *pitch = mmiyoo_texture->pitch;
++    return 0;
++}
++
++static int MMIYOO_UpdateTexture(SDL_Renderer *renderer, SDL_Texture *texture, const SDL_Rect *rect, const void *pixels, int pitch)
++{
++    update_texture(texture, texture, pixels, pitch);
++    return 0;
++}
++
++static void MMIYOO_UnlockTexture(SDL_Renderer *renderer, SDL_Texture *texture)
++{
++    SDL_Rect rect = {0};
++    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData*)texture->driverdata;
++
++    rect.x = 0;
++    rect.y = 0;
++    rect.w = texture->w;
++    rect.h = texture->h;
++    MMIYOO_UpdateTexture(renderer, texture, &rect, mmiyoo_texture->data, mmiyoo_texture->pitch);
++}
++
++static void MMIYOO_SetTextureScaleMode(SDL_Renderer *renderer, SDL_Texture *texture, SDL_ScaleMode scaleMode)
++{
++}
++
++static int MMIYOO_SetRenderTarget(SDL_Renderer *renderer, SDL_Texture *texture)
++{
++    return 0;
++}
++
++static int MMIYOO_QueueSetViewport(SDL_Renderer *renderer, SDL_RenderCommand *cmd)
++{
++    return 0;
++}
++
++static int MMIYOO_QueueDrawPoints(SDL_Renderer *renderer, SDL_RenderCommand *cmd, const SDL_FPoint *points, int count)
++{
++    return 0;
++}
++
++static int MMIYOO_QueueGeometry(SDL_Renderer *renderer,
++    SDL_RenderCommand *cmd,
++    SDL_Texture *texture,
++    const float *xy,
++    int xy_stride,
++    const SDL_Color *color,
++    int color_stride,
++    const float *uv,
++    int uv_stride,
++    int num_vertices,
++    const void *indices,
++    int num_indices,
++    int size_indices,
++    float scale_x,
++    float scale_y)
++{
++    return 0;
++}
++
++static int MMIYOO_QueueFillRects(SDL_Renderer *renderer, SDL_RenderCommand *cmd, const SDL_FRect *rects, int count)
++{
++    return 0;
++}
++
++static int MMIYOO_QueueCopy(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL_Texture *texture, const SDL_Rect *srcrect, const SDL_FRect *dstrect)
++{
++    
++    threading_mode = 1;
++    gfx.thread.texture = texture;
++    gfx.thread.srt.x = srcrect->x;
++    gfx.thread.srt.y = srcrect->y;
++    gfx.thread.srt.w = srcrect->w;
++    gfx.thread.srt.h = srcrect->h;
++    gfx.thread.drt.x = dstrect->x;
++    gfx.thread.drt.y = dstrect->y;
++    gfx.thread.drt.w = dstrect->w;
++    gfx.thread.drt.h = dstrect->h;
++
++    return 0;
++}
++
++int My_QueueCopy(SDL_Texture *texture, const void *pixels, const SDL_Rect *srcrect, const SDL_FRect *dstrect)
++{
++    int pitch = 0;
++    SDL_Rect dst = {dstrect->x, dstrect->y, dstrect->w, dstrect->h};
++    SDL_Rect src = {srcrect->x, srcrect->y, srcrect->w, srcrect->h};
++
++    pitch = get_pitch(texture);
++    if ((pitch == 0) || (pixels == NULL)) {
++        return 0;
++    }
++
++    dst.w = 320;
++    dst.h = 240;
++    GFX_Copy(pixels, src, dst, pitch, 0, 0);
++    return 0;
++}
++
++static int MMIYOO_QueueCopyEx(SDL_Renderer *renderer, SDL_RenderCommand *cmd, SDL_Texture *texture,
++    const SDL_Rect *srcrect, const SDL_FRect *dstrect, const double angle, const SDL_FPoint *center, const SDL_RendererFlip flip)
++{
++    return 0;
++}
++
++static int MMIYOO_RunCommandQueue(SDL_Renderer *renderer, SDL_RenderCommand *cmd, void *vertices, size_t vertsize)
++{
++    return 0;
++}
++
++static int MMIYOO_RenderReadPixels(SDL_Renderer *renderer, const SDL_Rect *rect, Uint32 pixel_format, void *pixels, int pitch)
++{
++    return SDL_Unsupported();
++}
++
++static void MMIYOO_RenderPresent(SDL_Renderer *renderer)
++{
++    if (threading_mode > 0) {
++        gfx.action = 1;
++    }
++}
++
++static void MMIYOO_DestroyTexture(SDL_Renderer *renderer, SDL_Texture *texture)
++{
++    MMIYOO_TextureData *mmiyoo_texture = (MMIYOO_TextureData*)texture->driverdata;
++
++    if (mmiyoo_texture) {
++        update_texture(texture, NULL, NULL, 0);
++        if (mmiyoo_texture->data) {
++            SDL_free(mmiyoo_texture->data);
++        }
++        SDL_free(mmiyoo_texture);
++        texture->driverdata = NULL;
++    }
++}
++
++static void MMIYOO_DestroyRenderer(SDL_Renderer *renderer)
++{
++    MMIYOO_RenderData *data = (MMIYOO_RenderData *)renderer->driverdata;
++
++    if(data) {
++        if(!data->initialized) {
++            return;
++        }
++
++        data->initialized = SDL_FALSE;
++        SDL_free(data);
++    }
++    SDL_free(renderer);
++}
++
++static int MMIYOO_SetVSync(SDL_Renderer *renderer, const int vsync)
++{
++    return 0;
++}
++
++SDL_Renderer *MMIYOO_CreateRenderer(SDL_Window *window, Uint32 flags)
++{
++    int pixelformat = 0;
++    SDL_Renderer *renderer = NULL;
++    MMIYOO_RenderData *data = NULL;
++
++    renderer = (SDL_Renderer *) SDL_calloc(1, sizeof(*renderer));
++    if(!renderer) {
++        printf(PREFIX"Failed to create render\n");
++        SDL_OutOfMemory();
++        return NULL;
++    }
++
++    data = (MMIYOO_RenderData *) SDL_calloc(1, sizeof(*data));
++    if(!data) {
++        printf(PREFIX"Failed to create render data\n");
++        MMIYOO_DestroyRenderer(renderer);
++        SDL_OutOfMemory();
++        return NULL;
++    }
++
++    renderer->WindowEvent = MMIYOO_WindowEvent;
++    renderer->CreateTexture = MMIYOO_CreateTexture;
++    renderer->UpdateTexture = MMIYOO_UpdateTexture;
++    renderer->LockTexture = MMIYOO_LockTexture;
++    renderer->UnlockTexture = MMIYOO_UnlockTexture;
++    renderer->SetTextureScaleMode = MMIYOO_SetTextureScaleMode;
++    renderer->SetRenderTarget = MMIYOO_SetRenderTarget;
++    renderer->QueueSetViewport = MMIYOO_QueueSetViewport;
++    renderer->QueueSetDrawColor = MMIYOO_QueueSetViewport;
++    renderer->QueueDrawPoints = MMIYOO_QueueDrawPoints;
++    renderer->QueueDrawLines = MMIYOO_QueueDrawPoints;
++    renderer->QueueGeometry = MMIYOO_QueueGeometry;
++    renderer->QueueFillRects = MMIYOO_QueueFillRects;
++    renderer->QueueCopy = MMIYOO_QueueCopy;
++    renderer->QueueCopyEx = MMIYOO_QueueCopyEx;
++    renderer->RunCommandQueue = MMIYOO_RunCommandQueue;
++    renderer->RenderReadPixels = MMIYOO_RenderReadPixels;
++    renderer->RenderPresent = MMIYOO_RenderPresent;
++    renderer->DestroyTexture = MMIYOO_DestroyTexture;
++    renderer->DestroyRenderer = MMIYOO_DestroyRenderer;
++    renderer->SetVSync = MMIYOO_SetVSync;
++    renderer->info = MMIYOO_RenderDriver.info;
++    renderer->info.flags = (SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
++    renderer->driverdata = data;
++    renderer->window = window;
++
++    if(data->initialized != SDL_FALSE) {
++        return 0;
++    }
++    data->initialized = SDL_TRUE;
++
++    if(flags & SDL_RENDERER_PRESENTVSYNC) {
++        data->vsync = SDL_TRUE;
++    }
++    else {
++        data->vsync = SDL_FALSE;
++    }
++
++    pixelformat = SDL_GetWindowPixelFormat(window);
++    switch(pixelformat) {
++    case SDL_PIXELFORMAT_RGB565:
++        data->bpp = 2;
++        break;
++    case SDL_PIXELFORMAT_ARGB8888:
++        data->bpp = 4;
++        break;
++    }
++    return renderer;
++}
++
++SDL_RenderDriver MMIYOO_RenderDriver = {
++    .CreateRenderer = MMIYOO_CreateRenderer,
++    .info = {
++        .name = "MMIYOO",
++        .flags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_TARGETTEXTURE,
++        .num_texture_formats = 2,
++        .texture_formats = {
++            [0] = SDL_PIXELFORMAT_RGB565, [2] = SDL_PIXELFORMAT_ARGB8888,
++        },
++        .max_texture_width = 800,
++        .max_texture_height = 600,
++    }
++};
++
++#endif
++
+diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c
+--- a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c	1970-01-01 08:00:00.000000000 +0800
++++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c	2025-02-03 08:59:11.028731161 +0800
+@@ -0,0 +1,393 @@
++/*
++  Customized version for Miyoo-Mini handheld.
++  Only tested under Miyoo-Mini stock OS (original firmware) with Parasyte compatible layer.
++
++  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
++  Copyright (C) 2022-2022 Steward Fu <steward.fu@gmail.com>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++#include "../../SDL_internal.h"
++
++#if SDL_VIDEO_DRIVER_MMIYOO
++
++#include <time.h>
++#include <dirent.h>
++#include <stdlib.h>
++#include <stdint.h>
++#include <stdbool.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <unistd.h>
++#include <stdio.h>
++#include <fcntl.h>
++#include <string.h>
++#include <pthread.h>
++#include <sys/mman.h>
++#include <sys/ioctl.h>
++#include <sys/time.h>
++#include <time.h>
++#include <json-c/json.h>
++
++#include "../SDL_sysvideo.h"
++#include "../SDL_sysvideo.h"
++#include "../SDL_pixels_c.h"
++
++
++#include "SDL_image.h"
++#include "SDL_version.h"
++#include "SDL_syswm.h"
++#include "SDL_loadso.h"
++#include "SDL_events.h"
++#include "SDL_video.h"
++#include "SDL_mouse.h"
++#include "SDL_video_mmiyoo.h"
++#include "SDL_event_mmiyoo.h"
++
++GFX gfx = {0};
++MMIYOO_VideoInfo vid={0};
++
++int FB_W = 0;
++int FB_H = 0;
++int FB_SIZE = 0;
++int LINE_H = 0;
++int TMP_SIZE = 0;
++
++static pthread_t thread;
++static int is_running = 0;
++static SDL_Surface *cvt = NULL;
++
++static int MMIYOO_VideoInit(_THIS);
++static int MMIYOO_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode);
++static void MMIYOO_VideoQuit(_THIS);
++
++static void *video_handler(void *threadid)
++{
++    while (is_running) {
++        if (gfx.action == 1) {
++            gfx.action = 0;
++            My_QueueCopy(gfx.thread.texture, get_pixels(gfx.thread.texture), &gfx.thread.srt, &gfx.thread.drt);
++            GFX_Flip();
++        }
++        usleep(1);
++    }
++    pthread_exit(NULL);
++}
++
++int fb_init(void)
++{
++    gfx.fb_dev = open("/dev/fb0", O_RDWR);
++    if (gfx.fb_dev < 0) {
++        printf(PREFIX"Failed to open fb0\n");
++        return -1;
++    }
++
++    gfx.hw.mem = mmap(NULL, FB_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, gfx.fb_dev, 0);
++    if (gfx.hw.mem == (void *)-1) {
++        close(gfx.fb_dev);
++        printf(PREFIX"Failed to mmap fb0\n");
++        return -1;
++    }
++    memset(gfx.hw.mem, 0 , FB_SIZE);
++    return 0;
++}
++
++int fb_quit(void)
++{
++    munmap(gfx.hw.mem, FB_SIZE);
++    close(gfx.fb_dev);
++    gfx.fb_dev = -1;
++    return 0;
++}
++
++void GFX_Init(void)
++{
++    fb_init();    
++    cvt = SDL_CreateRGBSurface(SDL_SWSURFACE, FB_W, FB_H, 32, 0, 0, 0, 0);
++    is_running = 1;
++    pthread_create(&thread, NULL, video_handler, (void *)NULL);
++}
++
++void GFX_Quit(void)
++{
++    void *ret = NULL;
++
++    is_running = 0;
++    pthread_join(thread, &ret);
++    GFX_Clear();
++    fb_quit();
++
++    if (cvt) {
++        SDL_FreeSurface(cvt);
++        cvt = NULL;
++    }
++}
++
++void GFX_Clear(void)
++{
++}
++
++int GFX_Copy(const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int pitch, int alpha, int rotate)
++{
++    if ((srcrect.w == 256) && (srcrect.h == 192)) {
++        uint16_t *dst = (uint16_t *)gfx.hw.mem + (((FB_H - 192) >> 1) * FB_W);
++        uint16_t *src = (uint16_t *)pixels;
++
++        asm volatile (
++            "1:  add %1, #64            ;"
++            "    vldmia %0!, {q0-q7}    ;"
++            "    vldmia %0!, {q8-q15}   ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    vstmia %1!, {q8-q15}   ;"
++            "    vldmia %0!, {q0-q7}    ;"
++            "    vldmia %0!, {q8-q15}   ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    vstmia %1!, {q8-q15}   ;"
++            "    add %1, #64            ;"
++            "    subs %2, #1            ;"
++            "    bne 1b                 ;"
++            :
++            : "r"(src), "r"(dst), "r"(192)
++            : "r8", "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15", "memory", "cc"
++        );
++    }
++    else if ((srcrect.w == FB_W) && (srcrect.h == FB_H)) {
++        uint16_t *dst = (uint16_t *)gfx.hw.mem;
++        uint16_t *src = (uint16_t *)pixels;
++
++        asm volatile (
++            "1:  vldmia %0!, {q0-q7}    ;"
++            "    vldmia %0!, {q8-q15}   ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    vstmia %1!, {q8-q15}   ;"
++            "    vldmia %0!, {q0-q7}    ;"
++            "    vldmia %0!, {q8-q15}   ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    vstmia %1!, {q8-q15}   ;"
++            "    vldmia %0!, {q0-q7}    ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    subs %2, #1            ;"
++            "    bne 1b                 ;"
++            :
++            : "r"(src), "r"(dst), "r"(240)
++            : "r8", "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15", "memory", "cc"
++        );
++    }
++    else if ((srcrect.w == 640) && (srcrect.h == 480)) {
++        uint16_t *dst = (uint16_t *)gfx.hw.mem;
++        uint16_t *src = (uint16_t *)pixels;
++
++        asm volatile (
++            "1:  vldmia %0!, {q0-q7}    ;"
++            "    vldmia %0!, {q8-q15}   ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    vstmia %1!, {q8-q15}   ;"
++            "    vldmia %0!, {q0-q7}    ;"
++            "    vldmia %0!, {q8-q15}   ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    vstmia %1!, {q8-q15}   ;"
++            "    vldmia %0!, {q0-q7}    ;"
++            "    vstmia %1!, {q0-q7}    ;"
++            "    subs %2, #1            ;"
++            "    bne 1b                 ;"
++            :
++            : "r"(src), "r"(dst), "r"(240)
++            : "r8", "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15", "memory", "cc"
++        );
++    }
++    else {
++        int x = 0;
++        int y = 0;
++        uint32_t v = 0;
++        uint16_t *dst = (uint16_t *)gfx.hw.mem;
++        uint32_t *src = (uint32_t *)pixels;
++
++        for (y = 0; y < srcrect.h; y++) {
++            for (x = 0; x < srcrect.w; x++) {
++                v = *src++;
++                *dst++ = ((v & 0xf80000) >> 8) | ((v & 0xfc00) >> 5) | ((v & 0xf8) >> 3);
++            }
++        }
++    }
++    return 0;
++}
++
++void GFX_Flip(void)
++{
++}
++
++static int MMIYOO_Available(void)
++{
++    const char *envr = SDL_getenv("SDL_VIDEODRIVER");
++    if((envr) && (SDL_strcmp(envr, MMIYOO_DRIVER_NAME) == 0)) {
++        return 1;
++    }
++    return 0;
++}
++
++static void MMIYOO_DeleteDevice(SDL_VideoDevice *device)
++{
++    SDL_free(device);
++}
++
++int MMIYOO_CreateWindow(_THIS, SDL_Window *window)
++{
++    SDL_SetMouseFocus(window);
++    vid.window = window;
++    printf(PREFIX"Width:%d, Height:%d\n", window->w, window->h);
++    return 0;
++}
++
++int MMIYOO_CreateWindowFrom(_THIS, SDL_Window *window, const void *data)
++{
++    return SDL_Unsupported();
++}
++
++static SDL_VideoDevice *MMIYOO_CreateDevice(void)
++{
++    SDL_VideoDevice *device = NULL;
++
++    if(!MMIYOO_Available()) {
++        return (0);
++    }
++
++    device = (SDL_VideoDevice *) SDL_calloc(1, sizeof(SDL_VideoDevice));
++    if(!device) {
++        SDL_OutOfMemory();
++        return (0);
++    }
++    device->is_dummy = SDL_TRUE;
++
++    device->VideoInit = MMIYOO_VideoInit;
++    device->VideoQuit = MMIYOO_VideoQuit;
++    device->SetDisplayMode = MMIYOO_SetDisplayMode;
++    device->PumpEvents = MMIYOO_PumpEvents;
++    device->CreateSDLWindow = MMIYOO_CreateWindow;
++    device->CreateSDLWindowFrom = MMIYOO_CreateWindowFrom;
++    device->free = MMIYOO_DeleteDevice;
++    return device;
++}
++
++VideoBootStrap MMIYOO_bootstrap = {MMIYOO_DRIVER_NAME, "MMIYOO VIDEO DRIVER", MMIYOO_CreateDevice};
++
++int MMIYOO_VideoInit(_THIS)
++{
++
++    SDL_DisplayMode mode={0};
++    SDL_VideoDisplay display={0};
++
++    printf(PREFIX"MMIYOO_VideoInit\n");
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_RGB565;
++    mode.w = 640;
++    mode.h = 480;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_ARGB8888;
++    mode.w = 640;
++    mode.h = 480;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_RGB565;
++    mode.w = 800;
++    mode.h = 480;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_ARGB8888;
++    mode.w = 800;
++    mode.h = 480;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_RGB565;
++    mode.w = 800;
++    mode.h = 600;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_ARGB8888;
++    mode.w = 800;
++    mode.h = 600;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_RGB565;
++    mode.w = 320;
++    mode.h = 240;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_ARGB8888;
++    mode.w = 320;
++    mode.h = 240;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_RGB565;
++    mode.w = 480;
++    mode.h = 272;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_zero(mode);
++    mode.format = SDL_PIXELFORMAT_ARGB8888;
++    mode.w = 480;
++    mode.h = 272;
++    mode.refresh_rate = 60;
++    SDL_AddDisplayMode(&display, &mode);
++
++    SDL_AddVideoDisplay(&display, SDL_FALSE);
++
++    LINE_H = 30;
++
++    FB_W = DEF_FB_W;
++    FB_H = DEF_FB_H;
++    FB_SIZE = FB_W * FB_H * FB_BPP;
++    TMP_SIZE = FB_W * FB_H * FB_BPP;
++
++    FB_SIZE = FB_W * FB_H * FB_BPP;
++
++    MMIYOO_EventInit();
++    GFX_Init();
++
++    return 0;
++}
++
++static int MMIYOO_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode)
++{
++    return 0;
++}
++
++void MMIYOO_VideoQuit(_THIS)
++{
++    printf(PREFIX"MMIYOO_VideoQuit\n");
++    MMIYOO_EventDeinit();
++    GFX_Quit();
++}
++
++#endif
+diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.h b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.h
+--- a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.h	1970-01-01 08:00:00.000000000 +0800
++++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.h	2025-02-03 09:11:33.528740862 +0800
+@@ -0,0 +1,97 @@
++/*
++  Customized version for Miyoo-Mini handheld.
++  Only tested under Miyoo-Mini stock OS (original firmware) with Parasyte compatible layer.
++
++  Copyright (C) 1997-2022 Sam Lantinga <slouken@libsdl.org>
++  Copyright (C) 2022-2022 Steward Fu <steward.fu@gmail.com>
++
++  This software is provided 'as-is', without any express or implied
++  warranty.  In no event will the authors be held liable for any damages
++  arising from the use of this software.
++
++  Permission is granted to anyone to use this software for any purpose,
++  including commercial applications, and to alter it and redistribute it
++  freely, subject to the following restrictions:
++
++  1. The origin of this software must not be misrepresented; you must not
++     claim that you wrote the original software. If you use this software
++     in a product, an acknowledgment in the product documentation would be
++     appreciated but is not required.
++  2. Altered source versions must be plainly marked as such, and must not be
++     misrepresented as being the original software.
++  3. This notice may not be removed or altered from any source distribution.
++*/
++#include "../../SDL_internal.h"
++
++#ifndef __SDL_VIDEO_MMIYOO_H__
++#define __SDL_VIDEO_MMIYOO_H__
++
++#include <stdint.h>
++#include <stdbool.h>
++#include <linux/fb.h>
++
++#include "../SDL_sysvideo.h"
++#include "../SDL_sysvideo.h"
++#include "../SDL_pixels_c.h"
++#include "../../events/SDL_events_c.h"
++
++#include "SDL_ttf.h"
++#include "SDL_version.h"
++#include "SDL_syswm.h"
++#include "SDL_loadso.h"
++#include "SDL_events.h"
++#include "SDL_video.h"
++#include "SDL_mouse.h"
++
++#ifndef MAX_PATH
++    #define MAX_PATH                128
++#endif
++
++#define DEF_FB_W                320
++#define DEF_FB_H                240
++#define FB_BPP                  2
++#define RELOAD_BG_COUNT         1
++
++
++#define PREFIX                      "[SDL] "
++#define MMIYOO_DRIVER_NAME          "mmiyoo"
++
++typedef struct MMIYOO_VideoInfo {
++    SDL_Window *window;
++} MMIYOO_VideoInfo;
++
++typedef struct _GFX {
++    int fb_dev;
++
++    struct fb_var_screeninfo vinfo;
++    struct fb_fix_screeninfo finfo;
++
++    struct _DMA {
++    } fb, tmp, overlay, dup;
++
++    int action;
++
++    struct _THREAD {
++        void *pixels;
++        SDL_Rect srt;
++        SDL_FRect drt;
++        SDL_Texture *texture;
++    } thread;
++
++    struct _HW {
++        uint32_t *mem;
++    } hw;
++} GFX;
++
++void GFX_Clear(void);
++void GFX_Flip(void);
++int GFX_Copy(const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int pitch, int alpha, int rotate);
++
++int fb_init(void);
++int fb_uninit(void);
++
++int My_QueueCopy(SDL_Texture *texture, const void *pixels, const SDL_Rect *srcrect, const SDL_FRect *dstrect);
++const void* get_pixels(void *chk);
++
++#endif
++
+diff -uprN a/SDL2.mk b/SDL2.mk
+--- a/SDL2.mk	1970-01-01 08:00:00.000000000 +0800
++++ b/SDL2.mk	2025-02-03 08:54:04.748727159 +0800
+@@ -0,0 +1,47 @@
++SDL2_CFG = --prefix=./SDL2
++SDL2_CFG+= --host=arm-funkey-linux-gnueabihf
++SDL2_CFG+= --build=x86_64-linux-gnu
++SDL2_CFG+= --target=arm-funkey-linux-gnueabihf
++SDL2_CFG+= --disable-static
++SDL2_CFG+= --enable-shared
++SDL2_CFG+= --enable-arm-neon 
++SDL2_CFG+= --disable-arts
++SDL2_CFG+= --disable-esd
++SDL2_CFG+= --disable-joystick-virtual
++SDL2_CFG+= --disable-jack
++SDL2_CFG+= --disable-power
++SDL2_CFG+= --disable-sensor
++SDL2_CFG+= --disable-ime
++SDL2_CFG+= --disable-dbus
++SDL2_CFG+= --disable-fcitx
++SDL2_CFG+= --disable-hidapi
++SDL2_CFG+= --disable-libudev
++SDL2_CFG+= --disable-video-directfb
++SDL2_CFG+= --disable-video-x11
++SDL2_CFG+= --disable-video-kmsdrm
++SDL2_CFG+= --disable-video-vulkan
++SDL2_CFG+= --disable-video-opengl
++SDL2_CFG+= --disable-video-opengles
++SDL2_CFG+= --disable-video-opengles2
++SDL2_CFG+= --disable-video-wayland
++SDL2_CFG+= --disable-video-dummy
++SDL2_CFG+= --disable-video-offscreen
++SDL2_CFG+= --disable-libsamplerate
++SDL2_CFG+= --disable-sndio
++SDL2_CFG+= --disable-diskaudio
++SDL2_CFG+= --disable-pulseaudio
++SDL2_CFG+= --disable-dummyaudio
++SDL2_CFG+= LDFLAGS="-L./opengl/lib -L./SDL2/lib"
++SDL2_CFG+= CPPFLAGS="-I./opengl/include -I./SDL2/include/SDL2"
++
++.PHONY: SDL2
++SDL2:
++	make -C SDL2-2.30.10 -j4
++
++.PHONY: SDL2_cfg
++SDL2_cfg:
++	cd SDL2-2.30.10 && ./autogen.sh && ./configure $(SDL2_CFG)
++
++.PHONY: SDL2_clean
++SDL2_clean:
++	make -C SDL2-2.30.10 distclean
