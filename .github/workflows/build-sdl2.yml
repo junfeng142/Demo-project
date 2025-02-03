@@ -38,8 +38,6 @@ jobs:
         df -hT $PWD
         sudo mkdir -p $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
-        sudo cd $PKG_NAME && wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
-        cd && tar xvf SDL2-2.30.10.tar.gz
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         cd && tar xvf FunKey-sdk-2.3.0.tar.gz
         sudo mv FunKey-sdk-2.3.0 /opt
@@ -49,7 +47,8 @@ jobs:
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
         mv configs/*.patch $PKG_NAME/
         chmod +x $DIY_SH
-        cd $PKG_NAME
+        cd $PKG_NAME && wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
+        tar xvf SDL2-2.30.10.tar.gz
         sudo mkdir -p SDL2/ opengl/
         tar -zxvf ../tools/SDL2.tar.gz -C ./SDL2
         tar -zxvf ../tools/opengl.tar.gz -C ./opengl
