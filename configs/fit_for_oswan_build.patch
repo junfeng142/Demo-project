@@ -162,7 +162,7 @@ diff -uprN c/main/sdl/input.c d/main/sdl/input.c
  	keys = SDL_GetKeyState(NULL);
  	/* Get to Menu hotkey */
 -	if ( ((keys[SDLK_ESCAPE] == SDL_PRESSED) && (keys[SDLK_RETURN] == SDL_PRESSED)) 
-+	if ((keys[SDLK_q] == SDL_PRESSED) ) 
++	if ((keys[SDLK_q] == SDL_PRESSED ) 
  	#ifdef RG99
  	|| keys[SDLK_PAGEUP] == SDL_PRESSED
  	#endif
