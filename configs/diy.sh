@@ -54,3 +54,6 @@ fi
 if [ -d "SDL2" ]; then
     patch -p1 < fit_for_sdl2_build.patch
 fi
+
+# oswan build
+[ -d minizip ] && patch -p1 < fit_for_oswan_build.patch
