@@ -55,5 +55,8 @@ if [ -d "SDL2" ]; then
     patch -p1 < fit_for_sdl2_build.patch
 fi
 
+# crafti build
+[ -f worldtask.cpp ] && patch -p1 < fit_for_crafti_build.patch
+
 # oswan build
 [ -d minizip ] && patch -p1 < fit_for_oswan_build.patch
