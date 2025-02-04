@@ -30,7 +30,7 @@ diff -uprN c/main.cpp d/main.cpp
      return 0;
  }
 diff -uprN c/pc/libndls.h d/pc/libndls.h
---- c/pc/libndls.h	2025-02-04 13:35:25.912670219 +0800
+--- c/pc/libndls.h	2025-02-04 13:10:56.192672407 +0800
 +++ d/pc/libndls.h	2025-02-04 13:09:52.432672502 +0800
 @@ -92,26 +92,26 @@
      #define KEY_NSPIRE_1 0
@@ -91,10 +91,3 @@ diff -uprN c/pc/libndls.h d/pc/libndls.h
      #define KEY_NSPIRE_0 0
      
      #define KEY_NSPIRE_CTRL 0
-@@ -139,4 +139,4 @@
- 
- 
-     #endif
--#endif
-\ No newline at end of file
-+#endif
