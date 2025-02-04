@@ -13,12 +13,6 @@
 # create folder
 mkdir -p _opk
 
-# cannonball build
-if [ -d "cannonboard" ]; then
-    sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey
-    sed -i 's/musleabihf/gnueabihf/g' Makefile.funkey
-fi
-
 # dosbox build
 [ -d dosbox ] && patch -p1 < fit_for_dosbox_build.patch
 
@@ -27,6 +21,21 @@ fi
 
 # gambatte build
 [ -d gambatte_sdl ] && patch -p1 < fit_for_gambatte_build.patch
+
+# libsdl2 build
+[ -d SDL2 ] && patch -p1 < fit_for_sdl2_build.patch
+
+# oswan build
+[ -d minizip ] && patch -p1 < fit_for_oswan_build.patch
+
+# crafti build
+[ -f worldtask.cpp ] && patch -p1 < fit_for_crafti_build.patch
+
+# cannonball build
+if [ -d "cannonboard" ]; then
+    sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey
+    sed -i 's/musleabihf/gnueabihf/g' Makefile.funkey
+fi
 
 # gpsp build
 if [ -f "game_config.txt" ]; then
@@ -50,13 +59,3 @@ if [ -d "pocketsnes" ]; then
     cp dist/backdrop.png _opk/
 fi
 
-# libsdl2 build
-if [ -d "SDL2" ]; then
-    patch -p1 < fit_for_sdl2_build.patch
-fi
-
-# crafti build
-[ -f worldtask.cpp ] && patch -p1 < fit_for_crafti_build.patch
-
-# oswan build
-[ -d minizip ] && patch -p1 < fit_for_oswan_build.patch
