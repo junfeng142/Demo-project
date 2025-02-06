@@ -31,6 +31,9 @@ mkdir -p _opk
 # crafti build
 [ -f worldtask.cpp ] && patch -p1 < fit_for_crafti_build.patch
 
+# ffplay build
+[ -d ffplay-gcw0 ] && patch -p1 < fit_for_ffplay_build.patch
+
 # cannonball build
 if [ -d "cannonboard" ]; then
     sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey
