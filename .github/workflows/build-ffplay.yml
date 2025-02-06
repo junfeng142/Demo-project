@@ -75,8 +75,9 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-        cd $PKG_NAME/_opk
+        tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        cd $PKG_NAME && rm -rf _opk/*
+        mv ${PKG_NAME}_funkey-s.opk _opk/ && cd _opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
         
