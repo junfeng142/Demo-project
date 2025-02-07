@@ -51,7 +51,7 @@ jobs:
         chmod +x $DIY_SH
         cd $PKG_NAME 
         wget https://github.com/DCurrent/openbor/archive/refs/tags/v6391.tar.gz
-        tar xvf openbor-6391.tar.gz
+        tar xvf v6391.tar.gz
         $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
