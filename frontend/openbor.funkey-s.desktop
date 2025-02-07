@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=OpenBOR
+Name[ch]=OpenBOR
+Comment=OpenBOR Engine r6391
+Comment[ch]=OpenBOR开源模拟器r6391
+Exec=/mnt/OpenBOR/run.sh
+Terminal=true
+Type=Application
+Icon=openbor
+Categories=games

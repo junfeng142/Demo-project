@@ -34,6 +34,9 @@ mkdir -p _opk
 # ffplay build
 [ -d ffplay-gcw0 ] && patch -p1 < fit_for_ffplay_build.patch
 
+# openbor build
+[ -d openbor-6391 ] && patch -p1 < fit_for_openbor_build.patch
+
 # cannonball build
 if [ -d "cannonboard" ]; then
     sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey

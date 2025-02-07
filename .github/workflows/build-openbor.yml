@@ -1,0 +1,87 @@
+name: openbor-opk Build
+
+on:
+  workflow_dispatch:
+
+env:
+  PKG_NAME: openbor
+  BIN_DIR: /engine
+  CONFIG_FILE: configs/openbor.config
+  DIY_SH: configs/diy.sh
+  UPLOAD_FIRMWARE: true
+  TZ: Asia/Shanghai
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-20.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+      
+    - name: Initialization environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y -q --no-install-recommends build-essential make cmake wget autogen autoconf automake -y
+        sudo apt-get -y autoremove
+        sudo apt-get -y clean
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo sed -i 's/# \(en_US.UTF-8\)/\1/' /etc/locale.gen
+        sudo locale-gen --purge --lang en_US.UTF-8
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+        
+    - name: Clone source code
+      working-directory: /workdir
+      run: |
+        df -hT $PWD
+        mkdir -p $PKG_NAME
+        ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
+        cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
+        cd && tar xvf toolchain.tar.gz
+        sudo mv mmiyoo /opt
+        sudo mv prebuilt /opt
+        export PATH=/opt/mmiyoo/bin/:$PATH
+
+    - name: Load custom configuration
+      run: |
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
+        mv configs/*.patch $PKG_NAME/
+        chmod +x $DIY_SH
+        cd $PKG_NAME 
+        wget https://github.com/DCurrent/openbor/archive/refs/tags/v6391.tar.gz
+        tar xvf openbor-6391.tar.gz
+        $GITHUB_WORKSPACE/$DIY_SH
+
+    - name: Compile the firmware
+      id: compile
+      run: |
+        cd $PKG_NAME
+        chmod +x build.sh && ./build.sh
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+
+    - name: Organize files
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
+        tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        mv $PKG_NAME/openbor-6391/engine/$PKG_NAME $PKG_NAME/_opk/
+        cd ${PKG_NAME}/_opk
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Upload firmware directory
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: ${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+        
