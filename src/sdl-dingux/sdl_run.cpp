@@ -78,7 +78,7 @@ void RunEmulator(int drvnum)
 	}
 
 	gui_Init();
-    ConfigGameLoad();
+//    ConfigGameLoad();
 	VideoInit();
 
 	printf("Attempt to initialise '%s'\n", BurnDrvGetTextA(DRV_FULLNAME));
