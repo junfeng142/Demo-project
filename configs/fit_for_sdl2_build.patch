@@ -194,21 +194,21 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_event_mmiyoo.c b/SDL2-2.30.10/src
 +static uint32_t pre_keypad_bitmaps = 0;
 +
 +const SDL_Scancode code[]={
-+    SDLK_u,         // UP
-+    SDLK_d,         // DOWN
-+    SDLK_l,         // LEFT
-+    SDLK_r,         // RIGHT
-+    SDLK_a,         // A
-+    SDLK_b,         // B
-+    SDLK_x,         // X
-+    SDLK_y,         // Y
-+    SDLK_m,         // L1
-+    SDLK_n,         // R1
++    SDLK_UP,        // UP
++    SDLK_DOWN,      // DOWN
++    SDLK_LEFT,      // LEFT
++    SDLK_RIGHT,     // RIGHT
++    SDLK_LCTRL,     // A
++    SDLK_LALT,      // B
++    SDLK_SPACE,     // X
++    SDLK_LSHIFT,    // Y
++    SDLK_TAB,       // L1
++    SDLK_BACKSPACE, // R1
 +    SDLK_PAGEDOWN,  // L2
 +    SDLK_PAGEUP,    // R2
-+    SDLK_k,         // SELECT
-+    SDLK_s,         // START
-+    SDLK_q,         // MENU
++    SDLK_ESCAPE,    // SELECT
++    SDLK_RETURN,    // START
++    SDLK_HOME,      // MENU
 +    SDLK_0,         // QUICK SAVE
 +    SDLK_1,         // QUICK LOAD
 +    SDLK_2,         // FAST FORWARD
