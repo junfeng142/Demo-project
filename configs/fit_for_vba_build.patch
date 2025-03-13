@@ -1,0 +1,171 @@
+diff -uprN c/Makefile.funkey d/Makefile.funkey
+--- c/Makefile.funkey	2025-03-13 15:55:45.432836599 +0800
++++ d/Makefile.funkey	2025-03-13 15:55:27.105550594 +0800
+@@ -1,6 +1,6 @@
+ PRGNAME     = vbanext.elf
+-CC          = /opt/funkey-toolchain/bin/arm-linux-gcc
+-CXX 		= /opt/funkey-toolchain/bin/arm-linux-g++
++CC          = /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc
++CXX 		= /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-g++
+ #### Configuration
+ 
+ # Possible values : retrostone, rs97, rs90
+@@ -20,7 +20,7 @@ DEFINES		= -DLSB_FIRST -DINLINE="inline"
+ DEFINES		+= -DGIT_VERSION=\"$(GIT_VERSION)\" 
+ 
+ # Retrostone extra defines
+-DEFINES		+= -DHAVE_NEON -DUSE_TWEAKS -DUSE_FRAME_SKIP
++DEFINES		+= -DHAVE_NEON -DUSE_TWEAKS -DUSE_FRAME_SKIP -DVIRTUAL_SURFACE
+ 
+ CFLAGS		= -Ofast -fsingle-precision-constant -fno-PIC -flto -fno-common -Wall $(INCLUDES) $(DEFINES)
+ ifeq ($(PROFILE), YES)
+diff -uprN c/shell/input/sdl/input.cpp d/shell/input/sdl/input.cpp
+--- c/shell/input/sdl/input.cpp	2025-03-13 15:56:56.178080693 +0800
++++ d/shell/input/sdl/input.cpp	2025-03-13 15:57:43.788226154 +0800
+@@ -29,7 +29,7 @@ int32_t update_input(void)
+ 					case SDLK_LSHIFT:
+ #endif
+ 					case SDLK_END:
+-					case SDLK_RCTRL:
++					case SDLK_q:
+ 						emulator_state = 1;
+ 					break;
+ 					default:
+diff -uprN c/shell/menu/menu.cpp d/shell/menu/menu.cpp
+--- c/shell/menu/menu.cpp	2025-03-13 16:00:03.814772447 +0800
++++ d/shell/menu/menu.cpp	2025-03-13 16:00:21.194096366 +0800
+@@ -76,18 +76,18 @@ static void config_load()
+ 	else
+ 	{
+ 		/* Default mapping for Horizontal */
+-		option.config_buttons[0] = SDLK_UP;
+-		option.config_buttons[1] = SDLK_DOWN;
+-		option.config_buttons[2] = SDLK_LEFT;
+-		option.config_buttons[3] = SDLK_RIGHT;
+-		
+-		option.config_buttons[4] = SDLK_LCTRL;
+-		option.config_buttons[5] = SDLK_LALT;
+-		option.config_buttons[6] = SDLK_TAB;
+-		option.config_buttons[7] = SDLK_BACKSPACE;
++		option.config_buttons[0] = SDLK_u;
++		option.config_buttons[1] = SDLK_d;
++		option.config_buttons[2] = SDLK_l;
++		option.config_buttons[3] = SDLK_r;
++		
++		option.config_buttons[4] = SDLK_a;
++		option.config_buttons[5] = SDLK_b;
++		option.config_buttons[6] = SDLK_m;
++		option.config_buttons[7] = SDLK_n;
+ 		
+-		option.config_buttons[8] = SDLK_RETURN;
+-		option.config_buttons[9] = SDLK_ESCAPE;
++		option.config_buttons[8] = SDLK_s;
++		option.config_buttons[9] = SDLK_k;
+ 				
+ 		option.config_buttons[10] = 306;
+ 		option.config_buttons[11] = 308;
+@@ -213,7 +213,7 @@ static void Input_Remapping()
+             {
+                 switch(Event.key.keysym.sym)
+                 {
+-                    case SDLK_UP:
++                    case SDLK_u:
+                         currentselection--;
+                         if (currentselection < 1)
+                         {
+@@ -221,33 +221,33 @@ static void Input_Remapping()
+ 							else currentselection = 9;
+ 						}
+                         break;
+-                    case SDLK_DOWN:
++                    case SDLK_d:
+                         currentselection++;
+                         if (currentselection == 10)
+                         {
+ 							currentselection = 1;
+ 						}
+                         break;
+-                    case SDLK_LCTRL:
+-                    case SDLK_RETURN:
++                    case SDLK_a:
++                    case SDLK_s:
+                         pressed = 1;
+ 					break;
+-                    case SDLK_ESCAPE:
++                    case SDLK_k:
+                         option.config_buttons[currentselection - 1] = 0;
+ 					break;
+-                    case SDLK_LALT:
++                    case SDLK_b:
+                         exit_input = 1;
+ 					break;
+-                    case SDLK_LEFT:
++                    case SDLK_l:
+ 						if (currentselection > 9) currentselection -= 9;
+ 					break;
+-                    case SDLK_RIGHT:
++                    case SDLK_r:
+ 						if (currentselection < 10) currentselection += 9;
+ 					break;
+-                    case SDLK_BACKSPACE:
++                    case SDLK_n:
+ 						controls_chosen = 1;
+ 					break;
+-                    case SDLK_TAB:
++                    case SDLK_m:
+ 						controls_chosen = 0;
+ 					break;
+ 					default:
+@@ -271,7 +271,7 @@ static void Input_Remapping()
+ 						{
+ 							if (Event.type == SDL_KEYDOWN)
+ 							{
+-								if (Event.key.keysym.sym != SDLK_RCTRL)
++								if (Event.key.keysym.sym != SDLK_q)
+ 								{
+ 									option.config_buttons[currentselection - 1] = Event.key.keysym.sym;
+ 									exit_map = 1;
+@@ -433,27 +433,27 @@ void Menu()
+             {
+                 switch(Event.key.keysym.sym)
+                 {
+-                    case SDLK_UP:
++                    case SDLK_u:
+                         currentselection--;
+                         if (currentselection == 0)
+                             currentselection = EXIT_NUMBER;
+                         break;
+-                    case SDLK_DOWN:
++                    case SDLK_d:
+                         currentselection++;
+                         if (currentselection == EXIT_NUMBER+1)
+                             currentselection = 1;
+                         break;
+                     case SDLK_END:
+-                    case SDLK_RCTRL:
+-                    case SDLK_LALT:
++                    case SDLK_q:
++                    case SDLK_b:
+ 						pressed = 1;
+ 						currentselection = 1;
+ 						break;
+-                    case SDLK_LCTRL:
+-                    case SDLK_RETURN:
++                    case SDLK_a:
++                    case SDLK_s:
+                         pressed = 1;
+                         break;
+-                    case SDLK_LEFT:
++                    case SDLK_l:
+                         switch(currentselection)
+                         {
+                             case 2:
+@@ -476,7 +476,7 @@ void Menu()
+ 							#endif
+                         }
+                         break;
+-                    case SDLK_RIGHT:
++                    case SDLK_r:
+                         switch(currentselection)
+                         {
+                             case 2:
