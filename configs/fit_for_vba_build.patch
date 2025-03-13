@@ -347,15 +347,14 @@ diff -uprN c/shell/video/funkey/video_blit.cpp d/shell/video/funkey/video_blit.c
 +	SDL_Flip(sdl_screen);
  }
 diff -uprN c/shell/video/funkey/video_blit.h d/shell/video/funkey/video_blit.h
---- c/shell/video/funkey/video_blit.h	2025-03-13 16:11:44.099626611 +0800
-+++ d/shell/video/funkey/video_blit.h	2025-03-13 16:12:34.261683113 +0800
-@@ -14,6 +14,9 @@
+--- c/shell/video/funkey/video_blit.h	2025-03-13 16:22:51.693769191 +0800
++++ d/shell/video/funkey/video_blit.h	2025-03-13 16:11:44.099626611 +0800
+@@ -3,7 +3,7 @@
  
- extern SDL_Surface *sdl_screen, *backbuffer;
+ #include <SDL/SDL.h>
  
-+extern uint32_t width_of_surface;
-+extern uint16_t* Draw_to_Virtual_Screen;
-+
- void Init_Video();
- void Set_Video_Menu();
- void Set_Video_InGame();
+-#define HOST_WIDTH_RESOLUTION 240
++#define HOST_WIDTH_RESOLUTION 320
+ #define HOST_HEIGHT_RESOLUTION 240
+ 
+ #define MENU_WIDTH_RESOLUTION 320
