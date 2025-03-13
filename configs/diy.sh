@@ -37,6 +37,9 @@ mkdir -p _opk
 # openbor build
 [ -d openbor-6391 ] && patch -p1 < fit_for_openbor_build.patch
 
+# vba build
+[ -f vbanext.png ] && patch -p1 < fit_for_vba_build.patch
+
 # cannonball build
 if [ -d "cannonboard" ]; then
     sed -i 's/FunKey-sdk/FunKey-sdk-2.3.0/g' Makefile.funkey
