@@ -666,6 +666,7 @@ diff -uprN a/build.sh b/build.sh
 +export CROSS_COMPILE=/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-
 +
 +make -j1 V=s
++#make modules_install INSTALL_MOD_PATH="bin"
 \ No newline at end of file
 diff -uprN a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
 --- a/drivers/video/fbdev/Kconfig	2025-04-28 10:01:02.355055903 +0800
