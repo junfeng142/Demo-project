@@ -25,6 +25,9 @@ mkdir -p _opk
 # libsdl2 build
 [ -d SDL2 ] && patch -p1 < fit_for_sdl2_build.patch
 
+# kernel build
+[ -d include/linux ] && patch -p1 < fit_for_kernel_build.patch
+
 # oswan build
 [ -d minizip ] && patch -p1 < fit_for_oswan_build.patch
 
