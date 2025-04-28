@@ -56,7 +56,7 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME
+        cd $PKG_NAME && chmod +x ./build.sh
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
