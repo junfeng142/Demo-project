@@ -706,84 +706,16 @@ diff -uprN a/drivers/video/fbdev/Makefile b/drivers/video/fbdev/Makefile
 \ No newline at end of file
 diff -uprN a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
 --- a/drivers/video/fbdev/core/fbmem.c	2025-04-28 11:08:41.490631977 +0800
-+++ b/drivers/video/fbdev/core/fbmem.c	2025-04-24 13:09:14.719117700 +0800
-@@ -32,9 +32,9 @@
++++ b/drivers/video/fbdev/core/fbmem.c	2025-05-06 09:01:10.915014471 +0800
+@@ -32,7 +32,6 @@
  #include <linux/device.h>
  #include <linux/efi.h>
  #include <linux/fb.h>
 -#include <linux/fbtft.h>
  #include <linux/fbcon.h>
  #include <linux/mem_encrypt.h>
-+#include <linux/overflow.h>
  
- #include <asm/fb.h>
- 
-@@ -428,6 +428,9 @@ static void fb_do_show_logo(struct fb_in
- {
- 	unsigned int x;
- 
-+	if (image->width > info->var.xres || image->height > info->var.yres)
-+		return;
-+
- 	if (rotate == FB_ROTATE_UR) {
- 		for (x = 0;
- 		     x < num && image->dx + image->width <= info->var.xres;
-@@ -436,7 +439,9 @@ static void fb_do_show_logo(struct fb_in
- 			image->dx += image->width + 8;
- 		}
- 	} else if (rotate == FB_ROTATE_UD) {
--		for (x = 0; x < num; x++) {
-+		u32 dx = image->dx;
-+
-+		for (x = 0; x < num && image->dx <= dx; x++) {
- 			info->fbops->fb_imageblit(info, image);
- 			image->dx -= image->width + 8;
- 		}
-@@ -448,7 +453,9 @@ static void fb_do_show_logo(struct fb_in
- 			image->dy += image->height + 8;
- 		}
- 	} else if (rotate == FB_ROTATE_CCW) {
--		for (x = 0; x < num; x++) {
-+		u32 dy = image->dy;
-+
-+		for (x = 0; x < num && image->dy <= dy; x++) {
- 			info->fbops->fb_imageblit(info, image);
- 			image->dy -= image->height + 8;
- 		}
-@@ -977,6 +984,7 @@ fb_set_var(struct fb_info *info, struct
- 	if ((var->activate & FB_ACTIVATE_FORCE) ||
- 	    memcmp(&info->var, var, sizeof(struct fb_var_screeninfo))) {
- 		u32 activate = var->activate;
-+		u32 unused;
- 
- 		/* When using FOURCC mode, make sure the red, green, blue and
- 		 * transp fields are set to 0.
-@@ -997,6 +1005,15 @@ fb_set_var(struct fb_info *info, struct
- 			goto done;
- 		}
- 
-+		/* bitfill_aligned() assumes that it's at least 8x8 */
-+		if (var->xres < 8 || var->yres < 8)
-+			return -EINVAL;
-+
-+		/* Too huge resolution causes multiplication overflow. */
-+		if (check_mul_overflow(var->xres, var->yres, &unused) ||
-+		    check_mul_overflow(var->xres_virtual, var->yres_virtual, &unused))
-+			return -EINVAL;
-+
- 		ret = info->fbops->fb_check_var(var, info);
- 
- 		if (ret)
-@@ -1128,7 +1145,7 @@ static long do_fb_ioctl(struct fb_info *
- 	case FBIOGET_FSCREENINFO:
- 		if (!lock_fb_info(info))
- 			return -ENODEV;
--		fix = info->fix;
-+		memcpy(&fix, &info->fix, sizeof(fix));
- 		unlock_fb_info(info);
- 
- 		ret = copy_to_user(argp, &fix, sizeof(fix)) ? -EFAULT : 0;
-@@ -1148,7 +1165,6 @@ static long do_fb_ioctl(struct fb_info *
+@@ -1148,7 +1147,6 @@ static long do_fb_ioctl(struct fb_info *
  		ret = fb_cmap_to_user(&cmap_from, &cmap);
  		break;
  	case FBIOPAN_DISPLAY:
@@ -791,7 +723,7 @@ diff -uprN a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
  		if (copy_from_user(&var, argp, sizeof(var)))
  			return -EFAULT;
  		console_lock();
-@@ -1157,10 +1173,6 @@ static long do_fb_ioctl(struct fb_info *
+@@ -1157,10 +1155,6 @@ static long do_fb_ioctl(struct fb_info *
  			return -ENODEV;
  		}
  		ret = fb_pan_display(info, &var);
@@ -802,84 +734,13 @@ diff -uprN a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
  		unlock_fb_info(info);
  		console_unlock();
  		if (ret == 0 && copy_to_user(argp, &var, sizeof(var)))
-@@ -1722,12 +1734,12 @@ static int do_register_framebuffer(struc
- 	return 0;
+@@ -1962,4 +1956,4 @@ int fb_new_modelist(struct fb_info *info
+ 	return err;
  }
  
--static int do_unregister_framebuffer(struct fb_info *fb_info)
-+static int unbind_console(struct fb_info *fb_info)
- {
- 	struct fb_event event;
--	int i, ret = 0;
-+	int ret;
-+	int i = fb_info->node;
- 
--	i = fb_info->node;
- 	if (i < 0 || i >= FB_MAX || registered_fb[i] != fb_info)
- 		return -EINVAL;
- 
-@@ -1742,17 +1754,29 @@ static int do_unregister_framebuffer(str
- 	unlock_fb_info(fb_info);
- 	console_unlock();
- 
-+	return ret;
-+}
-+
-+static int __unlink_framebuffer(struct fb_info *fb_info);
-+
-+static int do_unregister_framebuffer(struct fb_info *fb_info)
-+{
-+	struct fb_event event;
-+	int ret;
-+
-+	ret = unbind_console(fb_info);
-+
- 	if (ret)
- 		return -EINVAL;
- 
- 	pm_vt_switch_unregister(fb_info->dev);
- 
--	unlink_framebuffer(fb_info);
-+	__unlink_framebuffer(fb_info);
- 	if (fb_info->pixmap.addr &&
- 	    (fb_info->pixmap.flags & FB_PIXMAP_DEFAULT))
- 		kfree(fb_info->pixmap.addr);
- 	fb_destroy_modelist(&fb_info->modelist);
--	registered_fb[i] = NULL;
-+	registered_fb[fb_info->node] = NULL;
- 	num_registered_fb--;
- 	fb_cleanup_device(fb_info);
- 	event.info = fb_info;
-@@ -1765,7 +1789,7 @@ static int do_unregister_framebuffer(str
- 	return 0;
- }
- 
--int unlink_framebuffer(struct fb_info *fb_info)
-+static int __unlink_framebuffer(struct fb_info *fb_info)
- {
- 	int i;
- 
-@@ -1777,6 +1801,20 @@ int unlink_framebuffer(struct fb_info *f
- 		device_destroy(fb_class, MKDEV(FB_MAJOR, i));
- 		fb_info->dev = NULL;
- 	}
-+
-+	return 0;
-+}
-+
-+int unlink_framebuffer(struct fb_info *fb_info)
-+{
-+	int ret;
-+
-+	ret = __unlink_framebuffer(fb_info);
-+	if (ret)
-+		return ret;
-+
-+	unbind_console(fb_info);
-+
- 	return 0;
- }
- EXPORT_SYMBOL(unlink_framebuffer);
+-MODULE_LICENSE("GPL");
++MODULE_LICENSE("GPL");
+\ No newline at end of file
 diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 --- a/drivers/video/fbdev/v3s_gc9307.c	1970-01-01 08:00:00.000000000 +0800
 +++ b/drivers/video/fbdev/v3s_gc9307.c	2025-04-28 09:56:39.445656253 +0800
