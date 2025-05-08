@@ -743,8 +743,8 @@ diff -uprN a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
 \ No newline at end of file
 diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 --- a/drivers/video/fbdev/v3s_gc9307.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_gc9307.c	2025-04-28 09:56:39.445656253 +0800
-@@ -0,0 +1,717 @@
++++ b/drivers/video/fbdev/v3s_gc9307.c	2025-05-08 16:02:35.047642877 +0800
+@@ -0,0 +1,705 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
 +#include <linux/cdev.h>
@@ -829,8 +829,31 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +    //PE0~7
 +    r = readl(iomm.gpio + V3S_GPIOE_CFG0);
-+    r&= 0x000f0000;
-+    r|= 0x33303333;
++    r&= 0x00000000;
++    r|= 0x11111111;
++    writel(r, iomm.gpio + V3S_GPIOE_CFG0);
++
++    //PE8~15
++    r = readl(iomm.gpio + V3S_GPIOE_CFG1);
++    r&= 0xfff00000;
++    r|= 0x00011111;
++    writel(r, iomm.gpio + V3S_GPIOE_CFG1);
++
++    //LCDreset
++    v3s_clrbits(iomm.gpio + V3S_GPIOE_DATA, (1 << 4));
++    mdelay(150);
++    v3s_setbits(iomm.gpio + V3S_GPIOE_DATA, (1 << 4));
++    mdelay(50);
++}
++
++static void v3s_i80_lcd_init(void)
++{
++    uint32_t r=0;
++
++    //PE0~7
++    r = readl(iomm.gpio + V3S_GPIOE_CFG0);
++    r&= 0x00000000;
++    r|= 0x33373333;
 +    writel(r, iomm.gpio + V3S_GPIOE_CFG0);
 +
 +    //PE8~15
@@ -839,64 +862,27 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    r|= 0x00033333;
 +    writel(r, iomm.gpio + V3S_GPIOE_CFG1);
 +
-+    //PE2
++    //PE2 pull
 +    r = readl(iomm.gpio + V3S_GPIOE_PUL0);
-+    r &= 0xffffff0f;
-+    r |= 0x00000010;
++    r&= 0xffffff0f;
++    r|= 0x00000010;
 +    writel(r, iomm.gpio + V3S_GPIOE_PUL0);
-+
-+    //PB2
-+    r = readl(iomm.gpio + V3S_GPIOB_CFG0);
-+    r&= 0xfffff0ff;
-+    r|= 0x00000100;
-+    writel(r, iomm.gpio + V3S_GPIOB_CFG0);
-+
-+    //LCDreset
-+    v3s_clrbits(iomm.gpio + V3S_GPIOB_DATA, (1 << 2));
-+    mdelay(150);
-+    v3s_setbits(iomm.gpio + V3S_GPIOB_DATA, (1 << 2));
-+    mdelay(50);
-+}
-+
-+static uint32_t lcdc_wait_busy(void)
-+{
-+    uint32_t cnt = 0;
-+
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 0));   //trigger mode enable
-+    ndelay(10);
-+    while(1) {
-+        if(readl(iomm.lcdc + TCON0_CPU_IF_REG) & 0x00c00000) {
-+            if(cnt > 100) {
-+                return -1;
-+            }
-+            else {
-+                cnt += 1;
-+            }
-+        }
-+        break;
-+    }
-+    return 0;
-+}
-+
-+static uint32_t extend_16b_to_24b(uint32_t value)
-+{
-+    return ((value & 0xfc00) << 8) | ((value & 0x0300) << 6) | ((value & 0x00e0) << 5) | ((value & 0x001f) << 3);
 +}
 +
 +static void lcdc_wr(uint8_t is_data, uint32_t data)
 +{
-+    while(lcdc_wait_busy());
-+    if(is_data) {
-+        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 25));
-+    }
-+    else {
-+        v3s_clrbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 25));
-+    }
-+    while(lcdc_wait_busy());
-+    writel(extend_16b_to_24b(data), iomm.lcdc + TCON0_CPU_WR_REG);
++    uint32_t tmp;
++
++	tmp = (data & 0x00ff) << 5;
++	tmp |= is_data ? 0x02 : 0;
++	tmp |= 0x04;    //RD
++    tmp |= 0x10;    //RESET
++	writel(tmp, iomm.gpio + V3S_GPIOE_DATA);
++	tmp |= 0x01;    //WR
++	writel(tmp, iomm.gpio + V3S_GPIOE_DATA);
 +}
 +
-+static void lcdc_st7789v_init(void)
++static void lcdc_gc9307_init(void)
 +{
 +    v3s_i80_gpio_init();
 +
@@ -904,7 +890,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    mdelay(250);
 +
 +    lcdc_wr(0, 0x36);
-+    lcdc_wr(1, 0xB0);
++    lcdc_wr(1, 0xE8);
 +
 +    lcdc_wr(0, 0x2a);
 +    lcdc_wr(1, 0x00);
@@ -918,7 +904,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    lcdc_wr(1, 0x00);
 +    lcdc_wr(1, 0xef);
 +
-+    // ST7789S Frame rate setting
++    // gc9307 Frame rate setting
 +    lcdc_wr(0, 0xb2);
 +    lcdc_wr(1, 0x0c);
 +    lcdc_wr(1, 0x0c);
@@ -926,13 +912,11 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    lcdc_wr(1, 0x33);
 +    lcdc_wr(1, 0x33);
 +
-+    lcdc_wr(0, 0x20);  //Display Inversion Off
-+
 +    // Gate Control
 +    lcdc_wr(0, 0xb7);
 +    lcdc_wr(1, 0x56);
 +
-+    // ST7789S Power setting
++    // gc9307 Power setting
 +    lcdc_wr(0, 0xbb);
 +    lcdc_wr(1, 0x18);
 +
@@ -949,94 +933,88 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    lcdc_wr(1, 0x20);
 +
 +    lcdc_wr(0, 0xc6);
-+    lcdc_wr(1, 0x0f); // 0x04, 0x1f
++    lcdc_wr(1, 0x0f); //0x04, 0x1f
 +
 +    lcdc_wr(0, 0xd0);
 +    lcdc_wr(1, 0xa6);
 +    lcdc_wr(1, 0xa1);
 +
-+    // ST7789S gamma setting
++    // gc9307 gamma setting
 +    lcdc_wr(0, 0xe0);
-+    lcdc_wr(1, 0x70);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x06);
++    lcdc_wr(1, 0xd0);
++    lcdc_wr(1, 0x05);
++    lcdc_wr(1, 0x0a);
 +    lcdc_wr(1, 0x09);
-+    lcdc_wr(1, 0x0b);
-+    lcdc_wr(1, 0x2a);
-+    lcdc_wr(1, 0x3c);
-+    lcdc_wr(1, 0x33);
-+    lcdc_wr(1, 0x4b);
 +    lcdc_wr(1, 0x08);
++    lcdc_wr(1, 0x05);
++    lcdc_wr(1, 0x2e);
++    lcdc_wr(1, 0x44);
++    lcdc_wr(1, 0x45);
++    lcdc_wr(1, 0x0f);
++    lcdc_wr(1, 0x17);
 +    lcdc_wr(1, 0x16);
-+    lcdc_wr(1, 0x14);
-+    lcdc_wr(1, 0x2a);
-+    lcdc_wr(1, 0x23);
++    lcdc_wr(1, 0x2b);
++    lcdc_wr(1, 0x33);
 +
 +    lcdc_wr(0, 0xe1);
 +    lcdc_wr(1, 0xd0);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x06);
++    lcdc_wr(1, 0x05);
++    lcdc_wr(1, 0x0a);
 +    lcdc_wr(1, 0x09);
-+    lcdc_wr(1, 0x0b);
-+    lcdc_wr(1, 0x29);
-+    lcdc_wr(1, 0x36);
-+    lcdc_wr(1, 0x54);
-+    lcdc_wr(1, 0x4b);
-+    lcdc_wr(1, 0x0d);
++    lcdc_wr(1, 0x08);
++    lcdc_wr(1, 0x05);
++    lcdc_wr(1, 0x2e);
++    lcdc_wr(1, 0x43);
++    lcdc_wr(1, 0x45);
++    lcdc_wr(1, 0x0f);
 +    lcdc_wr(1, 0x16);
-+    lcdc_wr(1, 0x14);
-+    lcdc_wr(1, 0x28);
-+    lcdc_wr(1, 0x22);
++    lcdc_wr(1, 0x16);
++    lcdc_wr(1, 0x2b);
++    lcdc_wr(1, 0x33);
 +
-+    lcdc_wr(0, 0x35);  //Memory data access control
-+    lcdc_wr(1, 0x00);  //TE off
-+    lcdc_wr(1, 0xaa);  //4us
-+    lcdc_wr(1, 0x55);  //4us
-+    lcdc_wr(1, 0x21);  //TE on
++    lcdc_wr(0, 0x35);  //TE on
++    lcdc_wr(1, 0x00);
 +
 +    lcdc_wr(0, 0x3A);  //Interface pixel format
 +    lcdc_wr(1, 0x55);  //65K
 +
-+    lcdc_wr(0, 0x21);  //ips Display inversion on
++    lcdc_wr(0, 0x20);  //ips Display Inversion Off
 +    lcdc_wr(0, 0x29);  //Display on
 +    lcdc_wr(0, 0x2c);  //Memory write
 +}
 +
-+static void smartlcd_init(struct myfb_par *par)
++static void v3s_de_enable(struct myfb_par *par)
 +{
-+    uint32_t ret=0, bp=0, total=0, i=0;
-+    uint32_t h_front_porch = 8;
-+    uint32_t h_back_porch = 8;
-+    uint32_t h_sync_len = 1;
-+    uint32_t v_front_porch = 10;
-+    uint32_t v_back_porch = 110;
-+    uint32_t v_sync_len = 1;
++    struct de_glb_t * glb = (struct de_glb_t *)(iomm.de + V3S_DE_MUX_GLB);
++    writel(1, &glb->dbuff);
++}
 +
++static void v3s_de_set_address(struct myfb_par *par, unsigned int vram)
++{
++    struct de_ui_t * ui = (struct de_ui_t *)(iomm.de + V3S_DE_MUX_CHAN + 0x1000 * 2);
++    writel((unsigned int)vram, &ui->cfg[0].top_laddr);
++}
++
++static void v3s_de_set_mode(struct myfb_par *par)
++{
 +    struct de_clk_t * clk = (struct de_clk_t *)(iomm.de);
 +	struct de_glb_t * glb = (struct de_glb_t *)(iomm.de + V3S_DE_MUX_GLB);
 +	struct de_bld_t * bld = (struct de_bld_t *)(iomm.de + V3S_DE_MUX_BLD);
 +	struct de_ui_t * ui = (struct de_ui_t *)(iomm.de + V3S_DE_MUX_CHAN + 0x1000 * 2);
++    uint32_t size = (((par->mode.yres) - 1) << 16) | ((par->mode.xres) - 1);
++	int i;
 +
-+    //tcon0 disable
-+    writel(0, iomm.lcdc + TCON_CTRL_REG);
-+    writel(0, iomm.lcdc + TCON_INT_REG0);
-+    ret = readl(iomm.lcdc + TCON_CLK_CTRL_REG);
-+    ret &= ~(0xf << 28);
-+    writel(ret, iomm.lcdc + TCON_CLK_CTRL_REG);
-+    writel(0xffffffff, iomm.lcdc + TCON0_IO_CTRL_REG1);
-+
-+    //de set mod
 +    v3s_setbits(&clk->rst_cfg, (1 << 0));
 +    v3s_setbits(&clk->gate_cfg, (1 << 0));
 +    v3s_setbits(&clk->bus_cfg, (1 << 0));
-+    v3s_setbits(&clk->sel_cfg, (1 << 0));
++    v3s_clrbits(&clk->sel_cfg, (1 << 0));
 +
 +    v3s_setbits(&glb->ctl, (1 << 0));
 +    writel(0, &glb->status);
 +    writel(1, &glb->dbuff);
-+    writel((((par->mode.yres) - 1) << 16) | (((par->mode.xres) - 1) << 0), &glb->size);
++    writel(size, &glb->size);
 +
-+    for(i = 0; i < 4; i++) {
++	for(i = 0; i < 4; i++) {
 +		void * chan = (void *)(iomm.de + V3S_DE_MUX_CHAN + 0x1000 * i);
 +		memset(chan, 0, i == 0 ? sizeof(struct de_vi_t) : sizeof(struct de_ui_t));
 +	}
@@ -1048,13 +1026,13 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +	writel(0xff000000, &bld->bkcolor);
 +	writel(0x03010301, &bld->bld_mode[0]);
 +	writel(0x03010301, &bld->bld_mode[1]);
-+	writel((((par->mode.yres) - 1) << 16) | (((par->mode.xres) - 1) << 0), &bld->output_size);
++	writel(size, &bld->output_size);
 +	writel(0, &bld->out_ctl);
 +	writel(0, &bld->ck_ctl);
 +
 +	for(i = 0; i < 4; i++) {
-+		writel(0xff000000, &bld->attr[i].fcolor);
-+		writel((((par->mode.yres) - 1) << 16) | (((par->mode.xres) - 1) << 0), &bld->attr[i].insize);
++        writel(0xff000000, &bld->attr[i].fcolor);
++		writel(size, &bld->attr[i].insize);
 +	}
 +
 +    writel(0, iomm.de + V3S_DE_MUX_VSU);
@@ -1070,51 +1048,73 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +	writel(0, iomm.de + V3S_DE_MUX_DCSC);
 +
 +	writel((1 << 0) | (10 << 8) | (1 << 1) | (0xff << 24), &ui->cfg[0].attr);
-+	writel((((par->mode.yres) - 1) << 16) | (((par->mode.xres) - 1) << 0), &ui->cfg[0].size);
++	writel(size, &ui->cfg[0].size);
 +	writel(0, &ui->cfg[0].coord);
-+	writel(4 * (par->mode.xres), &ui->cfg[0].pitch);
-+	writel((((par->mode.yres) - 1) << 16) | (((par->mode.xres) - 1) << 0), &ui->ovl_size);
++	writel((par->bpp / 8) * (par->mode.xres), &ui->cfg[0].pitch);
++	writel(size, &ui->ovl_size);
++}
 +
-+    //de set address
-+	writel((uint32_t)par->vram_phys, &ui->cfg[0].top_laddr);
++static void v3s_tcon_enable(struct myfb_par *par)
++{
++    v3s_setbits(iomm.lcdc + TCON_CTRL_REG, (1 << 31));
++    v3s_setbits(iomm.lcdc + TCON_INT_REG0, (1 << 26));
++}
 +
-+    //de enable
-+    writel(1, &glb->dbuff);
++static void v3s_tcon_disable(struct myfb_par *par)
++{
++    writel(0, iomm.lcdc + TCON_CTRL_REG);
++    writel(0, iomm.lcdc + TCON_INT_REG0);
++    v3s_clrbits(iomm.lcdc + TCON_CLK_CTRL_REG, (0xf << 28));
++    writel(0xffffffff, iomm.lcdc + TCON0_IO_CTRL_REG1);
++}
 +
-+    //tcon set mode
-+    ret = (v_front_porch + v_back_porch + v_sync_len);
-+    writel((1 << 31) | ((ret & 0x1f) << 4) | (1 << 24), iomm.lcdc + TCON0_CTRL_REG);
++static void v3s_tcon_set_mode(struct myfb_par *par)
++{
++    writel((1 << 31) | ((9 & 0x1f) << 4) | (1 << 24), iomm.lcdc + TCON0_CTRL_REG);
 +    writel((0xf << 28) | (6 << 0), iomm.lcdc + TCON_CLK_CTRL_REG);
-+    writel((7 << 29), iomm.lcdc + TCON0_CPU_IF_REG);
-+
++    writel((7 << 29) | (1 << 26) | (5 << 0), iomm.lcdc + TCON0_CPU_IF_REG);
++    
 +    writel(((par->mode.xres - 1) << 16) | ((par->mode.yres - 1) << 0), iomm.lcdc + TCON0_BASIC_TIMING_REG0);
-+    bp = h_sync_len + h_back_porch;
-+    total = (par->mode.xres) * 3 / 2 + h_front_porch + bp;
-+    writel(((total - 1) << 16) | ((bp - 1) << 0), iomm.lcdc + TCON0_BASIC_TIMING_REG1);
-+    bp = v_sync_len + v_back_porch;
-+    total = par->mode.yres + v_front_porch + bp;
-+    writel(((total * 2) << 16) | ((bp - 1) << 0), iomm.lcdc + TCON0_BASIC_TIMING_REG2);
-+    writel(((h_sync_len - 1) << 16) | ((v_sync_len - 1) << 0), iomm.lcdc + TCON0_BASIC_TIMING_REG3);
++    
++    writel((((par->mode.xres) + 16) << 16) | ((par->mode.xres - 1)), iomm.lcdc + TCON0_CPU_TRI0_REG);//block space | size
++    writel((par->mode.yres - 1), iomm.lcdc + TCON0_CPU_TRI1_REG);//block num
++    writel(((3 << 16) | (par->mode.xres - 1)), iomm.lcdc + TCON0_CPU_TRI2_REG);//start delay3 | Trans Start
++    writel((2 << 28), iomm.lcdc + TCON0_CPU_TRI3_REG);//TE rising mode
++
++    writel((1 << 8), iomm.lcdc + TCON0_ECC_FIFO_REG);//enable ecc function in blanking
 +
 +    writel(0, iomm.lcdc + TCON0_HV_TIMING_REG);
 +    writel((1 << 28), iomm.lcdc + TCON0_IO_CTRL_REG0);
-+    writel(0, iomm.lcdc + TCON0_IO_CTRL_REG1);
++    writel(0x1FFE307, iomm.lcdc + TCON0_IO_CTRL_REG1);
++}
 +
-+    writel(((((par->mode.xres) / 2 + h_front_porch + bp - 1) << 16)), iomm.lcdc + TCON0_CPU_TRI0_REG);   //block space
-+    writel((par->mode.yres - 1), iomm.lcdc + TCON0_CPU_TRI1_REG);   //block num
-+    writel(((7 << 15) | (par->mode.xres - 1)), iomm.lcdc + TCON0_CPU_TRI2_REG);//start delay3, Trans Start
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_TRI3_REG, (2 << 28));         //TE falling mode
++static void smartlcd_init(struct myfb_par *par)
++{   
++    v3s_i80_gpio_init();
++    lcdc_gc9307_init();
++    v3s_i80_lcd_init();
++    v3s_tcon_disable(par);
++	v3s_de_set_mode(par);
++	v3s_tcon_set_mode(par);
++	v3s_tcon_enable(par);
++	v3s_de_set_address(par, par->vram_phys);
++    v3s_de_enable(par);
++}
 +
-+    //tcon enable
-+    v3s_setbits(iomm.lcdc + TCON_CTRL_REG, (1 << 31));
-+    lcdc_st7789v_init();
++static void v3s_clock_init(struct myfb_par *par)
++{
++    writel(0x91001f06, iomm.ccm + PLL_VIDEO_CTRL_REG);
++    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
++    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
 +
-+    v3s_setbits(iomm.lcdc + TCON_INT_REG0, (1 << 26));
-+    v3s_clrbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 0));
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 26) | (1 << 17));
++    v3s_setbits(iomm.ccm + DE_CLK_REG, (1 << 31));
++    v3s_setbits(iomm.ccm + TCON_CLK_REG, (1 << 31));
++    v3s_setbits(iomm.ccm + BUS_CLK_GATING_REG1, (1 << 12) | (1 << 4));
++    v3s_setbits(iomm.ccm + BUS_SOFT_RST_REG1, (1 << 12) | (1 << 4));
 +}
 +
 +static irqreturn_t lcdc_irq_handler(int irq, void *arg) {
++    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
 +    return IRQ_HANDLED;
 +}
@@ -1133,18 +1133,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +            printk("%s, failed to register lcdc interrupt(%d)\n", __func__, par->lcdc_irq);
 +        }
 +    }
-+}
-+
-+static void v3s_clock_init(struct myfb_par *par)
-+{
-+    writel(0x91001304, iomm.ccm + PLL_VIDEO_CTRL_REG);
-+    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
-+    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
-+
-+    v3s_setbits(iomm.ccm + DE_CLK_REG, (1 << 31));
-+    v3s_setbits(iomm.ccm + TCON_CLK_REG, (1 << 31));
-+    v3s_setbits(iomm.ccm + BUS_CLK_GATING_REG1, (1 << 12) | (1 << 4));
-+    v3s_setbits(iomm.ccm + BUS_SOFT_RST_REG1, (1 << 12) | (1 << 4));
 +}
 +
 +static void lcd_delay_init(unsigned long param)
@@ -1305,7 +1293,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    info->screen_base = (char __iomem *)par->vram_virt;
 +    myfb_fix.smem_start = par->vram_phys;
 +    myfb_fix.smem_len = par->vram_size;
-+    myfb_fix.line_length = 320 * 2;
++    myfb_fix.line_length = (par->mode.xres * par->bpp) / 8;
 +
 +    par->v_palette_base = dma_alloc_coherent(NULL, PALETTE_SIZE, (resource_size_t *)&par->p_palette_base, GFP_KERNEL | GFP_DMA);
 +    if(!par->v_palette_base) {
@@ -1464,8 +1452,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +MODULE_LICENSE("GPL");
 diff -uprN a/drivers/video/fbdev/v3s_i80.h b/drivers/video/fbdev/v3s_i80.h
 --- a/drivers/video/fbdev/v3s_i80.h	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_i80.h	2025-04-28 09:56:39.445656253 +0800
-@@ -0,0 +1,135 @@
++++ b/drivers/video/fbdev/v3s_i80.h	2025-05-08 13:22:39.819987305 +0800
+@@ -0,0 +1,136 @@
 +#ifndef V3S_I80_H
 +#define V3S_I80_H
 +
@@ -1503,11 +1491,12 @@ diff -uprN a/drivers/video/fbdev/v3s_i80.h b/drivers/video/fbdev/v3s_i80.h
 +#define TCON0_CPU_RD_REG        (0x068)
 +#define TCON0_IO_CTRL_REG0  	(0x088)
 +#define TCON0_IO_CTRL_REG1  	(0x08C)
++#define TCON0_IO_CTRL_REG1  	(0x08C)
++#define TCON0_ECC_FIFO_REG		(0x0F8)
 +#define TCON0_CPU_TRI0_REG		(0x160)
 +#define TCON0_CPU_TRI1_REG		(0x164)
 +#define TCON0_CPU_TRI2_REG		(0x168)
 +#define TCON0_CPU_TRI3_REG		(0x16C)
-+
 +#define V3S_DE_BASE				(0x01000000)
 +#define V3S_DE_MUX_GLB			(0x00100000 + 0x00000)
 +#define V3S_DE_MUX_BLD			(0x00100000 + 0x01000)
@@ -1604,7 +1593,7 @@ diff -uprN a/drivers/video/fbdev/v3s_i80.h b/drivers/video/fbdev/v3s_i80.h
 \ No newline at end of file
 diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789v2.c
 --- a/drivers/video/fbdev/v3s_st7789v2.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_st7789v2.c	2025-05-06 08:41:39.063518394 +0800
++++ b/drivers/video/fbdev/v3s_st7789v2.c	2025-05-06 09:55:56.775852176 +0800
 @@ -0,0 +1,720 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
@@ -1964,7 +1953,7 @@ diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789
 +    writel(((((par->mode.xres) + h_front_porch + bp - 1) << 16)), iomm.lcdc + TCON0_CPU_TRI0_REG);   //block space
 +    writel((par->mode.yres - 1), iomm.lcdc + TCON0_CPU_TRI1_REG);   //block num
 +    writel(((7 << 15) | (par->mode.xres - 1)), iomm.lcdc + TCON0_CPU_TRI2_REG);//start delay3, Trans Start
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_TRI3_REG, (2 << 28));         //TE falling mode
++    writel((2 << 28), iomm.lcdc + TCON0_CPU_TRI3_REG);              //TE falling mode
 +
 +    //tcon enable
 +    v3s_setbits(iomm.lcdc + TCON_CTRL_REG, (1 << 31));
