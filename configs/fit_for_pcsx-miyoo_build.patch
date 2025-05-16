@@ -1,6 +1,6 @@
 diff -uprN a/Makefile b/Makefile
 --- a/Makefile	2025-05-16 10:16:31.420353617 +0800
-+++ b/Makefile	2025-05-16 10:16:00.241621787 +0800
++++ b/Makefile	2025-05-16 12:45:21.149050392 +0800
 @@ -268,8 +268,8 @@ OBJS += frontend/plat_suniv.o
  frontend/main.o frontend/menu.o: CFLAGS += -include frontend/320240/ui_miyoo.h
  USE_PLUGIN_LIB = 1
@@ -12,16 +12,9 @@ diff -uprN a/Makefile b/Makefile
  endif
  ifeq "$(PLATFORM)" "maemo"
  OBJS += maemo/hildon.o maemo/main.o maemo/maemo_xkb.o frontend/pl_gun_ts.o
-@@ -461,4 +461,4 @@ rel: pcsx $(PLUGINS) \
- 	mkdir out/pcsx_rearmed/lib/
- 	mkdir out/pcsx_rearmed/bios/
- 	cd out && zip -9 -r ../pcsx_rearmed_$(VER)_miyoo.zip *
--endif
-\ No newline at end of file
-+endif
 diff -uprN a/configure b/configure
 --- a/configure	2025-05-16 09:52:12.799622305 +0800
-+++ b/configure	2025-05-16 12:06:14.544543936 +0800
++++ b/configure	2025-05-16 12:46:01.915389518 +0800
 @@ -66,27 +66,14 @@ optimize_cortexa8="no"
  optimize_arm926ej="no"
  
@@ -71,16 +64,9 @@ diff -uprN a/configure b/configure
    if [ "x$have_armv7" = "x" ]; then
      if check_define HAVE_ARMV7; then
        have_armv7="yes"
-@@ -609,4 +596,4 @@ fi
- # use pandora's skin (for now)
- test -e skin || ln -s frontend/pandora/skin skin
- 
--# vim:shiftwidth=2:expandtab
-\ No newline at end of file
-+# vim:shiftwidth=2:expandtab
 diff -uprN a/frontend/main.c b/frontend/main.c
 --- a/frontend/main.c	2025-05-16 09:52:52.582007690 +0800
-+++ b/frontend/main.c	2025-05-16 09:33:15.813632445 +0800
++++ b/frontend/main.c	2025-05-16 12:47:04.908822989 +0800
 @@ -68,9 +68,9 @@ int hud_new_msg;
  static void make_path(char *buf, size_t size, const char *dir, const char *fname)
  {
@@ -112,16 +98,9 @@ diff -uprN a/frontend/main.c b/frontend/main.c
  
  		f = fopen(buf, "rb");
  		if (f == NULL) {
-@@ -1123,4 +1125,4 @@ void SysCloseLibrary(void *lib) {
- #if !defined(_WIN32) && !defined(NO_DYLIB)
- 	dlclose(lib);
- #endif
--}
-\ No newline at end of file
-+}
 diff -uprN a/frontend/main.h b/frontend/main.h
 --- a/frontend/main.h	2025-05-16 09:53:10.761269847 +0800
-+++ b/frontend/main.h	2025-05-16 09:33:15.813632445 +0800
++++ b/frontend/main.h	2025-05-16 12:47:26.051961517 +0800
 @@ -21,16 +21,16 @@
  
  #include "config.h"
@@ -149,16 +128,9 @@ diff -uprN a/frontend/main.h b/frontend/main.h
  
  extern char cfgfile_basename[MAXPATHLEN];
  
-@@ -96,4 +96,4 @@ static inline void emu_set_action(enum s
- 	emu_action = action_;
- }
- 
--#endif /* __FRONTEND_MAIN_H__ */
-\ No newline at end of file
-+#endif /* __FRONTEND_MAIN_H__ */
 diff -uprN a/frontend/menu.c b/frontend/menu.c
 --- a/frontend/menu.c	2025-05-16 09:53:25.744661707 +0800
-+++ b/frontend/menu.c	2025-05-16 09:33:15.813632445 +0800
++++ b/frontend/menu.c	2025-05-16 12:47:33.923640790 +0800
 @@ -495,9 +495,9 @@ static char *get_cd_label(void)
  static void make_cfg_fname(char *buf, size_t size, int is_game)
  {
@@ -172,13 +144,6 @@ diff -uprN a/frontend/menu.c b/frontend/menu.c
  }
  
  static void keys_write_all(FILE *f);
-@@ -2765,4 +2765,4 @@ void menu_finish(void)
- {
- 	if (cpu_clock_st > 0)
- 		plat_target_cpu_clock_set(cpu_clock_st);
--}
-\ No newline at end of file
-+}
 diff -uprN a/frontend/plat_suniv.c b/frontend/plat_suniv.c
 --- a/frontend/plat_suniv.c	2025-05-16 09:53:41.428025142 +0800
 +++ b/frontend/plat_suniv.c	2025-05-16 09:33:15.813632445 +0800
