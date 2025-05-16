@@ -1,7 +1,295 @@
 diff -uprN a/Makefile b/Makefile
---- a/Makefile	2025-05-16 10:16:31.420353617 +0800
+--- a/Makefile	2025-05-16 12:53:21.273486127 +0800
 +++ b/Makefile	2025-05-16 12:45:21.149050392 +0800
-@@ -268,8 +268,8 @@ OBJS += frontend/plat_suniv.o
+@@ -2,30 +2,12 @@
+ 
+ # default stuff goes here, so that config can override
+ TARGET ?= pcsx
+-CFLAGS += -Wall -Iinclude -ffast-math
+-
+-DEBUG ?= 0
+-DEBUG_SYMS ?= 0
+-ASSERTS ?= 0
+-HAVE_CHD ?= 1
+-ifneq ($(DEBUG)$(DEBUG_SYMS), 00)
+-CFLAGS += -ggdb
+-endif
+-ifneq ($(DEBUG), 1)
+-CFLAGS += -O2
+-ifneq ($(ASSERTS), 1)
+-CFLAGS += -DNDEBUG
+-endif
++CFLAGS += -Wall -ggdb -Iinclude -ffast-math
++ifndef DEBUG
++CFLAGS += -O2 -DNDEBUG
+ endif
+ ifeq ($(DEBUG_ASAN), 1)
+ CFLAGS += -fsanitize=address
+-LDFLAGS += -fsanitize=address
+-#LDFLAGS += -static-libasan
+-endif
+-ifneq ($(NO_FSECTIONS), 1)
+-CFLAGS += -ffunction-sections -fdata-sections
+-FSECTIONS_LDFLAGS ?= -Wl,--gc-sections
+-LDFLAGS += $(FSECTIONS_LDFLAGS)
+ endif
+ CFLAGS += -DP_HAVE_MMAP=$(if $(NO_MMAP),0,1) \
+ 	  -DP_HAVE_PTHREAD=$(if $(NO_PTHREAD),0,1) \
+@@ -35,9 +17,6 @@ CXXFLAGS += $(CFLAGS)
+ #DRC_DBG = 1
+ #PCNT = 1
+ 
+-# Suppress minor warnings for dependencies
+-deps/%: CFLAGS += -Wno-unused -Wno-unused-function
+-
+ all: config.mak target_ plugins_
+ 
+ ifndef NO_CONFIG_MAK
+@@ -60,6 +39,9 @@ endif
+ CC_LINK ?= $(CC)
+ CC_AS ?= $(CC)
+ LDFLAGS += $(MAIN_LDFLAGS)
++ifeq ($(DEBUG_ASAN), 1)
++LDFLAGS += -static-libasan
++endif
+ EXTRA_LDFLAGS ?= -Wl,-Map=$@.map
+ LDLIBS += $(MAIN_LDLIBS)
+ ifdef PCNT
+@@ -67,8 +49,7 @@ CFLAGS += -DPCNT
+ endif
+ 
+ # core
+-OBJS += libpcsxcore/cdriso.o libpcsxcore/cdrom.o libpcsxcore/cdrom-async.o \
+-	libpcsxcore/cheat.o libpcsxcore/database.o \
++OBJS += libpcsxcore/cdriso.o libpcsxcore/cdrom.o libpcsxcore/cheat.o libpcsxcore/database.o \
+ 	libpcsxcore/decode_xa.o libpcsxcore/mdec.o \
+ 	libpcsxcore/misc.o libpcsxcore/plugins.o libpcsxcore/ppf.o libpcsxcore/psxbios.o \
+ 	libpcsxcore/psxcommon.o libpcsxcore/psxcounters.o libpcsxcore/psxdma.o \
+@@ -77,28 +58,6 @@ OBJS += libpcsxcore/cdriso.o libpcsxcore
+ 	libpcsxcore/sio.o libpcsxcore/spu.o libpcsxcore/gpu.o
+ OBJS += libpcsxcore/gte.o libpcsxcore/gte_nf.o libpcsxcore/gte_divider.o
+ #OBJS += libpcsxcore/debug.o libpcsxcore/socket.o libpcsxcore/disr3000a.o
+-
+-ifeq ($(WANT_ZLIB),1)
+-ZLIB_DIR = deps/libchdr/deps/zlib-1.3.1
+-CFLAGS += -I$(ZLIB_DIR)
+-OBJS += $(ZLIB_DIR)/adler32.o \
+-        $(ZLIB_DIR)/compress.o \
+-        $(ZLIB_DIR)/crc32.o \
+-        $(ZLIB_DIR)/deflate.o \
+-        $(ZLIB_DIR)/gzclose.o \
+-        $(ZLIB_DIR)/gzlib.o \
+-        $(ZLIB_DIR)/gzread.o \
+-        $(ZLIB_DIR)/gzwrite.o \
+-        $(ZLIB_DIR)/infback.o \
+-        $(ZLIB_DIR)/inffast.o \
+-        $(ZLIB_DIR)/inflate.o \
+-        $(ZLIB_DIR)/inftrees.o \
+-        $(ZLIB_DIR)/trees.o \
+-        $(ZLIB_DIR)/uncompr.o \
+-        $(ZLIB_DIR)/zutil.o
+-$(ZLIB_DIR)/%.o: CFLAGS += -DHAVE_UNISTD_H
+-endif
+-
+ ifeq "$(ARCH)" "arm"
+ OBJS += libpcsxcore/gte_arm.o
+ endif
+@@ -107,62 +66,8 @@ OBJS += libpcsxcore/gte_neon.o
+ endif
+ libpcsxcore/psxbios.o: CFLAGS += -Wno-nonnull
+ 
+-ifeq "$(USE_ASYNC_CDROM)" "1"
+-libpcsxcore/cdrom-async.o: CFLAGS += -DUSE_ASYNC_CDROM
+-frontend/libretro.o: CFLAGS += -DUSE_ASYNC_CDROM
+-frontend/menu.o: CFLAGS += -DUSE_ASYNC_CDROM
+-USE_RTHREADS := 1
+-endif
+-
+ # dynarec
+-ifeq "$(DYNAREC)" "lightrec"
+-CFLAGS += -Ideps/lightning/include -Ideps/lightrec -Iinclude/lightning -Iinclude/lightrec \
+-		  -DLIGHTREC -DLIGHTREC_STATIC
+-LIGHTREC_CUSTOM_MAP ?= 0
+-LIGHTREC_CUSTOM_MAP_OBJ ?= libpcsxcore/lightrec/mem.o
+-LIGHTREC_THREADED_COMPILER ?= 0
+-LIGHTREC_CODE_INV ?= 0
+-CFLAGS += -DLIGHTREC_CUSTOM_MAP=$(LIGHTREC_CUSTOM_MAP) \
+-	  -DLIGHTREC_CODE_INV=$(LIGHTREC_CODE_INV) \
+-	  -DLIGHTREC_ENABLE_THREADED_COMPILER=$(LIGHTREC_THREADED_COMPILER)
+-ifeq ($(LIGHTREC_CUSTOM_MAP),1)
+-LDLIBS += -lrt
+-OBJS += $(LIGHTREC_CUSTOM_MAP_OBJ)
+-endif
+-ifeq ($(NEED_SYSCONF),1)
+-OBJS += libpcsxcore/lightrec/sysconf.o
+-endif
+-ifeq ($(LIGHTREC_THREADED_COMPILER),1)
+-OBJS += deps/lightrec/recompiler.o \
+-	deps/lightrec/reaper.o
+-endif
+-OBJS += deps/lightrec/tlsf/tlsf.o
+-OBJS += libpcsxcore/lightrec/plugin.o
+-OBJS += deps/lightning/lib/jit_disasm.o \
+-		deps/lightning/lib/jit_memory.o \
+-		deps/lightning/lib/jit_names.o \
+-		deps/lightning/lib/jit_note.o \
+-		deps/lightning/lib/jit_print.o \
+-		deps/lightning/lib/jit_size.o \
+-		deps/lightning/lib/lightning.o \
+-		deps/lightrec/blockcache.o \
+-		deps/lightrec/constprop.o \
+-		deps/lightrec/disassembler.o \
+-		deps/lightrec/emitter.o \
+-		deps/lightrec/interpreter.o \
+-		deps/lightrec/lightrec.o \
+-		deps/lightrec/memmanager.o \
+-		deps/lightrec/optimizer.o \
+-		deps/lightrec/regcache.o
+-deps/lightning/%.o: CFLAGS += -DHAVE_MMAP=P_HAVE_MMAP
+-deps/lightning/%: CFLAGS += -Wno-uninitialized
+-deps/lightrec/%: CFLAGS += -Wno-uninitialized
+-libpcsxcore/lightrec/mem.o: CFLAGS += -D_GNU_SOURCE
+-ifeq ($(MMAP_WIN32),1)
+-CFLAGS += -Iinclude/mman -I deps/mman
+-OBJS += deps/mman/mman.o
+-endif
+-else ifeq "$(DYNAREC)" "ari64"
++ifeq "$(USE_DYNAREC)" "1"
+ OBJS += libpcsxcore/new_dynarec/new_dynarec.o
+ OBJS += libpcsxcore/new_dynarec/pcsxmem.o
+  ifeq "$(ARCH)" "arm"
+@@ -174,12 +79,6 @@ OBJS += libpcsxcore/new_dynarec/pcsxmem.
+  else
+  $(error no dynarec support for architecture $(ARCH))
+  endif
+- ifeq "$(NDRC_THREAD)" "1"
+- libpcsxcore/new_dynarec/new_dynarec.o: CFLAGS += -DNDRC_THREAD
+- libpcsxcore/new_dynarec/emu_if.o: CFLAGS += -DNDRC_THREAD
+- frontend/libretro.o: CFLAGS += -DNDRC_THREAD
+- USE_RTHREADS := 1
+- endif
+ else
+ CFLAGS += -DDRC_DISABLE
+ endif
+@@ -231,7 +130,6 @@ endif
+ # builtin gpu
+ OBJS += plugins/gpulib/gpu.o plugins/gpulib/vout_pl.o
+ ifeq "$(BUILTIN_GPU)" "neon"
+-CFLAGS += -DGPU_NEON
+ OBJS += plugins/gpu_neon/psx_gpu_if.o
+ plugins/gpu_neon/psx_gpu_if.o: CFLAGS += -DNEON_BUILD -DTEXTURE_CACHE_4BPP -DTEXTURE_CACHE_8BPP
+ plugins/gpu_neon/psx_gpu_if.o: plugins/gpu_neon/psx_gpu/*.c
+@@ -245,75 +143,73 @@ frontend/menu.o frontend/plugin_lib.o: C
+  endif
+ endif
+ ifeq "$(BUILTIN_GPU)" "peops"
+-CFLAGS += -DGPU_PEOPS
+ # note: code is not safe for strict-aliasing? (Castlevania problems)
+ plugins/dfxvideo/gpulib_if.o: CFLAGS += -fno-strict-aliasing
+ plugins/dfxvideo/gpulib_if.o: plugins/dfxvideo/prim.c plugins/dfxvideo/soft.c
+ OBJS += plugins/dfxvideo/gpulib_if.o
+-ifeq "$(THREAD_RENDERING)" "1"
+-CFLAGS += -DTHREAD_RENDERING
+-OBJS += plugins/gpulib/gpulib_thread_if.o
+ endif
++ifeq "$(BUILTIN_GPU)" "unai_old"
++OBJS += plugins/gpu_unai_old/gpulib_if.o
++ifeq "$(ARCH)" "arm"
++OBJS += plugins/gpu_unai_old/gpu_arm.o
++endif
++plugins/gpu_unai_old/gpulib_if.o: CFLAGS += -DREARMED -O3
++CC_LINK = $(CXX)
+ endif
+ 
+ ifeq "$(BUILTIN_GPU)" "unai"
+-CFLAGS += -DGPU_UNAI
+-CFLAGS += -DUSE_GPULIB=1
+ OBJS += plugins/gpu_unai/gpulib_if.o
+ ifeq "$(ARCH)" "arm"
+ OBJS += plugins/gpu_unai/gpu_arm.o
+ endif
+-ifeq "$(THREAD_RENDERING)" "1"
+-CFLAGS += -DTHREAD_RENDERING
+-OBJS += plugins/gpulib/gpulib_thread_if.o
+-endif
+-ifneq "$(GPU_UNAI_NO_OLD)" "1"
+-OBJS += plugins/gpu_unai/old/if.o
+-else
+-CFLAGS += -DGPU_UNAI_NO_OLD
+-endif
+-plugins/gpu_unai/gpulib_if.o: CFLAGS += -DREARMED -DUSE_GPULIB=1
+-plugins/gpu_unai/gpulib_if.o \
+-plugins/gpu_unai/old/if.o: CFLAGS += -O3
++plugins/gpu_unai/gpulib_if.o: CFLAGS += -DREARMED -DUSE_GPULIB=1 -O3
+ CC_LINK = $(CXX)
+ endif
+ 
++# cdrcimg
++OBJS += plugins/cdrcimg/cdrcimg.o
++
+ # libchdr
+-ifeq "$(HAVE_CHD)" "1"
++#ifeq "$(HAVE_CHD)" "1"
+ LCHDR = deps/libchdr
+-LCHDR_LZMA = $(LCHDR)/deps/lzma-24.05
+-LCHDR_ZSTD = $(LCHDR)/deps/zstd-1.5.6/lib
++LCHDR_LZMA = $(LCHDR)/deps/lzma-22.01
++LCHDR_ZSTD = $(LCHDR)/deps/zstd-1.5.5/lib
+ OBJS += $(LCHDR)/src/libchdr_bitstream.o
+ OBJS += $(LCHDR)/src/libchdr_cdrom.o
+ OBJS += $(LCHDR)/src/libchdr_chd.o
+ OBJS += $(LCHDR)/src/libchdr_flac.o
+ OBJS += $(LCHDR)/src/libchdr_huffman.o
+-$(LCHDR)/src/%.o: CFLAGS += -Wno-unused -Wno-maybe-uninitialized -std=gnu11
++$(LCHDR)/src/%.o: CFLAGS += -Wno-unused -std=gnu11
+ OBJS += $(LCHDR_LZMA)/src/Alloc.o
++OBJS += $(LCHDR_LZMA)/src/Bra86.o
++OBJS += $(LCHDR_LZMA)/src/BraIA64.o
+ OBJS += $(LCHDR_LZMA)/src/CpuArch.o
+ OBJS += $(LCHDR_LZMA)/src/Delta.o
+ OBJS += $(LCHDR_LZMA)/src/LzFind.o
++OBJS += $(LCHDR_LZMA)/src/Lzma86Dec.o
+ OBJS += $(LCHDR_LZMA)/src/LzmaDec.o
+ OBJS += $(LCHDR_LZMA)/src/LzmaEnc.o
+ OBJS += $(LCHDR_LZMA)/src/Sort.o
+-$(LCHDR_LZMA)/src/%.o: CFLAGS += -Wno-unused -DZ7_ST -I$(LCHDR_LZMA)/include
++$(LCHDR_LZMA)/src/%.o: CFLAGS += -Wno-unused -D_7ZIP_ST -I$(LCHDR_LZMA)/include
+ $(LCHDR)/src/%.o: CFLAGS += -I$(LCHDR_LZMA)/include
++OBJS += $(LCHDR_ZSTD)/common/debug.o
+ OBJS += $(LCHDR_ZSTD)/common/entropy_common.o
+ OBJS += $(LCHDR_ZSTD)/common/error_private.o
+ OBJS += $(LCHDR_ZSTD)/common/fse_decompress.o
++OBJS += $(LCHDR_ZSTD)/common/pool.o
++OBJS += $(LCHDR_ZSTD)/common/threading.o
+ OBJS += $(LCHDR_ZSTD)/common/xxhash.o
+ OBJS += $(LCHDR_ZSTD)/common/zstd_common.o
+ OBJS += $(LCHDR_ZSTD)/decompress/huf_decompress.o
+-OBJS += $(LCHDR_ZSTD)/decompress/huf_decompress_amd64.o
+ OBJS += $(LCHDR_ZSTD)/decompress/zstd_ddict.o
+ OBJS += $(LCHDR_ZSTD)/decompress/zstd_decompress_block.o
+ OBJS += $(LCHDR_ZSTD)/decompress/zstd_decompress.o
+ $(LCHDR_ZSTD)/common/%.o \
+-$(LCHDR_ZSTD)/decompress/%.o: CFLAGS += -I$(LCHDR_ZSTD)
++$(LCHDR_ZSTD)/decompress/%.o: CFLAGS += -DZSTD_DISABLE_ASM -I$(LCHDR_ZSTD)
+ $(LCHDR)/src/%.o: CFLAGS += -I$(LCHDR_ZSTD)
+ libpcsxcore/cdriso.o: CFLAGS += -Wno-unused-function
+ CFLAGS += -DHAVE_CHD -I$(LCHDR)/include
+-endif
++#endif
+ 
+ # frontend/gui
+ OBJS += frontend/cspace.o
+@@ -353,7 +249,8 @@ frontend/main.o frontend/menu.o: CFLAGS
+ frontend/libpicofe/linux/plat.o: CFLAGS += -DPANDORA
+ USE_PLUGIN_LIB = 1
+ USE_FRONTEND = 1
+-CFLAGS += -gdwarf-3
++CFLAGS += -gdwarf-3 -ffunction-sections -fdata-sections
++LDFLAGS += -Wl,--gc-sections
+ endif
+ ifeq "$(PLATFORM)" "caanoo"
+ OBJS += frontend/libpicofe/gp2x/in_gp2x.o frontend/warm/warm.o
+@@ -371,8 +268,8 @@ OBJS += frontend/plat_suniv.o
  frontend/main.o frontend/menu.o: CFLAGS += -include frontend/320240/ui_miyoo.h
  USE_PLUGIN_LIB = 1
  USE_FRONTEND = 1
@@ -12,10 +300,125 @@ diff -uprN a/Makefile b/Makefile
  endif
  ifeq "$(PLATFORM)" "maemo"
  OBJS += maemo/hildon.o maemo/main.o maemo/maemo_xkb.o frontend/pl_gun_ts.o
+@@ -394,6 +291,7 @@ ifeq "$(HAVE_PHYSICAL_CDROM)" "1"
+ OBJS += frontend/libretro-cdrom.o
+ OBJS += deps/libretro-common/lists/string_list.o
+ OBJS += deps/libretro-common/memmap/memalign.o
++OBJS += deps/libretro-common/rthreads/rthreads.o
+ OBJS += deps/libretro-common/vfs/vfs_implementation_cdrom.o
+ CFLAGS += -DHAVE_CDROM
+ endif
+@@ -408,25 +306,11 @@ CFLAGS += -DUSE_LIBRETRO_VFS
+ endif
+ OBJS += frontend/libretro.o
+ CFLAGS += -DFRONTEND_SUPPORTS_RGB565
+-CFLAGS += -DHAVE_LIBRETRO
+-INC_LIBRETRO_COMMON := 1
+ 
+-ifneq ($(DYNAREC),lightrec)
+ ifeq ($(MMAP_WIN32),1)
+ OBJS += libpcsxcore/memmap_win32.o
+ endif
+ endif
+-endif # $(PLATFORM) == "libretro"
+-
+-ifeq "$(USE_RTHREADS)" "1"
+-OBJS += frontend/libretro-rthreads.o
+-OBJS += deps/libretro-common/features/features_cpu.o
+-frontend/main.o: CFLAGS += -DHAVE_RTHREADS
+-INC_LIBRETRO_COMMON := 1
+-endif
+-ifeq "$(INC_LIBRETRO_COMMON)" "1"
+-CFLAGS += -Ideps/libretro-common/include
+-endif
+ 
+ ifeq "$(USE_PLUGIN_LIB)" "1"
+ OBJS += frontend/plugin_lib.o
+@@ -459,8 +343,6 @@ frontend/main.o: CFLAGS += -DBUILTIN_GPU
+ frontend/menu.o frontend/main.o: frontend/revision.h
+ frontend/plat_sdl.o frontend/libretro.o: frontend/revision.h
+ 
+-CFLAGS += $(CFLAGS_LAST)
+-
+ frontend/libpicofe/%.c:
+ 	@echo "libpicofe module is missing, please run:"
+ 	@echo "git submodule init && git submodule update"
+@@ -481,18 +363,10 @@ frontend/revision.h: FORCE
+ target_: $(TARGET)
+ 
+ $(TARGET): $(OBJS)
+-ifeq ($(PARTIAL_LINKING), 1)
+-	$(LD) -o $(basename $(TARGET))1.o -r --gc-sections $(addprefix -u , $(shell cat frontend/libretro-extern)) $^
+-	$(OBJCOPY) --keep-global-symbols=frontend/libretro-extern $(basename $(TARGET))1.o $(basename $(TARGET)).o
+-	$(AR) rcs $@ $(basename $(TARGET)).o
+-else ifeq ($(STATIC_LINKING), 1)
+-	$(AR) rcs $@ $^
+-else
+ 	$(CC_LINK) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LDLIBS) $(EXTRA_LDFLAGS)
+-endif
+ 
+ clean: $(PLAT_CLEAN) clean_plugins
+-	$(RM) $(TARGET) *.o $(OBJS) $(TARGET).map frontend/revision.h
++	$(RM) $(TARGET) $(OBJS) $(TARGET).map frontend/revision.h
+ 
+ ifneq ($(PLUGINS),)
+ plugins_: $(PLUGINS)
+@@ -587,4 +461,4 @@ rel: pcsx $(PLUGINS) \
+ 	mkdir out/pcsx_rearmed/lib/
+ 	mkdir out/pcsx_rearmed/bios/
+ 	cd out && zip -9 -r ../pcsx_rearmed_$(VER)_miyoo.zip *
+-endif
++endif
+\ No newline at end of file
 diff -uprN a/configure b/configure
---- a/configure	2025-05-16 09:52:12.799622305 +0800
+--- a/configure	2025-05-16 12:53:21.273486127 +0800
 +++ b/configure	2025-05-16 12:46:01.915389518 +0800
-@@ -66,27 +66,14 @@ optimize_cortexa8="no"
+@@ -24,28 +24,27 @@ compile_binary()
+ 
+ check_define()
+ {
+-  $CC -E -dD $CFLAGS include/arm_features.h | grep -v '#undef' | grep -q "$1" || return 1
++  $CC -E -dD $CFLAGS include/arm_features.h | grep -q "$1" || return 1
+   return 0
+ }
+ 
+ check_define_val()
+ {
+-  $CC -E -dD $CFLAGS include/arm_features.h | grep -v '#undef' | grep "$1" | awk '{print $3}'
++  $CC -E -dD $CFLAGS include/arm_features.h | grep "$1" | awk '{print $3}'
+   return 0
+ }
+ 
+ # setting options to "yes" or "no" will make that choice default,
+ # "" means "autodetect".
+ 
+-platform_list="generic pandora maemo caanoo"
++platform_list="generic pandora maemo caanoo libretro"
+ platform="generic"
+-builtin_gpu_list="neon peops unai"
+-dynarec_list="ari64 lightrec none"
++builtin_gpu_list="neon peops unai unai_old"
+ builtin_gpu=""
+-sound_driver_list="oss alsa pulseaudio sdl"
++sound_driver_list="oss alsa pulseaudio sdl libretro"
+ sound_drivers=""
+ plugins="plugins/spunull/spunull.so \
+-plugins/dfxvideo/gpu_peops.so plugins/gpu_unai/gpu_unai.so"
++plugins/dfxvideo/gpu_peops.so plugins/gpu_unai_old/gpu_unai_old.so plugins/gpu_unai/gpu_unai.so"
+ drc_cache_base="no"
+ have_armv5=""
+ have_armv6=""
+@@ -55,8 +54,7 @@ have_arm_neon_asm=""
+ have_tslib=""
+ have_gles=""
+ have_c64x_dsp=""
+-dynarec=""
+-multithreading="yes"
++enable_dynarec="yes"
+ need_sdl="no"
+ need_xlib="no"
+ need_libpicofe="yes"
+@@ -68,27 +66,14 @@ optimize_cortexa8="no"
  optimize_arm926ej="no"
  
  # hardcoded stuff
@@ -50,7 +453,60 @@ diff -uprN a/configure b/configure
  
  fail()
  {
-@@ -224,10 +211,10 @@ arm*)
+@@ -110,20 +95,21 @@ set_platform()
+     optimize_cortexa8="yes"
+     have_arm_neon="yes"
+     need_xlib="yes"
+-    multithreading="no"
+     ;;
+   maemo)
+     drc_cache_base="yes"
+     optimize_cortexa8="yes"
+     have_arm_neon="yes"
+-    multithreading="no"
+     ;;
+   caanoo)
+     sound_drivers="oss"
+     drc_cache_base="yes"
+     optimize_arm926ej="yes"
+     need_warm="yes"
+-    multithreading="no"
++    ;;
++  libretro)
++    sound_drivers="libretro"
++    need_libpicofe="no"
+     ;;
+   *)
+     fail "unsupported platform: $platform"
+@@ -146,13 +132,7 @@ for opt do
+   ;;
+   --disable-neon) have_arm_neon="no"
+   ;;
+-  --enable-threads) multithreading="yes"
+-  ;;
+-  --disable-threads) multithreading="no"
+-  ;;
+-  --dynarec=*) dynarec="$optarg"
+-  ;;
+-  --disable-dynarec) dynarec="no"
++  --disable-dynarec) enable_dynarec="no"
+   ;;
+   *) echo "ERROR: unknown option $opt"; show_help="yes"
+   ;;
+@@ -170,10 +150,8 @@ if [ "$show_help" = "yes" ]; then
+   echo "                           available: $sound_driver_list"
+   echo "  --enable-neon"
+   echo "  --disable-neon           enable/disable ARM NEON optimizations [guessed]"
+-  echo "  --enable-threads"
+-  echo "  --disable-threads        enable/disable multithreaded features [guessed]"
+-  echo "  --dynarec=NAME           select dynamic recompiler [guessed]"
+-  echo "                           available: $dynarec_list"
++  echo "  --disable-dynarec        disable dynamic recompiler"
++  echo "                           (dynarec is only available and enabled on ARM)"
+   echo "influential environment variables:"
+   echo "  CROSS_COMPILE CC CXX AS AR CFLAGS ASFLAGS LDFLAGS LDLIBS"
+   exit 1
+@@ -233,10 +211,10 @@ arm*)
      ASFLAGS="$ASFLAGS -mcpu=arm926ej-s -mfloat-abi=softfp"
    fi
  
@@ -64,11 +520,153 @@ diff -uprN a/configure b/configure
    if [ "x$have_armv7" = "x" ]; then
      if check_define HAVE_ARMV7; then
        have_armv7="yes"
+@@ -254,16 +232,12 @@ arm*)
+     have_armv5=`check_define HAVE_ARMV5 && echo yes` || true
+   fi
+ 
+-  if [ "x$dynarec" = "x" ]; then
+-    dynarec="ari64"
+-  fi
+-
+   if [ "x$builtin_gpu" = "x" ]; then
+     if [ "$have_arm_neon" = "yes" ]; then
+       builtin_gpu="neon"
+     elif [ "$have_armv7" != "yes" ]; then
+       # pre-ARMv7 hardware is usually not fast enough for peops
+-      builtin_gpu="unai"
++      builtin_gpu="unai_old"
+     else
+       builtin_gpu="peops"
+     fi
+@@ -308,25 +282,19 @@ arm*)
+ aarch64)
+   have_arm_neon="yes"
+   have_arm_neon_asm="no"
+-  if [ "x$dynarec" = "x" ]; then
+-    dynarec="ari64"
+-  fi
+   if [ "x$builtin_gpu" = "x" ]; then
+     builtin_gpu="neon"
+   fi
+   ;;
+ x86_64)
+-  if [ "x$dynarec" = "x" ]; then
+-    dynarec="lightrec"
+-  fi
++  enable_dynarec="no"
+   if [ "x$builtin_gpu" = "x" ]; then
+     builtin_gpu="neon"
+   fi
+   ;;
+ *)
+-  if [ "x$dynarec" = "x" ]; then
+-    dynarec="lightrec"
+-  fi
++  # dynarec only available on ARM
++  enable_dynarec="no"
+   ;;
+ esac
+ 
+@@ -346,6 +314,10 @@ generic)
+ maemo)
+   CFLAGS="$CFLAGS -DMAEMO -DMAEMO_CHANGES"
+   ;;
++libretro)
++  CFLAGS="$CFLAGS -fPIC"
++  MAIN_LDFLAGS="$MAIN_LDFLAGS -shared -Wl,--no-undefined"
++  ;;
+ esac
+ 
+ # header/library presence tests
+@@ -560,7 +532,7 @@ echo "C compiler          $CC"
+ echo "C compiler flags    $CFLAGS"
+ echo "libraries           $MAIN_LDLIBS"
+ echo "linker flags        $LDFLAGS$MAIN_LDFLAGS"
+-echo "dynarec             $dynarec"
++echo "enable dynarec      $enable_dynarec"
+ if [ "$ARCH" = "arm" -o "$ARCH" = "aarch64" ]; then
+   echo "enable ARM NEON     $have_arm_neon"
+ fi
+@@ -572,7 +544,6 @@ echo "tslib support       $have_tslib"
+ if [ "$platform" = "generic" ]; then
+   echo "OpenGL ES output    $have_gles"
+ fi
+-echo "multithreading      $multithreading"
+ 
+ echo "# Automatically generated by configure" > $config_mak
+ printf "# Configured with:" >> $config_mak
+@@ -590,6 +561,9 @@ echo "MAIN_LDLIBS += $MAIN_LDLIBS" >> $c
+ echo "PLUGIN_CFLAGS += $PLUGIN_CFLAGS" >> $config_mak
+ echo >> $config_mak
+ 
++if [ "$platform" = "libretro" ]; then
++  echo "TARGET = libretro.so" >> $config_mak
++fi
+ echo "ARCH = $ARCH" >> $config_mak
+ echo "PLATFORM = $platform" >> $config_mak
+ echo "BUILTIN_GPU = $builtin_gpu" >> $config_mak
+@@ -609,19 +583,17 @@ if [ "$have_gles" = "yes" ]; then
+   echo "CFLAGS_GLES = $CFLAGS_GLES" >> $config_mak
+   echo "LDLIBS_GLES = $LDLIBS_GLES" >> $config_mak
+ fi
+-echo "DYNAREC = $dynarec" >> $config_mak
++if [ "$enable_dynarec" = "yes" ]; then
++  echo "USE_DYNAREC = 1" >> $config_mak
++fi
+ if [ "$drc_cache_base" = "yes" ]; then
+   echo "BASE_ADDR_DYNAMIC = 1" >> $config_mak
+ fi
+ if [ "$have_c64x_dsp" = "yes" ]; then
+   echo "HAVE_C64_TOOLS = 1" >> $config_mak
+ fi
+-if [ "$multithreading" = "yes" ]; then
+-  echo "USE_ASYNC_CDROM = 1" >> $config_mak
+-  echo "NDRC_THREAD = 1" >> $config_mak
+-fi
+ 
+ # use pandora's skin (for now)
+ test -e skin || ln -s frontend/pandora/skin skin
+ 
+-# vim:shiftwidth=2:expandtab
++# vim:shiftwidth=2:expandtab
+\ No newline at end of file
 diff -uprN a/frontend/main.c b/frontend/main.c
---- a/frontend/main.c	2025-05-16 09:52:52.582007690 +0800
+--- a/frontend/main.c	2025-05-16 12:53:52.632208054 +0800
 +++ b/frontend/main.c	2025-05-16 12:47:04.908822989 +0800
-@@ -68,9 +68,9 @@ int hud_new_msg;
- static void make_path(char *buf, size_t size, const char *dir, const char *fname)
+@@ -15,9 +15,6 @@
+ #if !defined(_WIN32) && !defined(NO_DYLIB)
+ #include <dlfcn.h>
+ #endif
+-#ifdef HAVE_RTHREADS
+-#include "../frontend/libretro-rthreads.h"
+-#endif
+ 
+ #include "main.h"
+ #include "plugin.h"
+@@ -29,16 +26,13 @@
+ #include "../libpcsxcore/cheat.h"
+ #include "../libpcsxcore/sio.h"
+ #include "../libpcsxcore/database.h"
+-#include "../libpcsxcore/cdrom-async.h"
+ #include "../libpcsxcore/new_dynarec/new_dynarec.h"
+ #include "../plugins/cdrcimg/cdrcimg.h"
+ #include "../plugins/dfsound/spu_config.h"
+ #include "arm_features.h"
+ #include "revision.h"
+ 
+-#if defined(__EMSCRIPTEN__)
+-#define DO_CPU_CHECKS 0
+-#elif defined(__has_builtin)
++#if defined(__has_builtin)
+ #define DO_CPU_CHECKS __has_builtin(__builtin_cpu_init)
+ #elif defined(__x86_64__) || defined(__i386__)
+ #define DO_CPU_CHECKS 1
+@@ -71,12 +65,12 @@ enum sched_action emu_action, emu_action
+ char hud_msg[64];
+ int hud_new_msg;
+ 
+-static inline void make_path(char *buf, size_t size, const char *dir, const char *fname)
++static void make_path(char *buf, size_t size, const char *dir, const char *fname)
  {
  	if (fname)
 -		snprintf(buf, size, ".%s%s", dir, fname);
@@ -79,7 +677,111 @@ diff -uprN a/frontend/main.c b/frontend/main.c
  }
  #define MAKE_PATH(buf, dir, fname) \
  	make_path(buf, sizeof(buf), dir, fname)
-@@ -570,7 +570,9 @@ static void check_profile(void) {
+@@ -100,7 +94,21 @@ static int get_gameid_filename(char *buf
+ 
+ void set_cd_image(const char *fname)
+ {
+-	SetIsoFile(fname);
++	const char *ext = NULL;
++	
++	if (fname != NULL)
++		ext = strrchr(fname, '.');
++
++	if (ext && (
++	    strcasecmp(ext, ".z") == 0 || strcasecmp(ext, ".bz") == 0 ||
++	    strcasecmp(ext, ".znx") == 0 /*|| strcasecmp(ext, ".pbp") == 0*/)) {
++		SetIsoFile(NULL);
++		cdrcimg_set_fname(fname);
++		strcpy(Config.Cdr, "builtin_cdrcimg");
++	} else {
++		SetIsoFile(fname);
++		strcpy(Config.Cdr, "builtin_cdr");
++	}
+ }
+ 
+ static void set_default_paths(void)
+@@ -115,6 +123,7 @@ static void set_default_paths(void)
+ 	strcpy(Config.PluginsDir, "plugins");
+ 	strcpy(Config.Gpu, "builtin_gpu");
+ 	strcpy(Config.Spu, "builtin_spu");
++	strcpy(Config.Cdr, "builtin_cdr");
+ 	strcpy(Config.Pad1, "builtin_pad");
+ 	strcpy(Config.Pad2, "builtin_pad");
+ 	strcpy(Config.Net, "Disabled");
+@@ -131,18 +140,19 @@ void emu_set_default_config(void)
+ 	Config.FractionalFramerate = -1;
+ 
+ 	pl_rearmed_cbs.gpu_neon.allow_interlace = 2; // auto
+-	pl_rearmed_cbs.gpu_neon.allow_dithering = 1;
+ 	pl_rearmed_cbs.gpu_neon.enhancement_enable =
+ 	pl_rearmed_cbs.gpu_neon.enhancement_no_main = 0;
+-	pl_rearmed_cbs.gpu_neon.enhancement_tex_adj = 1;
+ 	pl_rearmed_cbs.gpu_peops.iUseDither = 0;
+ 	pl_rearmed_cbs.gpu_peops.dwActFixes = 1<<7;
+-	pl_rearmed_cbs.gpu_unai.old_renderer = 0;
+ 	pl_rearmed_cbs.gpu_unai.ilace_force = 0;
++	pl_rearmed_cbs.gpu_unai.pixel_skip = 1;
+ 	pl_rearmed_cbs.gpu_unai.lighting = 1;
+-	pl_rearmed_cbs.gpu_unai.fast_lighting = 0;
++	pl_rearmed_cbs.gpu_unai.fast_lighting = 1;
+ 	pl_rearmed_cbs.gpu_unai.blending = 1;
+ 	pl_rearmed_cbs.gpu_unai.dithering = 0;
++	pl_rearmed_cbs.gpu_unai_old.abe_hack =
++	pl_rearmed_cbs.gpu_unai_old.no_light =
++	pl_rearmed_cbs.gpu_unai_old.no_blend = 0;
+ 	memset(&pl_rearmed_cbs.gpu_peopsgl, 0, sizeof(pl_rearmed_cbs.gpu_peopsgl));
+ 	pl_rearmed_cbs.gpu_peopsgl.iVRamSize = 64;
+ 	pl_rearmed_cbs.gpu_peopsgl.iTexGarbageCollection = 1;
+@@ -161,7 +171,7 @@ void emu_set_default_config(void)
+ 	spu_config.iTempo = 1;
+ #endif
+ #endif
+-	ndrc_g.hacks = 0;
++	new_dynarec_hacks = 0;
+ 
+ 	in_type[0] = PSE_PAD_TYPE_STANDARD;
+ 	in_type[1] = PSE_PAD_TYPE_STANDARD;
+@@ -408,8 +418,6 @@ void emu_on_new_cd(int show_hud_msg)
+ 		SysPrintf("note: running with HLE BIOS, expect compatibility problems\n");
+ 		SysPrintf("----------------------------------------------------------\n");
+ 	}
+-	if (Config.TurboCD)
+-		SysPrintf("note: TurboCD is enabled, this breaks games\n");
+ 
+ 	if (show_hud_msg) {
+ 		if (check_unsatisfied_libcrypt())
+@@ -512,21 +520,7 @@ int emu_core_preinit(void)
+ int emu_core_init(void)
+ {
+ 	SysPrintf("Starting PCSX-ReARMed " REV "%s\n", get_build_info());
+-	SysPrintf("build time: " __DATE__ " " __TIME__ "\n");
+ 
+-#if defined(__arm__) && defined(__ARM_FP)
+-	// RunFast mode
+-	u32 fpscr = ~0;
+-	__asm__ volatile("vmrs %0, fpscr" : "=r"(fpscr));
+-	SysPrintf("old fpscr = %08x\n", fpscr);
+-	fpscr &= ~0x00009f9f;
+-	fpscr |=  0x03000000; // DN | FZ
+-	__asm__ volatile("vmsr fpscr, %0" :: "r"(fpscr));
+-#endif
+-
+-#ifdef HAVE_RTHREADS
+-	pcsxr_sthread_init();
+-#endif
+ #ifndef NO_FRONTEND
+ 	check_profile();
+ 	check_memcards();
+@@ -548,7 +542,7 @@ int emu_core_init(void)
+ 
+ void emu_core_ask_exit(void)
+ {
+-	psxRegs.stop++;
++	stop++;
+ 	g_emu_want_quit = 1;
+ }
+ 
+@@ -576,7 +570,9 @@ static void check_profile(void) {
  	create_profile_dir(CHEATS_DIR);
  	create_profile_dir(PATCHES_DIR);
  	create_profile_dir(PCSX_DOT_DIR "cfg");
@@ -89,7 +791,7 @@ diff -uprN a/frontend/main.c b/frontend/main.c
  }
  
  static void check_memcards(void)
-@@ -580,7 +582,7 @@ static void check_memcards(void)
+@@ -586,7 +582,7 @@ static void check_memcards(void)
  	int i;
  
  	for (i = 1; i <= 9; i++) {
@@ -98,8 +800,153 @@ diff -uprN a/frontend/main.c b/frontend/main.c
  
  		f = fopen(buf, "rb");
  		if (f == NULL) {
+@@ -744,10 +740,10 @@ int main(int argc, char *argv[])
+ 
+ 	while (!g_emu_want_quit)
+ 	{
+-		psxRegs.stop = 0;
++		stop = 0;
+ 		emu_action = SACTION_NONE;
+ 
+-		psxCpu->Execute(&psxRegs);
++		psxCpu->Execute();
+ 		if (emu_action != SACTION_NONE)
+ 			do_emu_action();
+ 	}
+@@ -823,6 +819,9 @@ void SysReset() {
+ 	// reset can run code, timing must be set
+ 	pl_timing_prepare(Config.PsxType);
+ 
++	// hmh core forgets this
++	CDR_stop();
++   
+ 	EmuReset();
+ 
+ 	GPU_updateLace = real_lace;
+@@ -947,8 +946,8 @@ static int _OpenPlugins(void) {
+ 	signal(SIGPIPE, SignalExit);
+ #endif
+ 
+-	ret = cdra_open();
+-	if (UsingIso() && ret < 0) { SysMessage(_("Error opening CD-ROM plugin!")); return -1; }
++	ret = CDR_open();
++	if (ret < 0) { SysMessage(_("Error opening CD-ROM plugin!")); return -1; }
+ 	ret = SPU_open();
+ 	if (ret < 0) { SysMessage(_("Error opening SPU plugin!")); return -1; }
+ 	SPU_registerCallback(SPUirq);
+@@ -961,6 +960,64 @@ static int _OpenPlugins(void) {
+ 	ret = PAD2_open(&gpuDisp);
+ 	if (ret < 0) { SysMessage(_("Error opening Controller 2 plugin!")); return -1; }
+ 
++	if (Config.UseNet && !NetOpened) {
++		netInfo info;
++		char path[MAXPATHLEN * 2];
++		char dotdir[MAXPATHLEN];
++
++		MAKE_PATH(dotdir, "/.pcsx/plugins/", NULL);
++
++		strcpy(info.EmuName, "PCSX");
++		memcpy(info.CdromID, CdromId, 9); /* no \0 trailing character? */
++		memcpy(info.CdromLabel, CdromLabel, 9);
++		info.CdromLabel[9] = '\0';
++		info.psxMem = psxM;
++		info.GPU_showScreenPic = GPU_showScreenPic;
++		info.GPU_displayText = GPU_displayText;
++		info.GPU_showScreenPic = GPU_showScreenPic;
++		info.PAD_setSensitive = PAD1_setSensitive;
++		sprintf(path, "%s%s", Config.BiosDir, Config.Bios);
++		strcpy(info.BIOSpath, path);
++		strcpy(info.MCD1path, Config.Mcd1);
++		strcpy(info.MCD2path, Config.Mcd2);
++		sprintf(path, "%s%s", dotdir, Config.Gpu);
++		strcpy(info.GPUpath, path);
++		sprintf(path, "%s%s", dotdir, Config.Spu);
++		strcpy(info.SPUpath, path);
++		sprintf(path, "%s%s", dotdir, Config.Cdr);
++		strcpy(info.CDRpath, path);
++		NET_setInfo(&info);
++
++		ret = NET_open(&gpuDisp);
++		if (ret < 0) {
++			if (ret == -2) {
++				// -2 is returned when something in the info
++				// changed and needs to be synced
++				char *ptr;
++
++				PARSEPATH(Config.Bios, info.BIOSpath);
++				PARSEPATH(Config.Gpu,  info.GPUpath);
++				PARSEPATH(Config.Spu,  info.SPUpath);
++				PARSEPATH(Config.Cdr,  info.CDRpath);
++
++				strcpy(Config.Mcd1, info.MCD1path);
++				strcpy(Config.Mcd2, info.MCD2path);
++				return -2;
++			} else {
++				Config.UseNet = FALSE;
++			}
++		} else {
++			if (NET_queryPlayer() == 1) {
++				if (SendPcsxInfo() == -1) Config.UseNet = FALSE;
++			} else {
++				if (RecvPcsxInfo() == -1) Config.UseNet = FALSE;
++			}
++		}
++		NetOpened = TRUE;
++	} else if (Config.UseNet) {
++		NET_resume();
++	}
++
+ 	return 0;
+ }
+ 
+@@ -983,25 +1040,32 @@ void ClosePlugins() {
+ 	signal(SIGPIPE, SIG_DFL);
+ #endif
+ 
+-	cdra_close();
++	ret = CDR_close();
++	if (ret < 0) { SysMessage(_("Error closing CD-ROM plugin!")); return; }
+ 	ret = SPU_close();
+-	if (ret < 0) { SysMessage(_("Error closing SPU plugin!")); }
++	if (ret < 0) { SysMessage(_("Error closing SPU plugin!")); return; }
+ 	ret = PAD1_close();
+-	if (ret < 0) { SysMessage(_("Error closing Controller 1 Plugin!")); }
++	if (ret < 0) { SysMessage(_("Error closing Controller 1 Plugin!")); return; }
+ 	ret = PAD2_close();
+-	if (ret < 0) { SysMessage(_("Error closing Controller 2 plugin!")); }
++	if (ret < 0) { SysMessage(_("Error closing Controller 2 plugin!")); return; }
+ 	// pcsx-rearmed: we handle gpu elsewhere
+ 	//ret = GPU_close();
+ 	//if (ret < 0) { SysMessage(_("Error closing GPU plugin!")); return; }
++
++	if (Config.UseNet) {
++		NET_pause();
++	}
+ }
+ 
+ /* we hook statically linked plugins here */
+ static const char *builtin_plugins[] = {
+-	"builtin_gpu", "builtin_spu", "builtin_pad",
++	"builtin_gpu", "builtin_spu", "builtin_cdr", "builtin_pad",
++	"builtin_cdrcimg",
+ };
+ 
+ static const int builtin_plugin_ids[] = {
+-	PLUGIN_GPU, PLUGIN_SPU, PLUGIN_PAD,
++	PLUGIN_GPU, PLUGIN_SPU, PLUGIN_CDR, PLUGIN_PAD,
++	PLUGIN_CDRCIMG,
+ };
+ 
+ void *SysLoadLibrary(const char *lib) {
+@@ -1061,4 +1125,4 @@ void SysCloseLibrary(void *lib) {
+ #if !defined(_WIN32) && !defined(NO_DYLIB)
+ 	dlclose(lib);
+ #endif
+-}
++}
+\ No newline at end of file
 diff -uprN a/frontend/main.h b/frontend/main.h
---- a/frontend/main.h	2025-05-16 09:53:10.761269847 +0800
+--- a/frontend/main.h	2025-05-16 12:53:52.640207729 +0800
 +++ b/frontend/main.h	2025-05-16 12:47:26.051961517 +0800
 @@ -21,16 +21,16 @@
  
@@ -128,10 +975,110 @@ diff -uprN a/frontend/main.h b/frontend/main.h
  
  extern char cfgfile_basename[MAXPATHLEN];
  
+@@ -84,4 +84,16 @@ enum sched_action {
+ 
+ #define SACTION_GUN_MASK (0x0f << SACTION_GUN_TRIGGER)
+ 
+-#endif /* __FRONTEND_MAIN_H__ */
++static inline void emu_set_action(enum sched_action action_)
++{
++	extern enum sched_action emu_action, emu_action_old;
++	extern int stop;
++
++	if (action_ == SACTION_NONE)
++		emu_action_old = 0;
++	else if (action_ != emu_action_old)
++		stop++;
++	emu_action = action_;
++}
++
++#endif /* __FRONTEND_MAIN_H__ */
+\ No newline at end of file
 diff -uprN a/frontend/menu.c b/frontend/menu.c
---- a/frontend/menu.c	2025-05-16 09:53:25.744661707 +0800
+--- a/frontend/menu.c	2025-05-16 12:53:52.644207565 +0800
 +++ b/frontend/menu.c	2025-05-16 12:47:33.923640790 +0800
-@@ -495,9 +495,9 @@ static char *get_cd_label(void)
+@@ -38,10 +38,8 @@
+ #include "libpicofe/plat.h"
+ #include "../libpcsxcore/misc.h"
+ #include "../libpcsxcore/cdrom.h"
+-#include "../libpcsxcore/cdrom-async.h"
+ #include "../libpcsxcore/cdriso.h"
+ #include "../libpcsxcore/cheat.h"
+-#include "../libpcsxcore/ppf.h"
+ #include "../libpcsxcore/new_dynarec/new_dynarec.h"
+ #include "../plugins/dfsound/spu_config.h"
+ #include "psemu_plugin_defs.h"
+@@ -94,7 +92,6 @@ typedef enum
+ 	MA_OPT_SCANLINES,
+ 	MA_OPT_SCANLINE_LEVEL,
+ 	MA_OPT_CENTERING,
+-	MA_OPT_OVERSCAN,
+ } menu_id;
+ 
+ static int last_vout_w, last_vout_h, last_vout_bpp;
+@@ -104,7 +101,6 @@ static char last_selected_fname[MAXPATHL
+ static int config_save_counter, region, in_type_sel1, in_type_sel2;
+ static int psx_clock;
+ static int memcard1_sel = -1, memcard2_sel = -1;
+-static int cd_buf_count;
+ extern int g_autostateld_opt;
+ static int menu_iopts[8];
+ int g_opts, g_scaler, g_gamma = 100;
+@@ -414,7 +410,6 @@ static const struct {
+ 	CE_CONFIG_VAL(GpuListWalking),
+ 	CE_CONFIG_VAL(FractionalFramerate),
+ 	CE_CONFIG_VAL(PreciseExceptions),
+-	CE_CONFIG_VAL(TurboCD),
+ 	CE_INTVAL(region),
+ 	CE_INTVAL_V(g_scaler, 3),
+ 	CE_INTVAL(g_gamma),
+@@ -437,14 +432,17 @@ static const struct {
+ 	CE_INTVAL(memcard1_sel),
+ 	CE_INTVAL(memcard2_sel),
+ 	CE_INTVAL(g_autostateld_opt),
+-	CE_INTVAL(cd_buf_count),
+ 	CE_INTVAL_N("adev0_is_nublike", in_adev_is_nublike[0]),
+ 	CE_INTVAL_N("adev1_is_nublike", in_adev_is_nublike[1]),
+ 	CE_INTVAL_V(frameskip, 4),
+ 	CE_INTVAL_P(gpu_peops.iUseDither),
+ 	CE_INTVAL_P(gpu_peops.dwActFixes),
+-	CE_INTVAL_P(gpu_unai.old_renderer),
++	CE_INTVAL_P(gpu_unai_old.lineskip),
++	CE_INTVAL_P(gpu_unai_old.abe_hack),
++	CE_INTVAL_P(gpu_unai_old.no_light),
++	CE_INTVAL_P(gpu_unai_old.no_blend),
+ 	CE_INTVAL_P(gpu_unai.ilace_force),
++	CE_INTVAL_P(gpu_unai.pixel_skip),
+ 	CE_INTVAL_P(gpu_unai.lighting),
+ 	CE_INTVAL_P(gpu_unai.fast_lighting),
+ 	CE_INTVAL_P(gpu_unai.blending),
+@@ -453,7 +451,7 @@ static const struct {
+ 	CE_INTVAL_P(gpu_neon.allow_interlace),
+ 	CE_INTVAL_P(gpu_neon.enhancement_enable),
+ 	CE_INTVAL_P(gpu_neon.enhancement_no_main),
+-	CE_INTVAL_PV(gpu_neon.enhancement_tex_adj, 2),
++	CE_INTVAL_P(gpu_neon.enhancement_tex_adj),
+ 	CE_INTVAL_P(gpu_peopsgl.bDrawDither),
+ 	CE_INTVAL_P(gpu_peopsgl.iFilterType),
+ 	CE_INTVAL_P(gpu_peopsgl.iFrameTexType),
+@@ -467,7 +465,6 @@ static const struct {
+ 	CE_INTVAL_P(screen_centering_type),
+ 	CE_INTVAL_P(screen_centering_x),
+ 	CE_INTVAL_P(screen_centering_y),
+-	CE_INTVAL_P(show_overscan),
+ 	CE_INTVAL(spu_config.iUseReverb),
+ 	CE_INTVAL(spu_config.iXAPitch),
+ 	CE_INTVAL(spu_config.iUseInterpolation),
+@@ -477,7 +474,7 @@ static const struct {
+ 	CE_INTVAL(in_evdev_allow_abs_only),
+ 	CE_INTVAL(volume_boost),
+ 	CE_INTVAL(psx_clock),
+-	CE_INTVAL(ndrc_g.hacks),
++	CE_INTVAL(new_dynarec_hacks),
+ 	CE_INTVAL(in_enable_vibration),
+ };
+ 
+@@ -498,9 +495,9 @@ static char *get_cd_label(void)
  static void make_cfg_fname(char *buf, size_t size, int is_game)
  {
  	if (is_game)
@@ -144,8 +1091,272 @@ diff -uprN a/frontend/menu.c b/frontend/menu.c
  }
  
  static void keys_write_all(FILE *f);
+@@ -528,8 +525,6 @@ static int menu_write_config(int is_game
+ 		return -1;
+ 	}
+ 
+-	cd_buf_count = cdra_get_buf_count();
+-
+ 	for (i = 0; i < ARRAY_SIZE(config_data); i++) {
+ 		fprintf(f, "%s = ", config_data[i].name);
+ 		switch (config_data[i].len) {
+@@ -691,7 +686,6 @@ int menu_load_config(int is_game)
+ 	}
+ 
+ 	keys_load_all(cfg);
+-	cdra_set_buf_count(cd_buf_count);
+ 	ret = 0;
+ fail_read:
+ 	free(cfg);
+@@ -745,7 +739,7 @@ static const char *filter_exts[] = {
+ 	#ifdef HAVE_CHD
+ 	"chd",
+ 	#endif
+-	"bz",  "znx", "pbp", "cbn", "ppf", NULL
++	"bz",  "znx", "pbp", "cbn", NULL
+ };
+ 
+ // rrrr rggg gggb bbbb
+@@ -1284,7 +1278,6 @@ static const char *men_soft_filter[] = {
+ 	NULL };
+ static const char *men_dummy[] = { NULL };
+ static const char *men_centering[] = { "Auto", "Ingame", "Borderless", "Force", NULL };
+-static const char *men_overscan[] = { "OFF", "Auto", "Hack", NULL };
+ static const char h_scaler[]    = "int. 2x  - scales w. or h. 2x if it fits on screen\n"
+ 				  "int. 4:3 - uses integer if possible, else fractional";
+ static const char h_cscaler[]   = "Displays the scaler layer, you can resize it\n"
+@@ -1381,7 +1374,6 @@ static int menu_loop_cscaler(int id, int
+ static menu_entry e_menu_gfx_options[] =
+ {
+ 	mee_enum      ("Screen centering",         MA_OPT_CENTERING, pl_rearmed_cbs.screen_centering_type, men_centering),
+-	mee_enum      ("Show overscan",            MA_OPT_OVERSCAN, pl_rearmed_cbs.show_overscan, men_overscan),
+ 	mee_enum_h    ("Scaler",                   MA_OPT_VARSCALER, g_scaler, men_scaler, h_scaler),
+ 	mee_enum      ("Video output mode",        MA_OPT_VOUT_MODE, plat_target.vout_method, men_dummy),
+ 	mee_onoff     ("Software Scaling",         MA_OPT_SCALER2, soft_scaling, 1),
+@@ -1413,21 +1405,18 @@ static int menu_loop_gfx_options(int id,
+ static const char h_gpu_neon[] =
+ 	"Configure built-in NEON GPU plugin";
+ static const char h_gpu_neon_enhanced[] =
+-	"Renders in double resolution at perf. cost\n"
++	"Renders in double resolution at the cost of lower performance\n"
+ 	"(not available for high resolution games)";
+ static const char h_gpu_neon_enhanced_hack[] =
+ 	"Speed hack for above option (glitches some games)";
+-static const char h_gpu_neon_enhanced_texadj[] =
+-	"Solves some Enh. res. texture issues, some perf hit";
+ static const char *men_gpu_interlace[] = { "Off", "On", "Auto", NULL };
+ 
+ static menu_entry e_menu_plugin_gpu_neon[] =
+ {
++	mee_enum      ("Enable interlace mode",      0, pl_rearmed_cbs.gpu_neon.allow_interlace, men_gpu_interlace),
+ 	mee_onoff_h   ("Enhanced resolution",        0, pl_rearmed_cbs.gpu_neon.enhancement_enable, 1, h_gpu_neon_enhanced),
+ 	mee_onoff_h   ("Enhanced res. speed hack",   0, pl_rearmed_cbs.gpu_neon.enhancement_no_main, 1, h_gpu_neon_enhanced_hack),
+-	mee_onoff_h   ("Enh. res. texture adjust",   0, pl_rearmed_cbs.gpu_neon.enhancement_tex_adj, 1, h_gpu_neon_enhanced_texadj),
+-	mee_enum      ("Enable interlace mode",      0, pl_rearmed_cbs.gpu_neon.allow_interlace, men_gpu_interlace),
+-	mee_onoff     ("Enable dithering",           0, pl_rearmed_cbs.gpu_neon.allow_dithering, 1),
++	mee_onoff     ("Enh. res. texture adjust",   0, pl_rearmed_cbs.gpu_neon.enhancement_tex_adj, 1),
+ 	mee_end,
+ };
+ 
+@@ -1440,14 +1429,30 @@ static int menu_loop_plugin_gpu_neon(int
+ 
+ #endif
+ 
++static menu_entry e_menu_plugin_gpu_unai_old[] =
++{
++	mee_onoff     ("Skip every 2nd line",        0, pl_rearmed_cbs.gpu_unai_old.lineskip, 1),
++	mee_onoff     ("Abe's Odyssey hack",         0, pl_rearmed_cbs.gpu_unai_old.abe_hack, 1),
++	mee_onoff     ("Disable lighting",           0, pl_rearmed_cbs.gpu_unai_old.no_light, 1),
++	mee_onoff     ("Disable blending",           0, pl_rearmed_cbs.gpu_unai_old.no_blend, 1),
++	mee_end,
++};
++
++static int menu_loop_plugin_gpu_unai_old(int id, int keys)
++{
++	int sel = 0;
++	me_loop(e_menu_plugin_gpu_unai_old, &sel);
++	return 0;
++}
++
+ static menu_entry e_menu_plugin_gpu_unai[] =
+ {
+-	mee_onoff     ("Old renderer",               0, pl_rearmed_cbs.gpu_unai.old_renderer, 1),
+ 	mee_onoff     ("Interlace",                  0, pl_rearmed_cbs.gpu_unai.ilace_force, 1),
+ 	mee_onoff     ("Dithering",                  0, pl_rearmed_cbs.gpu_unai.dithering, 1),
+ 	mee_onoff     ("Lighting",                   0, pl_rearmed_cbs.gpu_unai.lighting, 1),
+ 	mee_onoff     ("Fast lighting",              0, pl_rearmed_cbs.gpu_unai.fast_lighting, 1),
+ 	mee_onoff     ("Blending",                   0, pl_rearmed_cbs.gpu_unai.blending, 1),
++	mee_onoff     ("Pixel skip",                 0, pl_rearmed_cbs.gpu_unai.pixel_skip, 1),
+ 	mee_end,
+ };
+ 
+@@ -1559,13 +1564,15 @@ static const char h_plugin_gpu[] =
+ 				   "builtin_gpu is the NEON GPU, very fast and accurate\n"
+ #endif
+ 				   "gpu_peops is Pete's soft GPU, slow but accurate\n"
+-				   "gpu_unai is the GPU renderer from PCSX4ALL\n"
++				   "gpu_unai_old is from old PCSX4ALL, fast but glitchy\n"
++				   "gpu_unai is newer, more accurate but slower\n"
+ 				   "gpu_gles Pete's hw GPU, uses 3D chip but is glitchy\n"
+ 				   "must save config and reload the game if changed";
+ static const char h_plugin_spu[] = "spunull effectively disables sound\n"
+ 				   "must save config and reload the game if changed";
+ static const char h_gpu_peops[]  = "Configure P.E.Op.S. SoftGL Driver V1.17";
+ static const char h_gpu_peopsgl[]= "Configure P.E.Op.S. MesaGL Driver V1.78";
++static const char h_gpu_unai_old[] = "Configure Unai/PCSX4ALL Team GPU plugin (old)";
+ static const char h_gpu_unai[]   = "Configure Unai/PCSX4ALL Team plugin (new)";
+ static const char h_spu[]        = "Configure built-in P.E.Op.S. Sound Driver V1.7";
+ 
+@@ -1578,6 +1585,7 @@ static menu_entry e_menu_plugin_options[
+ 	mee_handler_h ("Configure built-in GPU plugin", menu_loop_plugin_gpu_neon, h_gpu_neon),
+ #endif
+ 	mee_handler_h ("Configure gpu_peops plugin",    menu_loop_plugin_gpu_peops, h_gpu_peops),
++	mee_handler_h ("Configure gpu_unai_old GPU plugin", menu_loop_plugin_gpu_unai_old, h_gpu_unai_old),
+ 	mee_handler_h ("Configure gpu_unai GPU plugin", menu_loop_plugin_gpu_unai, h_gpu_unai),
+ 	mee_handler_h ("Configure gpu_gles GPU plugin", menu_loop_plugin_gpu_peopsgl, h_gpu_peopsgl),
+ 	mee_handler_h ("Configure built-in SPU plugin", menu_loop_plugin_spu, h_spu),
+@@ -1613,10 +1621,10 @@ static const char h_cfg_stalls[]  = "Wil
+ static menu_entry e_menu_speed_hacks[] =
+ {
+ #ifndef DRC_DISABLE
+-	mee_onoff_h   ("Disable compat hacks",     0, ndrc_g.hacks, NDHACK_NO_COMPAT_HACKS, h_cfg_noch),
+-	mee_onoff_h   ("Disable SMC checks",       0, ndrc_g.hacks, NDHACK_NO_SMC_CHECK, h_cfg_nosmc),
+-	mee_onoff_h   ("Assume GTE regs unneeded", 0, ndrc_g.hacks, NDHACK_GTE_UNNEEDED, h_cfg_gteunn),
+-	mee_onoff_h   ("Disable GTE flags",        0, ndrc_g.hacks, NDHACK_GTE_NO_FLAGS, h_cfg_gteflgs),
++	mee_onoff_h   ("Disable compat hacks",     0, new_dynarec_hacks, NDHACK_NO_COMPAT_HACKS, h_cfg_noch),
++	mee_onoff_h   ("Disable SMC checks",       0, new_dynarec_hacks, NDHACK_NO_SMC_CHECK, h_cfg_nosmc),
++	mee_onoff_h   ("Assume GTE regs unneeded", 0, new_dynarec_hacks, NDHACK_GTE_UNNEEDED, h_cfg_gteunn),
++	mee_onoff_h   ("Disable GTE flags",        0, new_dynarec_hacks, NDHACK_GTE_NO_FLAGS, h_cfg_gteflgs),
+ #endif
+ 	mee_onoff_h   ("Disable CPU/GTE stalls",   0, menu_iopts[0], 1, h_cfg_stalls),
+ 	mee_end,
+@@ -1652,11 +1660,10 @@ static const char h_cfg_gpul[]   = "Try
+ 				   "causes a performance hit";
+ static const char h_cfg_ffps[]   = "Instead of 50/60fps for PAL/NTSC use ~49.75/59.81\n"
+ 				   "Closer to real hw but doesn't match modern displays.";
+-static const char h_cfg_tcd[]    = "Greatly reduce CD load times. Breaks some games.";
+ static const char h_cfg_psxclk[]  = "Over/under-clock the PSX, default is " DEFAULT_PSX_CLOCK_S "\n"
+ 				    "(adjust this if the game is too slow/too fast/hangs)";
+ 
+-enum { AMO_XA, AMO_CDDA, AMO_IC, AMO_BP, AMO_CPU, AMO_GPUL, AMO_FFPS, AMO_TCD };
++enum { AMO_XA, AMO_CDDA, AMO_IC, AMO_BP, AMO_CPU, AMO_GPUL, AMO_FFPS };
+ 
+ static menu_entry e_menu_adv_options[] =
+ {
+@@ -1669,10 +1676,6 @@ static menu_entry e_menu_adv_options[] =
+ 	mee_onoff_h   ("BP exception emulation", 0, menu_iopts[AMO_BP],   1, h_cfg_exc),
+ 	mee_enum_h    ("GPU l-list slow walking",0, menu_iopts[AMO_GPUL], men_autooo, h_cfg_gpul),
+ 	mee_enum_h    ("Fractional framerate",   0, menu_iopts[AMO_FFPS], men_autooo, h_cfg_ffps),
+-	mee_onoff_h   ("Turbo CD-ROM ",          0, menu_iopts[AMO_TCD], 1, h_cfg_tcd),
+-#ifdef USE_ASYNC_CDROM
+-	mee_range     ("CD-ROM read-ahead",      0, cd_buf_count, 0, 1024),
+-#endif
+ #if !defined(DRC_DISABLE) || defined(LIGHTREC)
+ 	mee_onoff_h   ("Disable dynarec (slow!)",0, menu_iopts[AMO_CPU],  1, h_cfg_nodrc),
+ #endif
+@@ -1693,7 +1696,6 @@ static int menu_loop_adv_options(int id,
+ 		{ &Config.icache_emulation, &menu_iopts[AMO_IC] },
+ 		{ &Config.PreciseExceptions, &menu_iopts[AMO_BP] },
+ 		{ &Config.Cpu,     &menu_iopts[AMO_CPU] },
+-		{ &Config.TurboCD, &menu_iopts[AMO_TCD] },
+ 	};
+ 	int i;
+ 	for (i = 0; i < ARRAY_SIZE(opts); i++)
+@@ -1707,7 +1709,6 @@ static int menu_loop_adv_options(int id,
+ 		*opts[i].opt = *opts[i].mopt;
+ 	Config.GpuListWalking = menu_iopts[AMO_GPUL] - 1;
+ 	Config.FractionalFramerate = menu_iopts[AMO_FFPS] - 1;
+-	cdra_set_buf_count(cd_buf_count);
+ 
+ 	return 0;
+ }
+@@ -2152,18 +2153,6 @@ static int run_exe(void)
+ static int run_cd_image(const char *fname)
+ {
+ 	int autoload_state = g_autostateld_opt;
+-	size_t fname_len = strlen(fname);
+-	const char *ppfname = NULL;
+-	char fname2[256];
+-
+-	// simle ppf handling, like game.chd.ppf
+-	if (4 < fname_len && fname_len < sizeof(fname2)
+-	    && strcasecmp(fname + fname_len - 4, ".ppf") == 0) {
+-		memcpy(fname2, fname, fname_len - 4);
+-		fname2[fname_len - 4] = 0;
+-		ppfname = fname;
+-		fname = fname2;
+-	}
+ 
+ 	ready_to_go = 0;
+ 	reload_plugins(fname);
+@@ -2177,8 +2166,6 @@ static int run_cd_image(const char *fnam
+ 		menu_update_msg("unsupported/invalid CD image");
+ 		return -1;
+ 	}
+-	if (ppfname)
+-		BuildPPFCache(ppfname);
+ 
+ 	SysReset();
+ 
+@@ -2194,7 +2181,7 @@ static int run_cd_image(const char *fnam
+ 
+ 	if (autoload_state) {
+ 		unsigned int newest = 0;
+-		int time = 0, slot, newest_slot = -1;
++		int time, slot, newest_slot = -1;
+ 
+ 		for (slot = 0; slot < 10; slot++) {
+ 			if (emu_check_save_file(slot, &time)) {
+@@ -2230,7 +2217,7 @@ static int romsel_run(void)
+ 
+ 	printf("selected file: %s\n", fname);
+ 
+-	ndrc_clear_full();
++	new_dynarec_clear_full();
+ 
+ 	if (run_cd_image(fname) != 0)
+ 		return -1;
+@@ -2273,7 +2260,7 @@ static int swap_cd_image(void)
+ 		menu_update_msg("failed to load cdr plugin");
+ 		return -1;
+ 	}
+-	if (cdra_open() < 0) {
++	if (CDR_open() < 0) {
+ 		menu_update_msg("failed to open cdr plugin");
+ 		return -1;
+ 	}
+@@ -2291,8 +2278,8 @@ static int swap_cd_multidisk(void)
+ 	CdromId[0] = '\0';
+ 	CdromLabel[0] = '\0';
+ 
+-	cdra_close();
+-	if (cdra_open() < 0) {
++	CDR_close();
++	if (CDR_open() < 0) {
+ 		menu_update_msg("failed to open cdr plugin");
+ 		return -1;
+ 	}
+@@ -2747,6 +2734,11 @@ void menu_prepare_emu(void)
+ 	menu_sync_config();
+ 	psxCpu->ApplyConfig();
+ 
++	// core doesn't care about Config.Cdda changes,
++	// so handle them manually here
++	if (Config.Cdda)
++		CDR_stop();
++
+ 	if (cpu_clock > 0)
+ 		plat_target_cpu_clock_set(cpu_clock);
+ 
+@@ -2773,4 +2765,4 @@ void menu_finish(void)
+ {
+ 	if (cpu_clock_st > 0)
+ 		plat_target_cpu_clock_set(cpu_clock_st);
+-}
++}
+\ No newline at end of file
 diff -uprN a/frontend/plat_suniv.c b/frontend/plat_suniv.c
---- a/frontend/plat_suniv.c	2025-05-16 09:53:41.428025142 +0800
+--- a/frontend/plat_suniv.c	2025-05-16 12:53:52.648207402 +0800
 +++ b/frontend/plat_suniv.c	2025-05-16 09:33:15.813632445 +0800
 @@ -73,21 +73,21 @@ static int psx_offset_x, psx_offset_y, p
  static int fb_offset_x, fb_offset_y;
@@ -221,3 +1432,11 @@ diff -uprN a/frontend/plat_suniv.c b/frontend/plat_suniv.c
    { SDLK_WORLD_0, PBTN_MOK },
    { SDLK_WORLD_1, PBTN_MBACK },
    { SDLK_WORLD_2, PBTN_MA2 },
+@@ -826,5 +826,4 @@ void plat_trigger_vibrate(int pad, int l
+   else{
+     ioctl(motordev, MIYOO_VIR_SET_MODE, ((high > 0x80) ? 0 : 1));
+   }
+-}
+-
++}
+\ No newline at end of file
