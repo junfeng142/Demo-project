@@ -57,6 +57,8 @@ jobs:
       id: compile
       run: |
         cd $PKG_NAME
+        git submodule init && git submodule update
+        ./configure --platform=miyoo --gpu=unai_old  --disable-neon
         echo -e "$(nproc) thread compile"
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
