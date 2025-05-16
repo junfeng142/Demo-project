@@ -75,7 +75,7 @@ jobs:
       run: |
         mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
         [ -f ${PKG_NAME}/${PKG_NAME} ] && /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${PKG_NAME} -o ${PKG_NAME}/_opk/${PKG_NAME}
-        tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        chmod +x ${PKG_NAME}/_opk/${PKG_NAME} && tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
