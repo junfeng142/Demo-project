@@ -19,6 +19,26 @@ diff -uprN c/Makefile d/Makefile
 -endif
 \ No newline at end of file
 +endif
+diff -uprN c/config.mak d/config.mak
+--- c/config.mak	2025-05-16 11:21:51.048956857 +0800
++++ d/config.mak	2025-05-16 11:22:18.927824366 +0800
+@@ -3,7 +3,7 @@
+ CC = /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc
+ CXX = /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-g++
+ AS = /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-as
+-CFLAGS +=  -mfpu=vfp -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -D_FILE_OFFSET_BITS=64 -Wno-unused-result
++CFLAGS += -Os -march=armv7-a -mfpu=vfp -marm -I/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/../../usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT -D_FILE_OFFSET_BITS=64 -Wno-unused-result
+ ASFLAGS +=  -mfpu=vfp
+ LDFLAGS += 
+ MAIN_LDFLAGS += 
+@@ -13,6 +13,6 @@ PLUGIN_CFLAGS +=  -fPIC
+ ARCH = arm
+ PLATFORM = miyoo
+ BUILTIN_GPU = unai
+-SOUND_DRIVERS =  oss alsa sdl
++SOUND_DRIVERS =  sdl
+ PLUGINS = plugins/spunull/spunull.so plugins/dfxvideo/gpu_peops.so plugins/gpu_unai_old/gpu_unai_old.so plugins/gpu_unai/gpu_unai.so
+ USE_DYNAREC = 1
 diff -uprN c/configure d/configure
 --- c/configure	2025-05-16 09:52:12.799622305 +0800
 +++ d/configure	2025-05-16 09:39:11.487324503 +0800
