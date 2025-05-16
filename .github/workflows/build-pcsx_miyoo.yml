@@ -51,14 +51,14 @@ jobs:
         mv configs/*.patch $PKG_NAME/
         chmod +x $DIY_SH
         cd $PKG_NAME
+        git submodule init && git submodule update
+        ./configure --platform=miyoo --gpu=unai  --disable-neon
         $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
       id: compile
       run: |
         cd $PKG_NAME
-        git submodule init && git submodule update
-        ./configure --platform=miyoo --gpu=unai  --disable-neon
         echo -e "$(nproc) thread compile"
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
