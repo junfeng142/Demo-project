@@ -5,7 +5,7 @@ on:
 
 env:
   REPO_URL: https://github.com/tiopex/pcsx_rearmed.git
-  REPO_BRANCH: 1.0
+  REPO_BRANCH: miyoo
   PKG_NAME: pcsx
   BIN_DIR: /
   CONFIG_FILE: configs/pcsx.config
