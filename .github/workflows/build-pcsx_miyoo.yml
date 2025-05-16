@@ -4,8 +4,8 @@ on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/tiopex/pcsx_rearmed.git
-  REPO_BRANCH: miyoo
+  REPO_URL: https://github.com/junfeng142/Demo-project.git
+  REPO_BRANCH: pcsx-miyoo
   PKG_NAME: pcsx
   BIN_DIR: /
   CONFIG_FILE: configs/pcsx.config
@@ -51,14 +51,12 @@ jobs:
         mv configs/*.patch $PKG_NAME/
         chmod +x $DIY_SH
         cd $PKG_NAME
-        git submodule init && git submodule update
         $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
       id: compile
       run: |
         cd $PKG_NAME
-        ./configure --platform=miyoo --gpu=unai_old --disable-neon
         echo -e "$(nproc) thread compile"
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
