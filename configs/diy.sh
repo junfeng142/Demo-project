@@ -28,6 +28,9 @@ mkdir -p _opk
 # kernel build
 [ -d include/linux ] && patch -p1 < fit_for_kernel_build.patch
 
+# pcsx_miyoo build
+[ -f frontend/plat_suniv.c ] && patch -p1 < fit_for_pcsx-miyoo_build.patch
+
 # oswan build
 [ -d minizip ] && patch -p1 < fit_for_oswan_build.patch
 
