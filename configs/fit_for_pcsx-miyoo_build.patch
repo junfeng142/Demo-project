@@ -1,0 +1,237 @@
+diff -uprN c/configure d/configure
+--- c/configure	2025-05-16 09:52:12.799622305 +0800
++++ d/configure	2025-05-16 09:39:11.487324503 +0800
+@@ -66,27 +66,14 @@ optimize_cortexa8="no"
+ optimize_arm926ej="no"
+ 
+ # hardcoded stuff
+-if [ "${OSTYPE}" = "FreeBSD" ]; then
+-	CC="clang"
+-	CXX="clang++"
+-	CFLAGS="-I/usr/local/include -L/usr/local/lib"
+-	MAKE=gmake
+-else
+-	CC="${CC-${CROSS_COMPILE}gcc}"
+-	CXX="${CXX-${CROSS_COMPILE}g++}"
+-fi
+-AS="${AS-${CROSS_COMPILE}as}"
+-AR="${AS-${CROSS_COMPILE}ar}"
+-MAIN_LDLIBS="$LDLIBS -ldl -lm -lpthread"
++CC="/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc"
++CXX="/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-g++"
++AS="/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-as"
++AR="/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-ar"
++MAIN_LDLIBS="$LDLIBS -lSDL_ttf -lSDL_image -ldl -lm -lpthread"
+ config_mak="config.mak"
+-
+-if [ "${OSTYPE}" = "FreeBSD" ]; then
+-	SYSROOT="$sysroot"
+-	[ "x${SDL_CONFIG}" = "x" ] && SDL_CONFIG="${SYSROOT}/usr/local/bin/sdl-config"
+-else
+-	SYSROOT="$(${CC} --print-sysroot)"
+-	[ "x${SDL_CONFIG}" = "x" ] && SDL_CONFIG="${SYSROOT}/usr/bin/sdl-config"
+-fi
++#CFLAGS="-fno-PIC -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -D__ARM_NEON__ -mfloat-abi=hard -ffast-math -funsafe-math-optimizations -ggdb -O3"
++SDL_CONFIG=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config
+ 
+ fail()
+ {
+@@ -224,10 +211,10 @@ arm*)
+     ASFLAGS="$ASFLAGS -mcpu=arm926ej-s -mfloat-abi=softfp"
+   fi
+ 
+-  if [ "x$have_arm_neon" = "x" ]; then
++  #if [ "x$have_arm_neon" = "x" ]; then
+     # detect NEON from user-supplied cflags to enable neon code
+-    have_arm_neon=`check_define __ARM_NEON__ && echo yes` || true
+-  fi
++    #have_arm_neon=`check_define __ARM_NEON__ && echo yes` || true
++  #fi
+   if [ "x$have_armv7" = "x" ]; then
+     if check_define HAVE_ARMV7; then
+       have_armv7="yes"
+@@ -609,4 +596,4 @@ fi
+ # use pandora's skin (for now)
+ test -e skin || ln -s frontend/pandora/skin skin
+ 
+-# vim:shiftwidth=2:expandtab
+\ No newline at end of file
++# vim:shiftwidth=2:expandtab
+diff -uprN c/frontend/main.c d/frontend/main.c
+--- c/frontend/main.c	2025-05-16 09:52:52.582007690 +0800
++++ d/frontend/main.c	2025-05-16 09:33:15.813632445 +0800
+@@ -68,9 +68,9 @@ int hud_new_msg;
+ static void make_path(char *buf, size_t size, const char *dir, const char *fname)
+ {
+ 	if (fname)
+-		snprintf(buf, size, ".%s%s", dir, fname);
++		snprintf(buf, size, "%s%s", dir, fname);
+ 	else
+-		snprintf(buf, size, ".%s", dir);
++		snprintf(buf, size, "%s", dir);
+ }
+ #define MAKE_PATH(buf, dir, fname) \
+ 	make_path(buf, sizeof(buf), dir, fname)
+@@ -570,7 +570,9 @@ static void check_profile(void) {
+ 	create_profile_dir(CHEATS_DIR);
+ 	create_profile_dir(PATCHES_DIR);
+ 	create_profile_dir(PCSX_DOT_DIR "cfg");
++#ifdef SCREENSHOTS_ALLOWED
+ 	create_profile_dir("/screenshots/");
++#endif //SCREENSHOTS_ALLOWED
+ }
+ 
+ static void check_memcards(void)
+@@ -580,7 +582,7 @@ static void check_memcards(void)
+ 	int i;
+ 
+ 	for (i = 1; i <= 9; i++) {
+-		snprintf(buf, sizeof(buf), ".%scard%d.mcd", MEMCARD_DIR, i);
++		snprintf(buf, sizeof(buf), "%scard%d.mcd", MEMCARD_DIR, i);
+ 
+ 		f = fopen(buf, "rb");
+ 		if (f == NULL) {
+@@ -1123,4 +1125,4 @@ void SysCloseLibrary(void *lib) {
+ #if !defined(_WIN32) && !defined(NO_DYLIB)
+ 	dlclose(lib);
+ #endif
+-}
+\ No newline at end of file
++}
+diff -uprN c/frontend/main.h d/frontend/main.h
+--- c/frontend/main.h	2025-05-16 09:53:10.761269847 +0800
++++ d/frontend/main.h	2025-05-16 09:33:15.813632445 +0800
+@@ -21,16 +21,16 @@
+ 
+ #include "config.h"
+ 
+-#define DEFAULT_MEM_CARD_1 "/.pcsx/memcards/card1.mcd"
+-#define DEFAULT_MEM_CARD_2 "/.pcsx/memcards/card2.mcd"
+-#define MEMCARD_DIR "/.pcsx/memcards/"
+-#define PLUGINS_DIR "/.pcsx/plugins/"
+-#define PLUGINS_CFG_DIR "/.pcsx/plugins/cfg/"
+-#define PCSX_DOT_DIR "/.pcsx/"
+-#define STATES_DIR "/.pcsx/sstates/"
+-#define CHEATS_DIR "/.pcsx/cheats/"
+-#define PATCHES_DIR "/.pcsx/patches/"
+-#define BIOS_DIR "/bios/"
++#define DEFAULT_MEM_CARD_1 "/mnt/FunKey/.pcsx/memcards/card1.mcd"
++#define DEFAULT_MEM_CARD_2 "/mnt/FunKey/.pcsx/memcards/card2.mcd"
++#define MEMCARD_DIR "/mnt/FunKey/.pcsx/memcards/"
++#define PLUGINS_DIR "/mnt/FunKey/.pcsx/plugins/"
++#define PLUGINS_CFG_DIR "/mnt/FunKey/.pcsx/plugins/cfg/"
++#define PCSX_DOT_DIR "/mnt/FunKey/.pcsx/"
++#define STATES_DIR "/mnt/FunKey/.pcsx/sstates/"
++#define CHEATS_DIR "/mnt/FunKey/.pcsx/cheats/"
++#define PATCHES_DIR "/mnt/FunKey/.pcsx/patches/"
++#define BIOS_DIR "/mnt/FunKey/.pcsx/bios/"
+ 
+ extern char cfgfile_basename[MAXPATHLEN];
+ 
+@@ -96,4 +96,4 @@ static inline void emu_set_action(enum s
+ 	emu_action = action_;
+ }
+ 
+-#endif /* __FRONTEND_MAIN_H__ */
+\ No newline at end of file
++#endif /* __FRONTEND_MAIN_H__ */
+diff -uprN c/frontend/menu.c d/frontend/menu.c
+--- c/frontend/menu.c	2025-05-16 09:53:25.744661707 +0800
++++ d/frontend/menu.c	2025-05-16 09:33:15.813632445 +0800
+@@ -495,9 +495,9 @@ static char *get_cd_label(void)
+ static void make_cfg_fname(char *buf, size_t size, int is_game)
+ {
+ 	if (is_game)
+-		snprintf(buf, size, "." PCSX_DOT_DIR "cfg/%.32s-%.9s.cfg", get_cd_label(), CdromId);
+-	else
+-		snprintf(buf, size, "." PCSX_DOT_DIR "%s", cfgfile_basename);
++        snprintf(buf, size, PCSX_DOT_DIR "cfg/%.32s-%.9s.cfg", get_cd_label(), CdromId);
++    else
++        snprintf(buf, size, PCSX_DOT_DIR "%s", cfgfile_basename);
+ }
+ 
+ static void keys_write_all(FILE *f);
+@@ -2765,4 +2765,4 @@ void menu_finish(void)
+ {
+ 	if (cpu_clock_st > 0)
+ 		plat_target_cpu_clock_set(cpu_clock_st);
+-}
+\ No newline at end of file
++}
+diff -uprN c/frontend/plat_suniv.c d/frontend/plat_suniv.c
+--- c/frontend/plat_suniv.c	2025-05-16 09:53:41.428025142 +0800
++++ d/frontend/plat_suniv.c	2025-05-16 09:33:15.813632445 +0800
+@@ -73,21 +73,21 @@ static int psx_offset_x, psx_offset_y, p
+ static int fb_offset_x, fb_offset_y;
+ 
+ static const struct in_default_bind in_sdl_defbinds[] = {
+-  { SDLK_UP,        IN_BINDTYPE_PLAYER12, DKEY_UP },
+-  { SDLK_DOWN,      IN_BINDTYPE_PLAYER12, DKEY_DOWN },
+-  { SDLK_LEFT,      IN_BINDTYPE_PLAYER12, DKEY_LEFT },
+-  { SDLK_RIGHT,     IN_BINDTYPE_PLAYER12, DKEY_RIGHT },
+-  { SDLK_LSHIFT,    IN_BINDTYPE_PLAYER12, DKEY_TRIANGLE },
+-  { SDLK_LCTRL,     IN_BINDTYPE_PLAYER12, DKEY_CROSS },
+-  { SDLK_LALT,      IN_BINDTYPE_PLAYER12, DKEY_CIRCLE },
+-  { SDLK_SPACE,     IN_BINDTYPE_PLAYER12, DKEY_SQUARE },
+-  { SDLK_RETURN,    IN_BINDTYPE_PLAYER12, DKEY_START },
+-  { SDLK_ESCAPE,    IN_BINDTYPE_PLAYER12, DKEY_SELECT },
+-  { SDLK_TAB,       IN_BINDTYPE_PLAYER12, DKEY_L1 },
+-  { SDLK_BACKSPACE, IN_BINDTYPE_PLAYER12, DKEY_R1 },
++  { SDLK_u,        IN_BINDTYPE_PLAYER12, DKEY_UP },
++  { SDLK_d,      IN_BINDTYPE_PLAYER12, DKEY_DOWN },
++  { SDLK_l,      IN_BINDTYPE_PLAYER12, DKEY_LEFT },
++  { SDLK_r,     IN_BINDTYPE_PLAYER12, DKEY_RIGHT },
++  { SDLK_y,    IN_BINDTYPE_PLAYER12, DKEY_TRIANGLE },
++  { SDLK_b,     IN_BINDTYPE_PLAYER12, DKEY_CROSS },
++  { SDLK_a,      IN_BINDTYPE_PLAYER12, DKEY_CIRCLE },
++  { SDLK_x,     IN_BINDTYPE_PLAYER12, DKEY_SQUARE },
++  { SDLK_s,    IN_BINDTYPE_PLAYER12, DKEY_START },
++  { SDLK_k,    IN_BINDTYPE_PLAYER12, DKEY_SELECT },
++  { SDLK_m,       IN_BINDTYPE_PLAYER12, DKEY_L1 },
++  { SDLK_n, IN_BINDTYPE_PLAYER12, DKEY_R1 },
+   { SDLK_e,         IN_BINDTYPE_PLAYER12, DKEY_L2 },
+   { SDLK_t,         IN_BINDTYPE_PLAYER12, DKEY_R2 },
+-  { SDLK_RCTRL,     IN_BINDTYPE_EMU, SACTION_ENTER_MENU },
++  { SDLK_q,     IN_BINDTYPE_EMU, SACTION_ENTER_MENU },
+   { SDLK_F1,        IN_BINDTYPE_EMU, SACTION_SAVE_STATE },
+   { SDLK_F2,        IN_BINDTYPE_EMU, SACTION_LOAD_STATE },
+   { SDLK_F3,        IN_BINDTYPE_EMU, SACTION_PREV_SSLOT },
+@@ -103,24 +103,24 @@ static const struct in_default_bind in_s
+ 
+ const struct menu_keymap in_sdl_key_map[] =
+ {
+-  { SDLK_UP,        PBTN_UP },
+-  { SDLK_DOWN,      PBTN_DOWN },
+-  { SDLK_LEFT,      PBTN_LEFT },
+-  { SDLK_RIGHT,     PBTN_RIGHT },
+-  { SDLK_LALT,      PBTN_MOK },
+-  { SDLK_LCTRL,     PBTN_MBACK },
+-  { SDLK_SPACE,     PBTN_MA2 },
+-  { SDLK_LSHIFT,    PBTN_MA3 },
+-  { SDLK_TAB,       PBTN_L },
+-  { SDLK_BACKSPACE, PBTN_R },
++  { SDLK_u,        PBTN_UP },
++  { SDLK_d,      PBTN_DOWN },
++  { SDLK_l,      PBTN_LEFT },
++  { SDLK_r,     PBTN_RIGHT },
++  { SDLK_a,      PBTN_MOK },
++  { SDLK_b,     PBTN_MBACK },
++  { SDLK_x,     PBTN_MA2 },
++  { SDLK_y,    PBTN_MA3 },
++  { SDLK_m,       PBTN_L },
++  { SDLK_n, PBTN_R },
+ };
+ 
+ const struct menu_keymap in_sdl_joy_map[] =
+ {
+-  { SDLK_UP,    PBTN_UP },
+-  { SDLK_DOWN,  PBTN_DOWN },
+-  { SDLK_LEFT,  PBTN_LEFT },
+-  { SDLK_RIGHT, PBTN_RIGHT },
++  { SDLK_u,    PBTN_UP },
++  { SDLK_d,  PBTN_DOWN },
++  { SDLK_l,  PBTN_LEFT },
++  { SDLK_r, PBTN_RIGHT },
+   { SDLK_WORLD_0, PBTN_MOK },
+   { SDLK_WORLD_1, PBTN_MBACK },
+   { SDLK_WORLD_2, PBTN_MA2 },
