@@ -1,6 +1,6 @@
-diff -uprN c/Makefile d/Makefile
---- c/Makefile	2025-05-16 10:16:31.420353617 +0800
-+++ d/Makefile	2025-05-16 10:16:00.241621787 +0800
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2025-05-16 10:16:31.420353617 +0800
++++ b/Makefile	2025-05-16 10:16:00.241621787 +0800
 @@ -268,8 +268,8 @@ OBJS += frontend/plat_suniv.o
  frontend/main.o frontend/menu.o: CFLAGS += -include frontend/320240/ui_miyoo.h
  USE_PLUGIN_LIB = 1
@@ -19,9 +19,9 @@ diff -uprN c/Makefile d/Makefile
 -endif
 \ No newline at end of file
 +endif
-diff -uprN c/configure d/configure
---- c/configure	2025-05-16 09:52:12.799622305 +0800
-+++ d/configure	2025-05-16 12:06:14.544543936 +0800
+diff -uprN a/configure b/configure
+--- a/configure	2025-05-16 09:52:12.799622305 +0800
++++ b/configure	2025-05-16 12:06:14.544543936 +0800
 @@ -66,27 +66,14 @@ optimize_cortexa8="no"
  optimize_arm926ej="no"
  
@@ -78,9 +78,9 @@ diff -uprN c/configure d/configure
 -# vim:shiftwidth=2:expandtab
 \ No newline at end of file
 +# vim:shiftwidth=2:expandtab
-diff -uprN c/frontend/main.c d/frontend/main.c
---- c/frontend/main.c	2025-05-16 09:52:52.582007690 +0800
-+++ d/frontend/main.c	2025-05-16 09:33:15.813632445 +0800
+diff -uprN a/frontend/main.c b/frontend/main.c
+--- a/frontend/main.c	2025-05-16 09:52:52.582007690 +0800
++++ b/frontend/main.c	2025-05-16 09:33:15.813632445 +0800
 @@ -68,9 +68,9 @@ int hud_new_msg;
  static void make_path(char *buf, size_t size, const char *dir, const char *fname)
  {
@@ -119,9 +119,9 @@ diff -uprN c/frontend/main.c d/frontend/main.c
 -}
 \ No newline at end of file
 +}
-diff -uprN c/frontend/main.h d/frontend/main.h
---- c/frontend/main.h	2025-05-16 09:53:10.761269847 +0800
-+++ d/frontend/main.h	2025-05-16 09:33:15.813632445 +0800
+diff -uprN a/frontend/main.h b/frontend/main.h
+--- a/frontend/main.h	2025-05-16 09:53:10.761269847 +0800
++++ b/frontend/main.h	2025-05-16 09:33:15.813632445 +0800
 @@ -21,16 +21,16 @@
  
  #include "config.h"
@@ -156,9 +156,9 @@ diff -uprN c/frontend/main.h d/frontend/main.h
 -#endif /* __FRONTEND_MAIN_H__ */
 \ No newline at end of file
 +#endif /* __FRONTEND_MAIN_H__ */
-diff -uprN c/frontend/menu.c d/frontend/menu.c
---- c/frontend/menu.c	2025-05-16 09:53:25.744661707 +0800
-+++ d/frontend/menu.c	2025-05-16 09:33:15.813632445 +0800
+diff -uprN a/frontend/menu.c b/frontend/menu.c
+--- a/frontend/menu.c	2025-05-16 09:53:25.744661707 +0800
++++ b/frontend/menu.c	2025-05-16 09:33:15.813632445 +0800
 @@ -495,9 +495,9 @@ static char *get_cd_label(void)
  static void make_cfg_fname(char *buf, size_t size, int is_game)
  {
@@ -179,9 +179,9 @@ diff -uprN c/frontend/menu.c d/frontend/menu.c
 -}
 \ No newline at end of file
 +}
-diff -uprN c/frontend/plat_suniv.c d/frontend/plat_suniv.c
---- c/frontend/plat_suniv.c	2025-05-16 09:53:41.428025142 +0800
-+++ d/frontend/plat_suniv.c	2025-05-16 09:33:15.813632445 +0800
+diff -uprN a/frontend/plat_suniv.c b/frontend/plat_suniv.c
+--- a/frontend/plat_suniv.c	2025-05-16 09:53:41.428025142 +0800
++++ b/frontend/plat_suniv.c	2025-05-16 09:33:15.813632445 +0800
 @@ -73,21 +73,21 @@ static int psx_offset_x, psx_offset_y, p
  static int fb_offset_x, fb_offset_y;
  
