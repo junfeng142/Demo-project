@@ -52,7 +52,7 @@ diff -uprN a/configure b/configure
  {
 diff -uprN a/frontend/main.c b/frontend/main.c
 --- a/frontend/main.c	2025-05-16 12:53:52.632208054 +0800
-+++ b/frontend/main.c	2025-05-16 13:15:36.091442890 +0800
++++ b/frontend/main.c	2025-05-16 13:25:10.716321201 +0800
 @@ -74,9 +74,9 @@ int hud_new_msg;
  static inline void make_path(char *buf, size_t size, const char *dir, const char *fname)
  {
@@ -74,6 +74,15 @@ diff -uprN a/frontend/main.c b/frontend/main.c
  }
  
  static void check_memcards(void)
+@@ -586,7 +586,7 @@ static void check_memcards(void)
+ 	int i;
+ 
+ 	for (i = 1; i <= 9; i++) {
+-		snprintf(buf, sizeof(buf), ".%scard%d.mcd", MEMCARD_DIR, i);
++		snprintf(buf, sizeof(buf), "%scard%d.mcd", MEMCARD_DIR, i);
+ 
+ 		f = fopen(buf, "rb");
+ 		if (f == NULL) {
 @@ -688,7 +688,7 @@ int main(int argc, char *argv[])
  		// FIXME: this recovery doesn't work, just delete bad config and bail out
  		// SysMessage("could not load plugins, retrying with defaults\n");
@@ -115,7 +124,7 @@ diff -uprN a/frontend/main.h b/frontend/main.h
  
 diff -uprN a/frontend/menu.c b/frontend/menu.c
 --- a/frontend/menu.c	2025-05-16 12:53:52.644207565 +0800
-+++ b/frontend/menu.c	2025-05-16 13:08:51.687682484 +0800
++++ b/frontend/menu.c	2025-05-16 13:23:41.839900722 +0800
 @@ -498,9 +498,9 @@ static char *get_cd_label(void)
  static void make_cfg_fname(char *buf, size_t size, int is_game)
  {
@@ -128,6 +137,15 @@ diff -uprN a/frontend/menu.c b/frontend/menu.c
  }
  
  static void keys_write_all(FILE *f);
+@@ -566,7 +566,7 @@ static int menu_do_last_cd_img(int is_ge
+ 	FILE *f;
+ 	int i, ret = -1;
+ 
+-	snprintf(path, sizeof(path), "." PCSX_DOT_DIR "lastcdimg.txt");
++	snprintf(path, sizeof(path), PCSX_DOT_DIR "lastcdimg.txt");
+ 	f = fopen(path, is_get ? "r" : "w");
+ 	if (f == NULL) {
+ 		ret = -1;
 diff -uprN a/frontend/plat_suniv.c b/frontend/plat_suniv.c
 --- a/frontend/plat_suniv.c	2025-05-16 12:53:52.648207402 +0800
 +++ b/frontend/plat_suniv.c	2025-05-16 09:33:15.813632445 +0800
