@@ -1,3 +1,24 @@
+diff -uprN c/Makefile d/Makefile
+--- c/Makefile	2025-05-16 10:16:31.420353617 +0800
++++ d/Makefile	2025-05-16 10:16:00.241621787 +0800
+@@ -268,8 +268,8 @@ OBJS += frontend/plat_suniv.o
+ frontend/main.o frontend/menu.o: CFLAGS += -include frontend/320240/ui_miyoo.h
+ USE_PLUGIN_LIB = 1
+ USE_FRONTEND = 1
+-CFLAGS += $(shell /opt/miyoo/arm-miyoo-linux-musleabi/sysroot/usr/bin/sdl-config --cflags) -DMIYOO
+-LDFLAGS += $(shell /opt/miyoo/arm-miyoo-linux-musleabi/sysroot/usr/bin/sdl-config --libs)
++CFLAGS += $(shell /opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags) -DMIYOO
++LDFLAGS += $(shell /opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs)
+ endif
+ ifeq "$(PLATFORM)" "maemo"
+ OBJS += maemo/hildon.o maemo/main.o maemo/maemo_xkb.o frontend/pl_gun_ts.o
+@@ -461,4 +461,4 @@ rel: pcsx $(PLUGINS) \
+ 	mkdir out/pcsx_rearmed/lib/
+ 	mkdir out/pcsx_rearmed/bios/
+ 	cd out && zip -9 -r ../pcsx_rearmed_$(VER)_miyoo.zip *
+-endif
+\ No newline at end of file
++endif
 diff -uprN c/configure d/configure
 --- c/configure	2025-05-16 09:52:12.799622305 +0800
 +++ d/configure	2025-05-16 09:39:11.487324503 +0800
