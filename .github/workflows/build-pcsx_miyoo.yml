@@ -58,7 +58,7 @@ jobs:
       id: compile
       run: |
         cd $PKG_NAME
-        ./configure --platform=miyoo --gpu=unai --disable-neon
+        ./configure --platform=miyoo --gpu=unai_old --disable-neon
         echo -e "$(nproc) thread compile"
         make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
