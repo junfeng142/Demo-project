@@ -21,7 +21,7 @@ diff -uprN c/Makefile d/Makefile
 +endif
 diff -uprN c/configure d/configure
 --- c/configure	2025-05-16 09:52:12.799622305 +0800
-+++ d/configure	2025-05-16 09:39:11.487324503 +0800
++++ d/configure	2025-05-16 12:06:14.544543936 +0800
 @@ -66,27 +66,14 @@ optimize_cortexa8="no"
  optimize_arm926ej="no"
  
@@ -52,7 +52,7 @@ diff -uprN c/configure d/configure
 -	SYSROOT="$(${CC} --print-sysroot)"
 -	[ "x${SDL_CONFIG}" = "x" ] && SDL_CONFIG="${SYSROOT}/usr/bin/sdl-config"
 -fi
-+#CFLAGS="-fno-PIC -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -mvectorize-with-neon-quad -D__ARM_NEON__ -mfloat-abi=hard -ffast-math -funsafe-math-optimizations -ggdb -O3"
++CFLAGS="-Os -march=armv7-a "
 +SDL_CONFIG=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config
  
  fail()
