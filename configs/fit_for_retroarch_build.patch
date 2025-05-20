@@ -1,1 +1,162 @@
-
+diff -uprN a/Makefile.miyoo b/Makefile.miyoo
+--- a/Makefile.miyoo	2025-05-20 15:27:21.343876285 +0800
++++ b/Makefile.miyoo	2025-05-20 15:36:48.232429909 +0800
+@@ -3,7 +3,7 @@
+ #########################
+ 
+ # Default toolchain directory
+-TOOLCHAIN_DIR=/opt/miyoo
++TOOLCHAIN_DIR=/opt/FunKey-sdk-2.3.0
+ 
+ # All toolchain-related variables may be
+ # overridden via the command line
+@@ -11,26 +11,26 @@ TOOLCHAIN_DIR=/opt/miyoo
+ ifdef GCW0_CC
+ CC                    = $(GCW0_CC)
+ else
+-CC                    = $(TOOLCHAIN_DIR)/usr/bin/arm-linux-gcc
++CC                    = $(TOOLCHAIN_DIR)/usr/bin/arm-funkey-linux-gnueabihf-gcc
+ endif
+ 
+ ifdef GCW0_CXX
+ CXX                   = $(GCW0_CXX)
+ else
+-CXX                   = $(TOOLCHAIN_DIR)/usr/bin/arm-linux-g++
++CXX                   = $(TOOLCHAIN_DIR)/usr/bin/arm-funkey-linux-gnueabihf-g++
+ endif
+ 
+ ifdef GCW0_STRIP
+ STRIP                 = $(GCW0_STRIP)
+ else
+-STRIP                 = $(TOOLCHAIN_DIR)/usr/bin/arm-linux-strip
++STRIP                 = $(TOOLCHAIN_DIR)/usr/bin/arm-funkey-linux-gnueabihf-strip
+ endif
+ 
+-GCW0_SDL_CONFIG      ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/bin/sdl-config
+-GCW0_FREETYPE_CONFIG ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/bin/freetype-config
++GCW0_SDL_CONFIG      ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config
++GCW0_FREETYPE_CONFIG ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/bin/freetype-config
+ 
+-GCW0_INC_DIR         ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/include
+-GCW0_LIB_DIR         ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/lib
++GCW0_INC_DIR         ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/include
++GCW0_LIB_DIR         ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/lib
+ 
+ #########################
+ #########################
+@@ -118,7 +118,7 @@ TARGET = retroarch
+ 
+ OBJ :=
+ LINK := $(CXX)
+-DEF_FLAGS := -march=armv5te -mtune=arm926ej-s -fomit-frame-pointer
++DEF_FLAGS := -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -ffast-math -fomit-frame-pointer
+ DEF_FLAGS += -ffunction-sections -fdata-sections
+ DEF_FLAGS += -I. -Ideps -Ideps/stb -DMIYOO=1 -DDINGUX -MMD
+ DEF_FLAGS += -Wall -Wno-unused-variable -flto
+diff -uprN a/dingux/dingux_utils.c b/dingux/dingux_utils.c
+--- a/dingux/dingux_utils.c	2025-05-20 15:31:09.194452582 +0800
++++ b/dingux/dingux_utils.c	2025-05-20 15:38:54.851192920 +0800
+@@ -51,7 +51,7 @@
+ #define DINGUX_VIDEO_REFRESHRATE_ENVAR    "SDL_VIDEO_REFRESHRATE"
+ 
+ /* Miyoo defines */
+-#define MIYOO_BATTERY_VOLTAGE_NOW_FILE    "/sys/class/power_supply/miyoo-battery/voltage_now"
++#define MIYOO_BATTERY_VOLTAGE_NOW_FILE    "/sys/class/power_supply/axp20x-battery/capacity"
+ 
+ /* RetroFW */
+ #define RETROFW_BATTERY_VOLTAGE_NOW_FILE "/proc/jz/battery"
+@@ -368,31 +368,8 @@ int dingux_get_battery_level(void)
+    int voltage_now = dingux_read_battery_sys_file(MIYOO_BATTERY_VOLTAGE_NOW_FILE);
+    if (voltage_now < 0)
+       return -1;     /* voltage_now not available */
+-   if (voltage_now > 4300)
+-      return 100;    /* 4320 */
+-   if (voltage_now > 4200)
+-      return 90;     /* 4230 */
+-   if (voltage_now > 4100)
+-      return 80;     /* 4140 */
+-   if (voltage_now > 4000)
+-      return 70;     /* 4050 */
+-   if (voltage_now > 3900)
+-      return 60;     /* 3960 */
+-   if (voltage_now > 3800)
+-      return 50;     /* 3870 */
+-   if (voltage_now > 3700)
+-      return 40;     /* 3780 */
+-   if (voltage_now > 3600)
+-      return 30;     /* 3690 */
+-   if (voltage_now > 3550)
+-      return 20;     /* 3600 */
+-   if (voltage_now > 3500)
+-      return 10;     /* 3510 */
+-   if (voltage_now > 3400)
+-      return 5;      /* 3420 */
+-   if (voltage_now > 3300)
+-      return 1;      /* 3330 */
+-   return 0;         /* 3240 */
++   else
++      return voltage_now;
+ #else
+    return dingux_read_battery_sys_file(DINGUX_BATTERY_CAPACITY_FILE);
+ #endif
+diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl_dingux_joypad.c
+--- a/input/drivers_joypad/sdl_dingux_joypad.c	2025-05-20 15:30:34.211899461 +0800
++++ b/input/drivers_joypad/sdl_dingux_joypad.c	2025-05-20 15:39:04.946775359 +0800
+@@ -88,22 +88,22 @@
+  * - R3:     SDLK_RSHIFT
+  */
+ #if defined(MIYOO)
+-#define SDL_DINGUX_SDLK_X      SDLK_LSHIFT
+-#define SDL_DINGUX_SDLK_A      SDLK_LALT
+-#define SDL_DINGUX_SDLK_B      SDLK_LCTRL
+-#define SDL_DINGUX_SDLK_Y      SDLK_SPACE
++#define SDL_DINGUX_SDLK_X      SDLK_x
++#define SDL_DINGUX_SDLK_A      SDLK_a
++#define SDL_DINGUX_SDLK_B      SDLK_b
++#define SDL_DINGUX_SDLK_Y      SDLK_y
+ #else
+-#define SDL_DINGUX_SDLK_X      SDLK_SPACE
+-#define SDL_DINGUX_SDLK_A      SDLK_LCTRL
+-#define SDL_DINGUX_SDLK_B      SDLK_LALT
+-#define SDL_DINGUX_SDLK_Y      SDLK_LSHIFT
++#define SDL_DINGUX_SDLK_X      SDLK_x
++#define SDL_DINGUX_SDLK_A      SDLK_a
++#define SDL_DINGUX_SDLK_B      SDLK_b
++#define SDL_DINGUX_SDLK_Y      SDLK_y
+ #endif
+-#define SDL_DINGUX_SDLK_L      SDLK_TAB
+-#define SDL_DINGUX_SDLK_R      SDLK_BACKSPACE
++#define SDL_DINGUX_SDLK_L      SDLK_m
++#define SDL_DINGUX_SDLK_R      SDLK_n
+ #define SDL_DINGUX_SDLK_L2     SDLK_PAGEUP
+ #define SDL_DINGUX_SDLK_R2     SDLK_PAGEDOWN
+-#define SDL_DINGUX_SDLK_SELECT SDLK_ESCAPE
+-#define SDL_DINGUX_SDLK_START  SDLK_RETURN
++#define SDL_DINGUX_SDLK_SELECT SDLK_k
++#define SDL_DINGUX_SDLK_START  SDLK_s
+ #if defined(MIYOO)
+ #define SDL_DINGUX_SDLK_L3     SDLK_RALT
+ #define SDL_DINGUX_SDLK_R3     SDLK_RSHIFT
+@@ -111,16 +111,16 @@
+ #define SDL_DINGUX_SDLK_L3     SDLK_KP_DIVIDE
+ #define SDL_DINGUX_SDLK_R3     SDLK_KP_PERIOD
+ #endif
+-#define SDL_DINGUX_SDLK_UP     SDLK_UP
+-#define SDL_DINGUX_SDLK_RIGHT  SDLK_RIGHT
+-#define SDL_DINGUX_SDLK_DOWN   SDLK_DOWN
+-#define SDL_DINGUX_SDLK_LEFT   SDLK_LEFT
++#define SDL_DINGUX_SDLK_UP     SDLK_u
++#define SDL_DINGUX_SDLK_RIGHT  SDLK_r
++#define SDL_DINGUX_SDLK_DOWN   SDLK_d
++#define SDL_DINGUX_SDLK_LEFT   SDLK_l
+ #if defined(RETROFW)
+ #define SDL_DINGUX_SDLK_MENU   SDLK_END
+ #elif defined(MIYOO)
+-#define SDL_DINGUX_SDLK_MENU   SDLK_RCTRL
++#define SDL_DINGUX_SDLK_MENU   SDLK_q
+ #else
+-#define SDL_DINGUX_SDLK_MENU   SDLK_HOME
++#define SDL_DINGUX_SDLK_MENU   SDLK_q
+ #endif
+ 
+ #if defined(HAVE_LIBSHAKE)
