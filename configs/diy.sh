@@ -22,6 +22,9 @@ mkdir -p _opk
 # gambatte build
 [ -d gambatte_sdl ] && patch -p1 < fit_for_gambatte_build.patch
 
+# gambatte build
+[ -f retroarch.c ] && patch -p1 < fit_for_retroarch_build.patch
+
 # libsdl2 build
 [ -d SDL2 ] && patch -p1 < fit_for_sdl2_build.patch
 
