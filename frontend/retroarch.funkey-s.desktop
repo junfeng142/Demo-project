@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=RETRO
+Name[ch]=RETRO
+Comment=Frontend for the libretro API
+Comment[ch]=全能模拟器前端
+Icon=retroarch
+Exec=retroarch
+Categories=games
