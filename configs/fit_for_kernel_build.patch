@@ -5621,7 +5621,7 @@ diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789
 +
 +static void v3s_clock_init(struct myfb_par *par)
 +{
-+    writel(0x91001f04, iomm.ccm + PLL_VIDEO_CTRL_REG);
++    writel(0x91001f05, iomm.ccm + PLL_VIDEO_CTRL_REG);
 +    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
 +    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
 +
