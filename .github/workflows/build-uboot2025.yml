@@ -39,7 +39,7 @@ jobs:
       run: |
         df -hT $PWD
         wget https://github.com/u-boot/u-boot/archive/refs/tags/v2025.04.tar.gz
-        cd && tar xvf v2025.04.tar.gz
+        cd && tar xvf u-boot-v2025.04.tar.gz
         mv u-boot-v2025.04 $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
