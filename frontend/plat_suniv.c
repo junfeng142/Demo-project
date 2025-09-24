@@ -43,7 +43,7 @@
 
 //#define USE_DEBE              1
 #define FB_DEBE_SIZE          4096
-#define FB_VRAM_SIZE          (320*240*4*2)
+#define FB_VRAM_SIZE          (320*240*2)
 
 #define MIYOO_VIR_SET_MODE    _IOWR(0x100, 0, unsigned long)
 #define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
