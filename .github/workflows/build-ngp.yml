@@ -5,7 +5,7 @@ on:
 
 env:
   REPO_URL: https://github.com/Apaczer/race-od.git
-  REPO_BRANCH: v3
+  REPO_BRANCH: miyoo
   PKG_NAME: ngp
   BIN_DIR: /
   CONFIG_FILE: configs/ngp.config
