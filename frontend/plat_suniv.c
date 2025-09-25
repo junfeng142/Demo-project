@@ -43,7 +43,7 @@
 
 //#define USE_DEBE              1
 #define FB_DEBE_SIZE          4096
-#define FB_VRAM_SIZE          (320*240*2*2)
+#define FB_VRAM_SIZE          (320*240*2)
 
 #define MIYOO_VIR_SET_MODE    _IOWR(0x100, 0, unsigned long)
 #define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
@@ -756,7 +756,7 @@ void plat_init(void)
 
 	printf("framebuffer: \"%s\" @ %08lx\n", fbfix.id, fbfix.smem_start);
 	fb_paddrs[0] = fbfix.smem_start;
-	fb_paddrs[1] = fb_paddrs[0] + 320*240*2;
+	fb_paddrs[1] = fb_paddrs[0];
 
 	if (fb_vaddrs[0] == NULL) {
 		fb_vaddrs[0] = mmap(0, FB_VRAM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, memdev, fb_paddrs[0]);
@@ -768,7 +768,7 @@ void plat_init(void)
 	}
 	printf("buffer mapped @%p\n", fb_vaddrs[0]);
 
-	fb_vaddrs[1] = (char*)fb_vaddrs[0] + 320*240*2;
+	fb_vaddrs[1] = (char*)fb_vaddrs[0];
 	memset(fb_vaddrs[0], 0, FB_VRAM_SIZE);
 
 	g_menuscreen_w = g_menuscreen_pp = 320;
