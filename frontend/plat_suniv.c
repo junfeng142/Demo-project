@@ -43,7 +43,7 @@
 
 //#define USE_DEBE              1
 #define FB_DEBE_SIZE          4096
-#define FB_VRAM_SIZE          (320*240*2)
+#define FB_VRAM_SIZE          (320*240*2*2)
 
 #define MIYOO_VIR_SET_MODE    _IOWR(0x100, 0, unsigned long)
 #define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
@@ -64,8 +64,8 @@ static uint8_t *debe = NULL;
 static uint32_t *debe_ctrl = NULL;
 static uint32_t *debe_buff = NULL;
 #endif
-static void *fb_vaddrs;
-static unsigned int fb_paddrs;
+static void *fb_vaddrs[2];
+static unsigned int fb_paddrs[2];
 
 static unsigned short *psx_vram;
 static int psx_step, psx_width, psx_height, psx_bpp=16;
@@ -157,7 +157,7 @@ static void *fb_flip(void)
     flip^=1;
     SDL_Flip(screen);
   }
-	return fb_vaddrs;
+	return fb_vaddrs[flip];
 }
 
 void plat_video_menu_enter(int is_rom_loaded)
@@ -755,19 +755,21 @@ void plat_init(void)
 	}
 
 	printf("framebuffer: \"%s\" @ %08lx\n", fbfix.id, fbfix.smem_start);
-	fb_paddrs = fbfix.smem_start;
+	fb_paddrs[0] = fbfix.smem_start;
+	fb_paddrs[1] = fb_paddrs[0] + 320*240*2;
 
-	if (fb_vaddrs == NULL) {
-		fb_vaddrs = mmap(0, FB_VRAM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, memdev, fb_paddrs);
-		if (fb_vaddrs == MAP_FAILED) {
+	if (fb_vaddrs[0] == NULL) {
+		fb_vaddrs[0] = mmap(0, FB_VRAM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, memdev, fb_paddrs[0]);
+		if (fb_vaddrs[0] == MAP_FAILED) {
 			printf("%s, failed to do mmap(fb_vaddrs)\n", __func__);
 			exit(-1);
 		}
-		memset(fb_vaddrs, 0, FB_VRAM_SIZE);
+		memset(fb_vaddrs[0], 0, FB_VRAM_SIZE);
 	}
-	printf("buffer mapped @%p\n", fb_vaddrs);
+	printf("buffer mapped @%p\n", fb_vaddrs[0]);
 
-	memset(fb_vaddrs, 0, FB_VRAM_SIZE);
+	fb_vaddrs[1] = (char*)fb_vaddrs[0] + 320*240*2;
+	memset(fb_vaddrs[0], 0, FB_VRAM_SIZE);
 
 	g_menuscreen_w = g_menuscreen_pp = 320;
 	g_menuscreen_h = 240;
@@ -810,8 +812,8 @@ void plat_pre_finish(void)
 void plat_finish(void)
 {
   SDL_Quit();
-	memset(fb_vaddrs, 0, FB_VRAM_SIZE);
-	munmap(fb_vaddrs, FB_VRAM_SIZE);
+	memset(fb_vaddrs[0], 0, FB_VRAM_SIZE);
+	munmap(fb_vaddrs[0], FB_VRAM_SIZE);
 	close(fbdev);
   close(memdev);
 }
