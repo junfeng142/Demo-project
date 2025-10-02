@@ -3965,7 +3965,11 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 15));
 +    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 0));//disable automode
 +  
-+    writel((par->vram_phys + par->mode.xres * par->yoffset * (par->bpp / 8)), iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++    if (par->yoffset == 0) {
++        writel(par->vram_phys, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++    } else if (par->yoffset == par->mode.yres) {
++        writel((par->vram_phys + par->mode.xres * par->yoffset * (par->bpp / 8)), iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);    
++    }
 +    writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
 +    
 +    v3s_clrbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 0));//enable automode
@@ -4788,7 +4792,12 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    struct myfb_par *par = arg;
 +    
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
-+    v3s_de_set_address(par, par->vram_phys + par->mode.xres * par->yoffset * (par->bpp / 8));
++
++    if (par->yoffset == 0) {
++        v3s_de_set_address(par, par->vram_phys);
++    } else if (par->yoffset == par->mode.yres) {
++        v3s_de_set_address(par, par->vram_phys + par->mode.xres * par->yoffset * (par->bpp / 8));
++    }
 +    v3s_de_enable(par);
 +    
 +    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
@@ -5710,7 +5719,12 @@ diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789
 +    struct myfb_par *par = arg;
 +    
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
-+    writel(par->vram_phys + par->mode.xres * par->yoffset * (par->bpp / 8), iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++
++    if (par->yoffset == 0) {
++        writel(par->vram_phys, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++    } else if (par->yoffset == par->mode.yres) {
++        writel(par->vram_phys + par->mode.xres * par->mode.yres * (par->bpp / 8), iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++    }
 +    writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
 +    
 +    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
