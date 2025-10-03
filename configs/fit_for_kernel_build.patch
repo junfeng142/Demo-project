@@ -682,6 +682,7 @@ diff -uprN a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
 +	select FB_SYS_FILLRECT
 +	select FB_SYS_COPYAREA
 +	select FB_SYS_IMAGEBLIT
++	select FB_DEFERRED_IO
 +	help
 +	  Framebuffer driver for V3S_ST7789V2 SLCD panel.
 +
