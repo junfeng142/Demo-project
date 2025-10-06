@@ -670,8 +670,8 @@ diff -uprN a/build.sh b/build.sh
 \ No newline at end of file
 diff -uprN a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
 --- a/drivers/video/fbdev/Kconfig	2025-04-28 11:08:15.000000000 +0800
-+++ b/drivers/video/fbdev/Kconfig	2025-10-01 20:27:22.626482336 +0800
-@@ -2496,3 +2496,22 @@ config FB_SM712
++++ b/drivers/video/fbdev/Kconfig	2025-10-03 08:36:57.776627342 +0800
+@@ -2496,3 +2496,23 @@ config FB_SM712
  	  This driver is also available as a module. The module will be
  	  called sm712fb. If you want to compile it as a module, say M
  	  here and read <file:Documentation/kbuild/modules.txt>.
@@ -3605,7 +3605,7 @@ diff -uprN a/drivers/video/fbdev/fb_text.h b/drivers/video/fbdev/fb_text.h
 +#endif //__LINUX_FBTFT_TEXT_H
 diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 --- a/drivers/video/fbdev/v3s_gc9306.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_gc9306.c	2025-10-02 21:28:30.298463713 +0800
++++ b/drivers/video/fbdev/v3s_gc9306.c	2025-10-06 10:45:45.183608321 +0800
 @@ -0,0 +1,785 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
@@ -3966,6 +3966,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 15));
 +    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 0));//disable automode
 +  
++    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size, DMA_TO_DEVICE);
++  
 +    if (par->yoffset == 0) {
 +        writel(par->vram_phys, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
 +    } else if (par->yoffset == par->mode.yres) {
@@ -4160,8 +4162,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +    info->var.xoffset = var->xoffset;
 +    info->var.yoffset = var->yoffset;
 +    par->yoffset = var->yoffset;
-+    
-+    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size, DMA_TO_DEVICE);
 +
 +    return 0;
 +}
@@ -4394,8 +4394,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +MODULE_LICENSE("GPL");
 diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 --- a/drivers/video/fbdev/v3s_gc9307.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_gc9307.c	2025-10-02 21:27:54.178463624 +0800
-@@ -0,0 +1,851 @@
++++ b/drivers/video/fbdev/v3s_gc9307.c	2025-10-06 10:44:46.763608868 +0800
+@@ -0,0 +1,850 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
 +#include <linux/cdev.h>
@@ -4792,17 +4792,18 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +static irqreturn_t lcdc_irq_handler(int irq, void *arg)
 +{
 +    struct myfb_par *par = arg;
-+    
++
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
++    
++    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size, DMA_TO_DEVICE);
 +    
 +    if (par->yoffset == 0) {
 +        v3s_de_set_address(par, par->vram_phys);
 +    } else if (par->yoffset == par->mode.yres) {
-+        v3s_de_set_address(par, par->vram_phys + par->mode.xres * par->mode.yres * (par->bpp / 8));
++        v3s_de_set_address(par, par->vram_phys + par->mode.xres * par->yoffset * (par->bpp / 8));
 +    }
 +    
 +    v3s_de_enable(par);
-+    
 +    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
 +    
 +    par->vsync_count += 1;
@@ -5015,8 +5016,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    info->var.xoffset = var->xoffset;
 +    info->var.yoffset = var->yoffset;
 +    par->yoffset = var->yoffset;
-+    
-+    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size, DMA_TO_DEVICE);
 +	
 +    return 0;
 +}
@@ -5065,7 +5064,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    fb_videomode_to_var(&myfb_var, mode);
 +
 +    mypar->vram_size = (mode->xres * mode->yres * (mypar->bpp / 8) * 2);
-+    mypar->vram_virt = dma_alloc_wc(NULL, mypar->vram_size, (resource_size_t *)&mypar->vram_phys, GFP_KERNEL | GFP_DMA);
++    mypar->vram_virt = dma_alloc_coherent(&device->dev, mypar->vram_size, (resource_size_t *)&mypar->vram_phys, GFP_KERNEL | GFP_DMA);
 +    if(!mypar->vram_virt) {
 +        return -EINVAL;
 +    }
@@ -5128,7 +5127,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +        unregister_framebuffer(info);
 +        fb_deferred_io_cleanup(info);
 +        fb_dealloc_cmap(&info->cmap);
-+        dma_free_wc(NULL, par->vram_size, par->vram_virt, par->vram_phys);
++        dma_free_coherent(&dev->dev, par->vram_size, par->vram_virt, par->vram_phys);
 +        pm_runtime_put_sync(&dev->dev);
 +        pm_runtime_disable(&dev->dev);
 +        device_remove_file(info->dev, &notification_device_attr);
@@ -5358,7 +5357,7 @@ diff -uprN a/drivers/video/fbdev/v3s_i80.h b/drivers/video/fbdev/v3s_i80.h
 \ No newline at end of file
 diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789v2.c
 --- a/drivers/video/fbdev/v3s_st7789v2.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_st7789v2.c	2025-10-02 21:26:51.008463470 +0800
++++ b/drivers/video/fbdev/v3s_st7789v2.c	2025-10-06 10:46:09.193608096 +0800
 @@ -0,0 +1,831 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
@@ -5723,6 +5722,8 @@ diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789
 +    
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
 +    
++    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size, DMA_TO_DEVICE);
++    
 +    if (par->yoffset == 0) {
 +        writel(par->vram_phys, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
 +    } else if (par->yoffset == par->mode.yres) {
@@ -5957,8 +5958,6 @@ diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789
 +        info->var.yoffset = var->yoffset;
 +        par->yoffset = var->yoffset;
 +    }
-+    
-+    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size, DMA_TO_DEVICE);
 +    
 +    return 0;
 +}
