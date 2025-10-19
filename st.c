@@ -19,6 +19,7 @@
 #include <sys/wait.h>
 #include <time.h>
 #include <unistd.h>
+#include <linux/fb.h>
 
 #include <SDL/SDL.h>
 #include <SDL/SDL_thread.h>
@@ -391,9 +392,12 @@ xflip(void) {
 #else
 void
 xflip(void) {
+    int zero = 0;
+    int fd = open("/dev/fb0", O_RDWR);
 	if(xw.win == NULL) return;
 	SDL_BlitSurface(xw.win, NULL, screen, NULL);
 	draw_keyboard(screen);
+	ioctl(fd, FBIO_WAITFORVSYNC, &zero);
 	SDL_Flip(screen);
 }
 #endif
