@@ -841,8 +841,11 @@ void SysClose() {
 }
 
 int get_state_filename(char *buf, int size, int i) {
-	return get_gameid_filename(buf, size,
-		"." STATES_DIR "%.32s-%.9s.%3.3d", i);
+//	return get_gameid_filename(buf, size, "." STATES_DIR "%.32s-%.9s.%3.3d", i);
+	char *romDataFmt = "%.32s-%.9s.%3.3d";
+	char *save_path_formated = (char*)malloc(strlen(romDataFmt)+strlen(STATES_DIR)+2);
+	sprintf(save_path_formated, "%s/%s", STATES_DIR, romDataFmt);
+	return get_gameid_filename(buf, size, save_path_formated , i);
 }
 
 int emu_check_state(int slot)
