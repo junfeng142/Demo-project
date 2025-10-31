@@ -117,7 +117,7 @@ static void set_default_paths(void)
 	snprintf(Config.PatchesDir, sizeof(Config.PatchesDir), "." PATCHES_DIR);
 	MAKE_PATH(Config.Mcd1, MEMCARD_DIR, "card1.mcd");
 	MAKE_PATH(Config.Mcd2, MEMCARD_DIR, "card2.mcd");
-	strcpy(Config.BiosDir, "bios");
+	strcpy(Config.BiosDir, BIOS_DIR);
 #endif
 
 	strcpy(Config.PluginsDir, "plugins");
