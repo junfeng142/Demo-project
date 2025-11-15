@@ -1,3 +1,60 @@
+diff -uprN a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts
+--- a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2025-11-15 14:14:05.676832039 +0800
++++ b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2025-11-15 14:05:33.903606104 +0800
+@@ -45,7 +45,7 @@
+ #include <dt-bindings/input/input.h>
+ 
+ / {
+-	model = "Lichee Pi Zero with Dock";
++	model = "FunKey-S with V3S";
+ 	compatible = "licheepi,licheepi-zero-dock", "licheepi,licheepi-zero",
+ 		     "allwinner,sun8i-v3s";
+ 
+@@ -64,36 +64,15 @@
+ 	status = "okay";
+ };
+ 
+-&lradc {
+-	vref-supply = <&reg_vcc3v0>;
++&spi0 {
+ 	status = "okay";
+-
+-	button-200 {
+-		label = "Volume Up";
+-		linux,code = <KEY_VOLUMEUP>;
+-		channel = <0>;
+-		voltage = <200000>;
+-	};
+-
+-	button-400 {
+-		label = "Volume Down";
+-		linux,code = <KEY_VOLUMEDOWN>;
+-		channel = <0>;
+-		voltage = <400000>;
+-	};
+-
+-	button-600 {
+-		label = "Select";
+-		linux,code = <KEY_SELECT>;
+-		channel = <0>;
+-		voltage = <600000>;
+-	};
+-
+-	button-800 {
+-		label = "Start";
+-		linux,code = <KEY_OK>;
+-		channel = <0>;
+-		voltage = <800000>;
++      
++      flash@0 {
++		#address-cells = <1>;
++		#size-cells = <1>;
++		compatible = "gigadevice,gd25q08", "jedec,spi-nor";
++		reg = <0>;
++		spi-max-frequency = <40000000>;
+ 	};
+ };
+ 
 diff -uprN a/build.sh b/build.sh
 --- a/build.sh	1970-01-01 08:00:00.000000000 +0800
 +++ b/build.sh	2025-06-30 10:15:52.661204397 +0800
@@ -11,7 +68,7 @@ diff -uprN a/build.sh b/build.sh
 +#make modules_install INSTALL_MOD_PATH="bin"
 \ No newline at end of file
 diff -uprN a/drivers/mtd/spi/spi-nor-ids.c b/drivers/mtd/spi/spi-nor-ids.c
---- a/drivers/mtd/spi/spi-nor-ids.c	2025-06-30 10:17:30.665184707 +0800
+--- a/drivers/mtd/spi/spi-nor-ids.c	2025-06-30 10:53:37.975596203 +0800
 +++ b/drivers/mtd/spi/spi-nor-ids.c	2025-06-30 10:17:50.968351559 +0800
 @@ -89,6 +89,11 @@ const struct flash_info spi_nor_ids[] =
  #ifdef CONFIG_SPI_FLASH_GIGADEVICE	/* GIGADEVICE */
