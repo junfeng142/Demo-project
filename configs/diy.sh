@@ -13,6 +13,9 @@
 # create folder
 mkdir -p _opk
 
+# st-sdl build
+[ -f st.c ] && patch -p1 < fit_for_st-sdl_build.patch
+
 # dosbox build
 [ -d dosbox ] && patch -p1 < fit_for_dosbox_build.patch
 
