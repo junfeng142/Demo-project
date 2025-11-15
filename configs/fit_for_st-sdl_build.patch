@@ -1,0 +1,134 @@
+diff -uprN a/config.mk b/config.mk
+--- a/config.mk	2025-11-15 13:40:10.081763250 +0800
++++ b/config.mk	2025-11-15 13:39:29.711762833 +0800
+@@ -4,17 +4,23 @@ VERSION = 0.3
+ # Customize below to fit your system
+ 
+ # paths
+-PREFIX = /usr/local
+-MANPREFIX = ${PREFIX}/share/man
++CHAINPREFIX= /opt/FunKey-sdk-2.3.0
++CROSS_COMPILE=$(CHAINPREFIX)/bin/arm-funkey-linux-gnueabihf-
+ 
+ # includes and libs
+-INCS = -I. -I/usr/include
+-LIBS = -L/usr/lib -lc -lutil
++INCS = -I. -I${SYSROOT}/usr/include/SDL -D_GNU_SOURCE=1 -D_REENTRANT
++LIBS = -lc -L${SYSROOT}/usr/lib -lSDL -lpthread -Wl,-Bstatic,-lutil,-Bdynamic
+ 
+ # flags
+-CPPFLAGS = -DVERSION=\"${VERSION}\"
+-CFLAGS += -g -std=c99 -pedantic -Wall ${INCS} ${CPPFLAGS} `sdl-config --cflags` -fPIC
+-LDFLAGS += -g ${LIBS} `sdl-config --libs`
++CPPFLAGS = -DVERSION=\"${VERSION}\" -fPIC
++CFLAGS = -Os -marm -mtune=cortex-a7 -march=armv7ve+simd -mfpu=neon-vfpv4 -mfloat-abi=hard
++CFLAGS += ${INCS} ${CPPFLAGS} -Wall -ffunction-sections -fdata-sections -std=gnu99 
++LDFLAGS += ${LIBS} -Wl,--gc-sections -frerun-loop-opt -funroll-loops -ffast-math -fexpensive-optimizations -fomit-frame-pointer -fno-strict-aliasing
+ 
+ # compiler and linker
+-CC ?= cc
++CC = $(CROSS_COMPILE)gcc
++CXX = $(CROSS_COMPILE)g++
++STRIP = $(CROSS_COMPILE)strip
++SYSROOT     := $(shell $(CC) --print-sysroot)
++SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
++SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
+diff -uprN a/keyboard.c b/keyboard.c
+--- a/keyboard.c	2025-11-15 13:40:10.131763250 +0800
++++ b/keyboard.c	2025-11-15 13:39:29.711762833 +0800
+@@ -46,20 +46,20 @@
+ 
+ #else
+ 
+-#define KEY_UP SDLK_UP
+-#define KEY_DOWN SDLK_DOWN
+-#define KEY_LEFT SDLK_LEFT
+-#define KEY_RIGHT SDLK_RIGHT
+-#define KEY_ENTER SDLK_RETURN
+-#define KEY_TOGGLE SDLK_LCTRL
+-#define KEY_BACKSPACE SDLK_BACKSPACE
+-#define KEY_SHIFT SDLK_LSHIFT
+-#define KEY_LOCATION SDLK_RSHIFT
+-#define KEY_ACTIVATE SDLK_LALT 
++#define KEY_UP SDLK_u
++#define KEY_DOWN SDLK_d
++#define KEY_LEFT SDLK_l
++#define KEY_RIGHT SDLK_r
++#define KEY_ENTER SDLK_a
++#define KEY_TOGGLE SDLK_x
++#define KEY_BACKSPACE SDLK_b
++#define KEY_SHIFT SDLK_n
++#define KEY_LOCATION SDLK_y
++#define KEY_ACTIVATE SDLK_m 
+ #define KEY_TAB SDLK_TAB
+-#define KEY_RETURN SDLK_SPACE
+-#define KEY_QUIT SDLK_ESCAPE
+-#define KEY_HELP SDLK_h
++#define KEY_RETURN SDLK_s
++#define KEY_QUIT SDLK_q
++#define KEY_HELP SDLK_k
+ #define KEY_ARROW_LEFT	SDLK_KP4
+ #define KEY_ARROW_RIGHT	SDLK_KP6
+ #define KEY_ARROW_DOWN	SDLK_KP2
+@@ -145,21 +145,16 @@ char* help =
+ "  R3: down on CL\n\n"
+ #else
+ "How to use:\n"
+-"  ARROWS: select key from keyboard\n"
+-"  RETURN: press key\n"
+-"  LCTRL: toggle key (useful for shift/ctrl...)\n"
+-"  LSHIFT: shift\n"
+-"  BACKSPACE: backspace\n"
+-"  RSHIFT: change keyboard location (top/bottom)\n"
+-"  LALT: show / hide keyboard\n"
+-"  TAB: autocompletes text\n"
+-"  SPACE: executes written command\n"
+-"  ESCAPE: quit\n"
+-"  H: show help screen\n"
+-"  Numpad 4: left on CL\n"
+-"  Numpad 6: right on CL\n"
+-"  Numpad 8: up on CL\n"
+-"  Numpad 2: down on CL\n\n"
++"  ARROWS:  select key from keyboard\n"
++"  A:       press key\n"
++"  X:       toggle key (useful for shift/ctrl...)\n"
++"  L1:      shift\n"
++"  B:       backspace\n"
++"  Y:       change keyboard location (top/bottom)\n"
++"  R1:      show / hide keyboard\n"
++"  START:   enter\n"
++"  SELECT:  show help\n"
++"  MENU:    quit\n\n"
+ #endif
+ 
+ "Cheatsheet (tutorial at www.shellscript.sh):\n"
+@@ -189,7 +184,7 @@ void draw_keyboard(SDL_Surface* surface)
+ #if defined(MIYOO)
+ 				draw_string(surface, "L1+R1 - shows HELP screen", 80, 233, sel_toggled_color);
+ #else
+-				draw_string(surface, "LSHIFT+BACKSPACE or H - shows HELP screen", 35, 233, sel_toggled_color);
++				draw_string(surface, "SELECT - shows HELP screen", 35, 233, sel_toggled_color);
+ #endif
+ 	} else {
+ 			return;
+diff -uprN a/st.c b/st.c
+--- a/st.c	2025-11-15 13:40:10.081763250 +0800
++++ b/st.c	2025-11-15 13:39:29.711762833 +0800
+@@ -454,12 +454,12 @@ xflip(void) {
+ 		draw_keyboard(screen);
+     }
+ #endif
+-
+-	if(SDL_Flip(screen)) {
++//	if(SDL_Flip(screen)) {
+ 	//if(SDL_Flip(xw.win)) {
+-		fputs("FLIP ERROR\n", stderr);
+-		exit(EXIT_FAILURE);
+-	}
++//		fputs("FLIP ERROR\n", stderr);
++//		exit(EXIT_FAILURE);
++//	}
++    SDL_Flip(screen);
+ #ifdef RS97_SCREEN_480
+     SDL_FreeSurface(buffer);
+ #endif
