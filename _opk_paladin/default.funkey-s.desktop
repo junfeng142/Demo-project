@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Paladin
+Name[ch]=仙剑1
+Comment=Microsoft DOS Intel PC emulator Sword and Fairy1
+Comment[ch]=微软英特尔DOS游戏仙剑奇侠传1
+Icon=icon
+Exec=sdlpal
+Categories=games;

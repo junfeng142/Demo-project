@@ -1,38 +1,48 @@
-# st - simple terminal
-# See LICENSE file for copyright and license details.
 
-ifeq ($(platform),miyoomini)
-	include config_miyoomini.mk
-else
-	include config.mk
-endif
+CC = arm-linux-gnueabihf-gcc
+CXX = arm-linux-gnueabihf-g++
+STRIP = arm-linux-gnueabihf-strip
 
-SRC = st.c keyboard.c font.c
-OBJ = ${SRC:.c=.o}
+DEP_DIR ?=$(shell pwd)/../dependency
 
-all: options st 
 
-options:
-	@echo st build options:
-	@echo "CFLAGS   = ${CFLAGS}"
-	@echo "LDFLAGS  = ${LDFLAGS}"
-	@echo "CC       = ${CC}"
+LIBRARY_INC = $(DEP_DIR)/release/include/cust_inc
+LIBRARY_DIR = $(DEP_DIR)/release/nvr/i2m/common/glibc/8.2.1/cust_libs
 
-config.h:
-	cp -n config.def.h config.h
 
-.c.o:
-	@echo $(CC) $<
-	@${CC} -c ${CFLAGS} $<
+TARGET = sdlpal
+#HOST = arm-linux-
+SOURCES = . ./adplug
+CFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.c))
+CPPFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.cpp))
+OFILES = $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 
-${OBJ}: config.h
 
-st: ${OBJ}
-	@echo $(CC) -o $@
-	@${CC} -o $@ ${OBJ} ${LDFLAGS}
+CFLAGS = -Wall -g -DDINGOO -mtune=arm926ej-s -march=armv5te
+CFLAGS+=-I$(LIBRARY_INC) -I$(LIBRARY_INC)/SDL 
+
+CXXFLAGS = $(CFLAGS)
+
+LDFLAGS += -lm -lz -lstdc++ -lSDL #-lssgfx 
+LDFLAGS += -lmi_common -lmi_sys -lmi_disp -lmi_panel -lmi_gfx -lmi_divp -lmi_ao -lmad
+
+LDFLAGS+= -L$(DEP_DIR)/release/nvr/i2m/common/glibc/8.2.1/mi_libs/dynamic
+LDFLAGS+= -L$(DEP_DIR)/release/nvr/i2m/common/glibc/8.2.1/ex_libs/dynamic
+LDFLAGS+=-L$(LIBRARY_DIR)/dynamic/
+
+$(TARGET): $(OFILES)
+	$(CXX) $(OFILES) -g -o $@ $(LDFLAGS)
+	#$(STRIP) $@
+
+%.o: %.c
+	$(CC) $(CFLAGS) -g -c $< -o $@
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -g -c $< -o $@
 
 clean:
-	@echo cleaning
-	@rm -f st ${OBJ}
+	rm -f $(TARGET) $(OFILES)
 
-.PHONY: all options clean
+
+install:
+	echo do nothing for install
