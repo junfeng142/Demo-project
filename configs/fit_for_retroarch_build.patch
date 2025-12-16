@@ -147,7 +147,7 @@ diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl
  #if defined(MIYOO)
  #define SDL_DINGUX_SDLK_L3     SDLK_RALT
  #define SDL_DINGUX_SDLK_R3     SDLK_RSHIFT
-@@ -111,16 +111,16 @@
+@@ -111,10 +111,10 @@
  #define SDL_DINGUX_SDLK_L3     SDLK_KP_DIVIDE
  #define SDL_DINGUX_SDLK_R3     SDLK_KP_PERIOD
  #endif
