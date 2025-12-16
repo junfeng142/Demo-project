@@ -25,7 +25,7 @@ mkdir -p _opk
 # gambatte build
 [ -d gambatte_sdl ] && patch -p1 < fit_for_gambatte_build.patch
 
-# gambatte build
+# retroarch build
 [ -f retroarch.c ] && patch -p1 < fit_for_retroarch_build.patch
 
 # libsdl2 build
@@ -34,7 +34,7 @@ mkdir -p _opk
 # kernel build
 [ -d kernel ] && patch -p1 < fit_for_kernel_build.patch
 
-# kernel build
+# uboot build
 [ -d include/u-boot ] && patch -p1 < fit_for_uboot_build.patch
 
 # oswan build
