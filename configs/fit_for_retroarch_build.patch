@@ -44,6 +44,15 @@ diff -uprN a/Makefile.miyoo b/Makefile.miyoo
  
  #########################
  #########################
+@@ -70,7 +70,7 @@ HAVE_GLSL = 0
+ HAVE_HID = 0
+ HAVE_IBXM = 1
+ HAVE_IMAGEVIEWER = 0
+-HAVE_LANGEXTRA = 0
++HAVE_LANGEXTRA = 1
+ HAVE_LIBRETRODB = 1
+ HAVE_MENU = 1
+ HAVE_MENU_COMMON = 1
 @@ -118,7 +118,7 @@ TARGET = retroarch
  
  OBJ :=
@@ -126,9 +135,10 @@ diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl
  #endif
 -#define SDL_DINGUX_SDLK_L      SDLK_TAB
 -#define SDL_DINGUX_SDLK_R      SDLK_BACKSPACE
+-#define SDL_DINGUX_SDLK_L2     SDLK_PAGEUP
 +#define SDL_DINGUX_SDLK_L      SDLK_m
 +#define SDL_DINGUX_SDLK_R      SDLK_n
- #define SDL_DINGUX_SDLK_L2     SDLK_PAGEUP
++#define SDL_DINGUX_SDLK_L2     SDLK_q
  #define SDL_DINGUX_SDLK_R2     SDLK_PAGEDOWN
 -#define SDL_DINGUX_SDLK_SELECT SDLK_ESCAPE
 -#define SDL_DINGUX_SDLK_START  SDLK_RETURN
@@ -152,11 +162,3 @@ diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl
  #if defined(RETROFW)
  #define SDL_DINGUX_SDLK_MENU   SDLK_END
  #elif defined(MIYOO)
--#define SDL_DINGUX_SDLK_MENU   SDLK_RCTRL
-+#define SDL_DINGUX_SDLK_MENU   SDLK_q
- #else
--#define SDL_DINGUX_SDLK_MENU   SDLK_HOME
-+#define SDL_DINGUX_SDLK_MENU   SDLK_q
- #endif
- 
- #if defined(HAVE_LIBSHAKE)
