@@ -670,8 +670,8 @@ diff -uprN a/build.sh b/build.sh
 \ No newline at end of file
 diff -uprN a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
 --- a/drivers/video/fbdev/Kconfig	2025-04-28 11:08:15.000000000 +0800
-+++ b/drivers/video/fbdev/Kconfig	2025-12-21 17:53:29.104739316 +0800
-@@ -2496,3 +2496,21 @@ config FB_SM712
++++ b/drivers/video/fbdev/Kconfig	2025-12-21 18:24:46.504763845 +0800
+@@ -2496,3 +2496,22 @@ config FB_SM712
  	  This driver is also available as a module. The module will be
  	  called sm712fb. If you want to compile it as a module, say M
  	  here and read <file:Documentation/kbuild/modules.txt>.
@@ -682,6 +682,7 @@ diff -uprN a/drivers/video/fbdev/Kconfig b/drivers/video/fbdev/Kconfig
 +	select FB_SYS_FILLRECT
 +	select FB_SYS_COPYAREA
 +	select FB_SYS_IMAGEBLIT
++	select FB_DEFERRED_IO
 +	help
 +	  Framebuffer driver for V3S_ST7789V2 SLCD panel.
 +
