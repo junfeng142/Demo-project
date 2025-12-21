@@ -4394,8 +4394,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +MODULE_LICENSE("GPL");
 diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 --- a/drivers/video/fbdev/v3s_gc9307.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_gc9307.c	2025-12-03 08:45:31.516125021 +0800
-@@ -0,0 +1,809 @@
++++ b/drivers/video/fbdev/v3s_gc9307.c	2025-12-21 16:32:56.174676172 +0800
+@@ -0,0 +1,795 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
 +#include <linux/cdev.h>
@@ -4430,6 +4430,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    char *virt_buf;
 +    dma_addr_t next_frame;
 +
++    bool te_vsync;
 +    uint32_t vsync_count;
 +    char notification[401];
 +    unsigned long low_battery;
@@ -4450,10 +4451,9 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +static int major = -1;
 +static struct cdev mycdev;
 +static struct class *myclass = NULL;
-+static struct timer_list mytimer;
++static struct timer_list mytimer,te_vsync_timer;
 +static struct v3s_iomm iomm = {0};
 +static struct myfb_par *mypar = NULL;
-+bool ctrl_sta;
 +
 +static int wait_for_vsync(struct myfb_par *par)
 +{
@@ -4592,7 +4592,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    lcdc_wr(1, 0x20);
 +
 +    lcdc_wr(0, 0xc6);
-+    lcdc_wr(1, 0x08);
++    lcdc_wr(1, 0x0f);
 +
 +    lcdc_wr(0, 0xd0);
 +    lcdc_wr(1, 0xa6);
@@ -4662,7 +4662,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +	}
 +	memset(iomm.de + V3S_DE_MUX_BLD, 0, 256);
 +
-+    writel(0x00000400, iomm.de + V3S_DE_MUX_BLD_FCOLOR_CTL);
++    writel(0x00000404, iomm.de + V3S_DE_MUX_BLD_FCOLOR_CTL);
 +	writel((2 << 8), iomm.de + V3S_DE_MUX_BLD_ROUTE);
 +	writel(0, iomm.de + V3S_DE_MUX_BLD_PREMULTIPLY);
 +	writel(size, iomm.de + V3S_DE_MUX_BLD_OUTSIZE);
@@ -4710,7 +4710,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    writel((7 << 29) | (1 << 26) | (5 << 0), iomm.lcdc + TCON0_CPU_IF_REG);
 +    
 +    writel(((par->mode.xres - 1) << 16) | ((par->mode.yres - 1) << 0), iomm.lcdc + TCON0_BASIC_TIMING_REG0);
-+    writel((20 << 16) | (par->mode.xres - 1), iomm.lcdc + TCON0_CPU_TRI0_REG);//block space | size
++    writel((par->mode.yres << 16) | (par->mode.xres - 1), iomm.lcdc + TCON0_CPU_TRI0_REG);//block space | size
 +    writel((par->mode.yres - 1), iomm.lcdc + TCON0_CPU_TRI1_REG);//block num
 +    writel(((3 << 15) | (par->mode.xres - 1)), iomm.lcdc + TCON0_CPU_TRI2_REG);//start delay3 | Trans Start
 +    writel((2 << 28), iomm.lcdc + TCON0_CPU_TRI3_REG);//TE rising mode
@@ -4755,15 +4755,10 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    v3s_setbits(iomm.ccm + BUS_SOFT_RST_REG1, (1 << 12) | (1 << 4));
 +}
 +
-+static void myfb_deferred_io(struct fb_info *info, struct list_head *pagelist)
++static void te_vsync_timer_callback(unsigned long param)
 +{
-+    struct myfb_par *par = info->par;
-+    
-+	wait_for_vsync(par);
-+	
-+	if (!ctrl_sta) {
-+        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
-+    }
++    mypar->te_vsync = true;
++    mod_timer(&te_vsync_timer, jiffies + HZ/60);
 +}
 +
 +static irqreturn_t lcdc_irq_handler(int irq, void *arg)
@@ -4772,24 +4767,25 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
 +    
-+    /* Notifications */
-+	if (par->notification[0]) {
-+        basic_text_out16_bg((uint16_t *)(par->info->screen_buffer + par->info->var.yoffset * par->info->fix.line_length), par->mode.xres, par->mode.yres, 0, 0, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
-+    }
-+    
-+    /* Low battery icon */
-+	if (par->low_battery) {
-+		draw_low_battery((uint16_t *)(par->info->screen_buffer + par->info->var.yoffset * par->info->fix.line_length), par->mode.xres, par->mode.yres);
-+	}
-+    
 +    if ((par->info->var.yoffset % par->mode.yres) == 0) {
++        /* Notifications */
++        if (par->notification[0]) {
++            basic_text_out16_bg((uint16_t *)(par->vram_virt + par->info->var.yoffset * par->info->fix.line_length), par->mode.xres, par->mode.yres, 0, 0, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
++        }
++        
++        /* Low battery icon */
++        if (par->low_battery) {
++            draw_low_battery((uint16_t *)(par->vram_virt + par->info->var.yoffset * par->info->fix.line_length), par->mode.xres, par->mode.yres);
++        }
++        
 +        dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size, DMA_TO_DEVICE);
-+        memcpy(par->virt_buf, par->info->screen_buffer + par->info->var.yoffset * par->info->fix.line_length, par->vram_size / 2);
-+    	writel(par->next_frame, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++        memcpy(par->virt_buf, par->vram_virt + par->info->var.yoffset * par->info->fix.line_length, par->vram_size / 2);
++        writel(par->next_frame, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
 +        dma_sync_single_for_device(par->dev, par->next_frame, par->vram_size / 2, DMA_TO_DEVICE);
 +	    writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
-+	    if (ctrl_sta) {
++	    if (par->te_vsync) {
 +	        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
++	        par->te_vsync = false;
 +	    }
 +    }
 +    
@@ -4819,7 +4815,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    v3s_clock_init(mypar);
 +    smartlcd_init(mypar);
 +    v3s_enable_irq(mypar);
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
 +}
 +
 +static ssize_t store_notification(struct device *device, struct device_attribute *attr, const char *buf, size_t count)
@@ -4835,7 +4830,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +	/* Clear notif buffer if empty string */
 +	if (!strcmp(buf, "clear")){
 +		par->notification[0] = 0;
-+	} else {
++	}
++	else{
 +		strncpy(par->notification, tmp, 400);
 +	}
 +
@@ -4919,7 +4915,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    info->fix.visual = FB_VISUAL_TRUECOLOR;
 +    info->fix.line_length = (par->mode.xres * par->bpp) / 8;
 +    writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+    ctrl_sta = false;
 +
 +    return 0;
 +}
@@ -4936,8 +4931,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +        case FBIO_SET_DEBE_MODE:
 +            if(arg == 1) {
 +                writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+            } else {
-+                ctrl_sta = true;
++            }
++            else {
 +                writel((1 << 0) | (17 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
 +            }
 +            break;
@@ -4982,7 +4977,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    int ret = 0;
 +    struct fb_info *info = NULL;
 +    struct fb_videomode *mode = NULL;
-+    struct fb_deferred_io *fbdefio = NULL;
 +
 +    mode = devm_kzalloc(&device->dev, sizeof(struct fb_videomode), GFP_KERNEL);
 +    if(mode == NULL) {
@@ -5029,7 +5023,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    info->var.xres =           mode->xres;
 +	info->var.yres =           mode->yres;
 +	info->var.xres_virtual =   info->var.xres;
-+	info->var.yres_virtual =   info->var.yres * 2;
++	info->var.yres_virtual =   info->var.yres * 2; // So that SDL allows SDL_DOUBLEBUF
 +    info->var.grayscale = 0;
 +    info->var.bits_per_pixel = mypar->bpp;
 +
@@ -5041,13 +5035,13 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    info->var.activate = FB_ACTIVATE_FORCE;
 +	info->var.nonstd =         2;
 +
-+    mypar->vsync_count = 0;
-+
 +    fb_set_var(info, &(info->var));
 +    dev_set_drvdata(&device->dev, info);
 +    if(register_framebuffer(info) < 0) {
 +        return -EINVAL;
 +    }
++
++    mypar->vsync_count = 0;
 +
 +    setup_timer(&mytimer, lcd_delay_init, 0);
 +    mod_timer(&mytimer, jiffies + HZ);
@@ -5055,15 +5049,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    device_create_file(info->dev, &notification_device_attr);
 +    device_create_file(info->dev, &low_battery_device_attr);
 +
-+    fbdefio = devm_kzalloc(&device->dev, sizeof(struct fb_deferred_io), GFP_KERNEL);
-+    if(fbdefio == NULL) {
-+        return -ENOMEM;
-+    }
-+    
-+    fbdefio->delay = (HZ / 60),
-+    fbdefio->deferred_io = myfb_deferred_io,
-+    info->fbdefio = fbdefio;
-+    fb_deferred_io_init(info);
++    setup_timer(&te_vsync_timer, te_vsync_timer_callback, 0);
++    mod_timer(&te_vsync_timer, jiffies + HZ/60);
 +
 +    for(ret = 0; ret < of_clk_get_parent_count(device->dev.of_node); ret++) {
 +        clk_prepare_enable(of_clk_get(device->dev.of_node, ret));
@@ -5080,12 +5067,12 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    if(info) {
 +        free_irq(par->lcdc_irq, par);
 +        del_timer(&mytimer);
++        del_timer(&te_vsync_timer);
 +        flush_scheduled_work();
 +        unregister_framebuffer(info);
-+        fb_deferred_io_cleanup(info);
 +        fb_dealloc_cmap(&info->cmap);
 +        dma_free_wc(&dev->dev, par->vram_size, par->vram_virt, par->vram_phys);
-+        dma_free_wc(&dev->dev, par->vram_size / 2, mypar->virt_buf, par->next_frame);
++        dma_free_wc(&dev->dev, par->vram_size / 2, par->virt_buf, par->next_frame);
 +        pm_runtime_put_sync(&dev->dev);
 +        pm_runtime_disable(&dev->dev);
 +        device_remove_file(info->dev, &notification_device_attr);
@@ -5157,7 +5144,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +            if ((bpp != 16)) {
 +                writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
 +            } else {
-+                ctrl_sta = true;
 +                writel((1 << 0) | (17 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
 +            }
 +            break;
