@@ -1,4 +1,4 @@
-name: vba-opk Build
+name: vba-snes9x4d Build
 
 on:
   workflow_dispatch:

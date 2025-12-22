@@ -1,4 +1,4 @@
-name: vba-opk Build
+name: vbemu-opk Build
 
 on:
   workflow_dispatch:
