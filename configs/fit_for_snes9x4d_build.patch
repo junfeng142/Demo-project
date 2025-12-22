@@ -1,0 +1,56 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2025-12-21 20:30:09.164862131 +0800
++++ b/Makefile	2025-12-21 20:34:31.634865560 +0800
+@@ -9,7 +9,7 @@ SPC7110 = 0
+ 
+ include Makefile.common
+ 
+-PREFIX  = arm-linux
++PREFIX  = /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf
+ 
+ CXX	= $(PREFIX)-g++
+ CC	= $(PREFIX)-gcc
+@@ -22,7 +22,7 @@ SDL_LIBS := $(shell $(SYSROOT)/usr/bin/s
+ 
+ LDFLAGS = -lz -lm $(SDL_LIBS) -Wl,--as-needed -Wl,--gc-sections -s
+ 
+-OFLAGS = -Ofast -march=armv5te -mtune=arm926ej-s -marm \
++OFLAGS = -Ofast -march=armv7-a -mfpu=vfp -marm \
+ 	 -flto=4 -fwhole-program -fuse-linker-plugin \
+ 	 -fdata-sections -ffunction-sections \
+ 	 -fno-stack-protector -fomit-frame-pointer \
+diff -uprN a/src/sdlmenu/miyoo.h b/src/sdlmenu/miyoo.h
+--- a/src/sdlmenu/miyoo.h	2025-12-21 20:31:04.374862852 +0800
++++ b/src/sdlmenu/miyoo.h	2025-12-21 20:44:25.704873322 +0800
+@@ -1,18 +1,18 @@
+ #ifndef __MIYOO_h_
+ #define __MIYOO_h_
+ 
+-#define BUTTON_UP 273
+-#define BUTTON_DOWN 274
+-#define BUTTON_RIGHT 275
+-#define BUTTON_LEFT 276
+-#define BUTTON_R 8
+-#define BUTTON_L 9
+-#define BUTTON_A 308
+-#define BUTTON_B 306
+-#define BUTTON_X 304
+-#define BUTTON_Y 32
+-#define BUTTON_SELECT 27
+-#define BUTTON_START 13
+-#define BUTTON_QUIT 305
++#define BUTTON_UP 117
++#define BUTTON_DOWN 100
++#define BUTTON_RIGHT 114
++#define BUTTON_LEFT 108
++#define BUTTON_R 110
++#define BUTTON_L 109
++#define BUTTON_A 97
++#define BUTTON_B 98
++#define BUTTON_X 120
++#define BUTTON_Y 121
++#define BUTTON_SELECT 107
++#define BUTTON_START 115
++#define BUTTON_QUIT 113
+ 
+ #endif // __MIYOO_h_

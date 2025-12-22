@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=VBemu
+Name[ch]=VBemu
+Comment=Virtual Boy emulator
+Comment[ch]=虚拟男孩便携游戏主机
+Icon=vb
+Exec=vb %f
+Categories=emulators
+SelectorDir=/mnt/Virtualboy
+SelectorFilter=vb,VB,vboy,VBOY,bin,BIN

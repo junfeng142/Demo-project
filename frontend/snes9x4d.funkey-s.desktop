@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Snes9x
+Name[ch]=Snes9x
+Comment=Snes9x Emulator emulator
+Comment[ch]=SFC模拟器
+Icon=snes9x4d
+Exec=snes9x4d %f
+Categories=emulators
+SelectorDir=/mnt/SNES
+SelectorFilter=sfc,SFC,smc,SMC,swc,SWC

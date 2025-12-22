@@ -13,6 +13,12 @@
 # create folder
 mkdir -p _opk
 
+# snes9x4d build
+[ -f snes-pad_icon_32.png ] && patch -p1 < fit_for_snes9x4d_build.patch
+
+# vbemu build
+[ -f vb.png ] && patch -p1 < fit_for_vbemu_build.patch
+
 # st-sdl build
 [ -f st.c ] && patch -p1 < fit_for_st-sdl_build.patch
 
