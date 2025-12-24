@@ -4592,7 +4592,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    lcdc_wr(1, 0x20);
 +
 +    lcdc_wr(0, 0xc6);
-+    lcdc_wr(1, 0x0f);
++    lcdc_wr(1, 0x08);
 +
 +    lcdc_wr(0, 0xd0);
 +    lcdc_wr(1, 0xa6);
