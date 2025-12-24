@@ -83,6 +83,6 @@ fi
 # pocketsnes build
 if [ -d "pocketsnes" ]; then
     patch -p1 < fit_for_pocketsnes_build.patch
-    cp dist/backdrop.png _opk/
+    cp pocketsnes/backdrop.png _opk/
 fi
 
