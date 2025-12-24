@@ -5,7 +5,7 @@ on:
 
 env:
   REPO_URL: https://github.com/m45t3r/PocketSNES.git
-  REPO_BRANCH: master
+  REPO_BRANCH: miyoo
   PKG_NAME: pocketsnes
   BIN_DIR: /dist/
   CONFIG_FILE: configs/pocketsnes.config
