@@ -7,7 +7,7 @@ env:
   REPO_URL: https://github.com/m45t3r/PocketSNES.git
   REPO_BRANCH: miyoo
   PKG_NAME: pocketsnes
-  BIN_DIR: /dist/
+  BIN_DIR: /pocketsnes/
   CONFIG_FILE: configs/pocketsnes.config
   DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
@@ -72,7 +72,7 @@ jobs:
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
-        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}${BIN_DIR}${PKG_NAME} -o $PKG_NAME/_opk/${PKG_NAME}
+        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}${BIN_DIR}PocketSNES -o $PKG_NAME/_opk/${PKG_NAME}
         tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
