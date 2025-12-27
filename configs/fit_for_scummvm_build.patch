@@ -1,0 +1,97 @@
+diff -uprN a/backends/platform/sdl/miyoo/miyoo.cpp b/backends/platform/sdl/miyoo/miyoo.cpp
+--- a/backends/platform/sdl/miyoo/miyoo.cpp	2025-12-27 15:26:05.313956458 +0800
++++ b/backends/platform/sdl/miyoo/miyoo.cpp	2025-12-27 14:20:07.133977932 +0800
+@@ -46,10 +46,10 @@
+ #define SAVE_PATH	"/mnt/SDCARD/.scummvm/saves"
+ #define LOG_FILE	"/mnt/SDCARD/.scummvm/scummvm.log"
+ #else
+-#define SCUMM_DIR	"/mnt/.scummvm"
+-#define CONFIG_FILE	"/mnt/.scummvmrc"
+-#define SAVE_PATH	"/mnt/.scummvm/saves"
+-#define LOG_FILE	"/mnt/.scummvm/scummvm.log"
++#define SCUMM_DIR	"/mnt/FunKey/.scummvm"
++#define CONFIG_FILE	"/mnt/FunKey/.scummvmrc"
++#define SAVE_PATH	"/mnt/FunKey/.scummvm/saves"
++#define LOG_FILE	"/mnt/FunKey/.scummvm/scummvm.log"
+ #endif
+ #define JOYSTICK_DIR	"/sys/devices/platform/joystick"
+ 
+@@ -83,25 +83,25 @@ static const Common::KeyTableEntry odKey
+ 	{ "JOY_GUIDE",		Common::KEYCODE_ESCAPE,		_s("Menu")	 	},
+ #else
+ 	// I18N: Hardware key
+-	{ "JOY_A",		Common::KEYCODE_LALT,		_s("A")			},
++	{ "JOY_A",		Common::KEYCODE_a,		_s("A")			},
+ 	// I18N: Hardware key
+-	{ "JOY_B",		Common::KEYCODE_LCTRL,		_s("B")			},
++	{ "JOY_B",		Common::KEYCODE_b,		_s("B")			},
+ 	// I18N: Hardware key
+-	{ "JOY_X",		Common::KEYCODE_LSHIFT,		_s("X")			},
++	{ "JOY_X",		Common::KEYCODE_x,		_s("X")			},
+ 	// I18N: Hardware key
+-	{ "JOY_Y",		Common::KEYCODE_SPACE,		_s("Y")			},
++	{ "JOY_Y",		Common::KEYCODE_y,		_s("Y")			},
+ 	// I18N: Hardware key
+-	{ "JOY_BACK",		Common::KEYCODE_ESCAPE,		_s("Select")		},
++	{ "JOY_BACK",		Common::KEYCODE_k,		_s("Select")		},
+ 	// I18N: Hardware key
+-	{ "JOY_START",		Common::KEYCODE_RETURN,		_s("Start")		},
++	{ "JOY_START",		Common::KEYCODE_s,		_s("Start")		},
+ 	// I18N: Hardware key
+-	{ "JOY_LEFT_SHOULDER",	Common::KEYCODE_TAB,		_s("L")			},
++	{ "JOY_LEFT_SHOULDER",	Common::KEYCODE_m,		_s("L")			},
+ 	// I18N: Hardware key
+-	{ "JOY_RIGHT_SHOULDER", Common::KEYCODE_BACKSPACE,	_s("R")			},
+-	{ "JOY_UP",		Common::KEYCODE_UP,		_s("D-pad Up")	},
+-	{ "JOY_DOWN",		Common::KEYCODE_DOWN,		_s("D-pad Down")	},
+-	{ "JOY_LEFT",		Common::KEYCODE_LEFT,		_s("D-pad Left")	},
+-	{ "JOY_RIGHT",		Common::KEYCODE_RIGHT,		_s("D-pad Right")	},
++	{ "JOY_RIGHT_SHOULDER", Common::KEYCODE_n,	_s("R")			},
++	{ "JOY_UP",		Common::KEYCODE_u,		_s("D-pad Up")	},
++	{ "JOY_DOWN",		Common::KEYCODE_d,		_s("D-pad Down")	},
++	{ "JOY_LEFT",		Common::KEYCODE_l,		_s("D-pad Left")	},
++	{ "JOY_RIGHT",		Common::KEYCODE_r,		_s("D-pad Right")	},
+ 	// I18N: Hardware key
+ 	{ "JOY_LEFT_STICK",     Common::KEYCODE_PAGEUP,		_s("L2")		},
+ 	// I18N: Hardware key
+@@ -111,7 +111,7 @@ static const Common::KeyTableEntry odKey
+ 	// I18N: Hardware key
+ 	{ "JOY_RIGHT_TRIGGER",	Common::KEYCODE_RSHIFT,		_s("R3")	 	},
+ 	// I18N: Hardware key
+-	{ "JOY_GUIDE",		Common::KEYCODE_RCTRL,		_s("Menu")	 	},
++	{ "JOY_GUIDE",		Common::KEYCODE_q,		_s("Menu")	 	},
+ #endif
+ 	{nullptr,			Common::KEYCODE_INVALID,	nullptr			}
+ };
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build.sh	2025-12-27 16:34:13.543934278 +0800
+@@ -0,0 +1,14 @@
++#!/bin/bash
++
++export PATH=$PATH:/opt/FunKey-sdk-2.3.0/bin
++export TARGETMACH=arm-linux
++export BUILDMACH=i686-pc-linux-gnu
++export CROSS=arm-funkey-linux-gnueabihf
++export CC=${CROSS}-gcc
++export LD=${CROSS}-ld
++export AS=${CROSS}-as
++export CXX=${CROSS}-g++
++
++./configure --host=miyoo --enable-release --enable-plugins --default-dynamic --enable-engine=testbed --enable-ext-neon --with-freetype2-prefix=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/libc/usr/bin/
++
++make -j5 all sd-root sd-zip
+diff -uprN a/configure b/configure
+--- a/configure	2025-12-27 15:25:42.223956583 +0800
++++ b/configure	2025-12-27 14:21:25.423977508 +0800
+@@ -3755,8 +3755,8 @@ if test -n "$_host"; then
+ 			_sysroot=`$CXX --print-sysroot`
+ 			_sdlpath=$_sysroot/usr/bin
+ 			append_var DEFINES  "-DMIYOO -DREDUCE_MEMORY_USAGE -DUNCACHED_PLUGINS"
+-			append_var CXXFLAGS "-march=armv5te -mtune=arm926ej-s -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections"
+-			append_var LDFLAGS  "-march=armv5te -mtune=arm926ej-s -ffast-math -fomit-frame-pointer -ffunction-sections -fdata-sections"
++			append_var CXXFLAGS "-marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -O3 -march=armv7ve -ffast-math -fomit-frame-pointer -fno-strength-reduce"
++			append_var LDFLAGS  "-marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -O3 -march=armv7ve -ffast-math -fomit-frame-pointer -fno-strength-reduce"
+ 			append_var LDFLAGS  "-O3 -Wl,--as-needed,--gc-sections"
+ 			_vkeybd=yes
+ 			_alsa=no

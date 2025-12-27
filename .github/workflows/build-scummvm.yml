@@ -1,0 +1,103 @@
+name: scummvm-opk Build
+
+on:
+  workflow_dispatch:
+
+env:
+  REPO_URL: https://github.com/scummvm/scummvm.git
+  REPO_BRANCH: master
+  PKG_NAME: scummvm
+  BIN_DIR: /
+  CONFIG_FILE: configs/scummvm.config
+  DIY_SH: configs/diy.sh
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: false
+  TZ: Asia/Shanghai
+  
+jobs:
+  build:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@main
+      
+    - name: Initialization environment
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y -q --no-install-recommends build-essential make cmake wget autogen autoconf automake -y
+        sudo apt-get -y autoremove
+        sudo apt-get -y clean
+        sudo rm -rf /var/lib/apt/lists/*
+        sudo sed -i 's/# \(en_US.UTF-8\)/\1/' /etc/locale.gen
+        sudo locale-gen --purge --lang en_US.UTF-8
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+        
+    - name: Clone source code
+      working-directory: /workdir
+      run: |
+        df -hT $PWD
+        git clone $REPO_URL -b $REPO_BRANCH $PKG_NAME
+        ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
+        cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
+        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+        sudo mv FunKey-sdk-2.3.0 /opt
+
+    - name: Load custom configuration
+      run: |
+        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
+        mv configs/*.patch $PKG_NAME/
+        chmod +x $DIY_SH
+        cd $PKG_NAME
+        $GITHUB_WORKSPACE/$DIY_SH
+
+    - name: Compile the firmware
+      id: compile
+      run: |
+        export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
+        cd $PKG_NAME/$PKG_NAME
+        ./build.sh
+        make -j1 V=s
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+
+    - name: Check space usage
+      if: (!cancelled())
+      run: df -hT
+
+    - name: Organize files
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        mv frontend/$PKG_NAME_miyoo.zip $PKG_NAME/_opk/
+        cd $PKG_NAME/_opk
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Upload firmware directory
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: ${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+        
+    - name: Generate release tag
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        touch release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+        
+    - name: Upload firmware to release
+      uses: softprops/action-gh-release@v1
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}/*.opk

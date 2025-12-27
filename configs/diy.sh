@@ -13,6 +13,9 @@
 # create folder
 mkdir -p _opk
 
+# scummvm build
+[ -f icons/scummvm.ico ] && patch -p1 < fit_for_scummvm_build.patch
+
 # snes9x4d build
 [ -f snes-pad_icon_32.png ] && patch -p1 < fit_for_snes9x4d_build.patch
 
