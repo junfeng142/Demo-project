@@ -59,7 +59,6 @@ jobs:
         export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
         cd $PKG_NAME/$PKG_NAME
         ./build.sh
-        make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
