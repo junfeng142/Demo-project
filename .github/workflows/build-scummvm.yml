@@ -57,7 +57,7 @@ jobs:
       id: compile
       run: |
         export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
-        cd $PKG_NAME/$PKG_NAME
+        cd $PKG_NAME
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
