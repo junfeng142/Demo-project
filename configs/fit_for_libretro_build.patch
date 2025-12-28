@@ -1,0 +1,29 @@
+diff -uprN a/libretro-build.sh b/libretro-build.sh
+--- a/libretro-build.sh	2025-12-28 09:30:57.951508213 +0800
++++ b/libretro-build.sh	2025-12-28 09:34:02.621508665 +0800
+@@ -21,13 +21,18 @@ fi
+ 
+ JOBS=${JOBS:-7}
+ 
+-if [ "$HOST_CC" ]; then
+-	CC="${HOST_CC}-gcc"
+-	CXX="${HOST_CC}-g++"
+-	CXX11="${HOST_CC}-g++"
+-	CXX17="${HOST_CC}-g++"
+-	STRIP="${HOST_CC}-strip"
+-fi
++export PATH=$PATH:/opt/FunKey-sdk-2.3.0/bin
++export TARGETMACH=arm-linux
++export BUILDMACH=i686-pc-linux-gnu
++export CROSS=arm-funkey-linux-gnueabihf
++export CC=${CROSS}-gcc
++export LD=${CROSS}-ld
++export AS=${CROSS}-as
++export CXX=${CROSS}-g++
++
++	CXX11="${CROSS}-g++"
++	CXX17="${CROSS}-g++"
++	STRIP="${CROSS}-strip"
+ 
+ if [ -z "$MAKE" ]; then
+ 	if uname -o | grep -i Msys > /dev/null 2>&1; then
