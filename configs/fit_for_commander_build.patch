@@ -1,14 +1,13 @@
 diff -uprN a/Makefile.miyoo b/Makefile.miyoo
---- a/Makefile.miyoo	2025-12-30 14:19:09.615075597 +0800
-+++ b/Makefile.miyoo	2025-12-30 14:21:53.365074709 +0800
-@@ -3,25 +3,25 @@
- #		based on https://github.com/od-contrib/commander
- #
+--- a/Makefile.miyoo	2025-12-30 14:27:07.695073004 +0800
++++ b/Makefile.miyoo	2025-12-30 14:28:38.705072510 +0800
+@@ -1,24 +1,24 @@
  
 -CXX := /opt/miyoo/usr/bin/arm-miyoo-linux-uclibcgnueabi-g++
 +CXX := /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-g++
  CXXFLAGS := -Os
- SDL_CONFIG := /opt/miyoo/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/bin/sdl-config
+ SYSROOT := $(shell $(CXX) --print-sysroot)
+ SDL_CONFIG := $(SYSROOT)/usr/bin/sdl-config
  CXXFLAGS += $(shell $(SDL_CONFIG) --cflags)
  
  CXXFLAGS += -DPATH_DEFAULT=\"/mnt\"
@@ -41,10 +40,3 @@ diff -uprN a/Makefile.miyoo b/Makefile.miyoo
  CXXFLAGS += -DOSK_KEY_SYSTEM_IS_BACKSPACE=ON
  CXXFLAGS += -DFONTS='{"DejaVuSansCondensed.ttf",10},{"FreeSans.ttf",10},{"DroidSansFallback.ttf",9}'
  CXXFLAGS += -DLOW_DPI_FONTS='{"Fiery_Turk.ttf",8},{"DejaVuSansCondensed.ttf",10},{"FreeSans.ttf",10},{"DroidSansFallback.ttf",9}'
-@@ -83,4 +83,4 @@ clean:
- # Generate dependencies that do not exist yet.
- # This is only in case some .d files have been deleted;
- # in normal operation this rule is never triggered.
--$(DEPFILES):
-+$(DEPFILES):
-\ No newline at end of file

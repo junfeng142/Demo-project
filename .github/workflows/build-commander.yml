@@ -5,7 +5,7 @@ on:
 
 env:
   REPO_URL: https://github.com/Apaczer/commander.git
-  REPO_BRANCH: rev2.0
+  REPO_BRANCH: miyoo
   PKG_NAME: commander
   BIN_DIR: /
   CONFIG_FILE: configs/commander.config
