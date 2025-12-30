@@ -1,8 +1,7 @@
 diff -uprN a/Makefile.miyoo b/Makefile.miyoo
---- a/Makefile.miyoo	2025-12-30 10:25:46.955151567 +0800
-+++ b/Makefile.miyoo	2025-12-30 13:54:26.475083644 +0800
-@@ -1,24 +1,24 @@
- 
+--- a/Makefile.miyoo	2025-12-30 14:09:54.395078610 +0800
++++ b/Makefile.miyoo	2025-12-30 14:10:02.085078568 +0800
+@@ -1,23 +1,23 @@
 -CXX := /opt/miyoo/usr/bin/arm-miyoo-linux-uclibcgnueabi-g++
 +CXX := /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-g++
  CXXFLAGS := -Os
