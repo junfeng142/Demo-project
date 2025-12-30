@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Commander
+Name[ch]=Commander
+Comment=Two-pane file manager
+Comment[ch]=双列文件管理器
+Exec=commander
+Icon=commander
+Terminal=false
+Type=Application
+StartupNotify=true
+Categories=applications;

@@ -14,6 +14,9 @@
 mkdir -p _opk
 
 # libretro build
+[ -f commander.cpp ] && patch -p1 < fit_for_commander_build.patch
+
+# libretro build
 [ -f libretro-super.sh ] && patch -p1 < fit_for_libretro_build.patch
 
 # scummvm build
