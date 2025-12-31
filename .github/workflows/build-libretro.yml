@@ -7,7 +7,7 @@ env:
   REPO_URL: https://github.com/libretro/libretro-super.git
   REPO_BRANCH: master
   PKG_NAME: libretro-super
-  LIB_NAMES: ardens fceumm gambatte gpsp handy mednafen_ngp mednafen_pce_fast mednafen_wswan pcsx_rearmed picodrive pokemini retro8 snes9x2005
+  LIB_NAMES: ardens fceumm gambatte gpsp handy mednafen_ngp mednafen_pce_fast mednafen_wswan pcsx_rearmed picodrive pokemini retro8 snes9x2005 fbalpha2012 mame
   BIN_DIR: /
   CONFIG_FILE: configs/libretro.config
   DIY_SH: configs/diy.sh
