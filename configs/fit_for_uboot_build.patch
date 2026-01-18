@@ -1,6 +1,6 @@
 diff -uprN a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts
---- a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2025-11-15 14:14:05.676832039 +0800
-+++ b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2025-11-15 14:05:33.903606104 +0800
+--- a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2026-01-18 15:12:45.978398770 +0800
++++ b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2026-01-18 15:28:50.868401131 +0800
 @@ -45,7 +45,7 @@
  #include <dt-bindings/input/input.h>
  
@@ -10,14 +10,13 @@ diff -uprN a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/dts/sun8i-
  	compatible = "licheepi,licheepi-zero-dock", "licheepi,licheepi-zero",
  		     "allwinner,sun8i-v3s";
  
-@@ -64,36 +64,15 @@
+@@ -64,36 +64,37 @@
  	status = "okay";
  };
  
 -&lradc {
 -	vref-supply = <&reg_vcc3v0>;
-+&spi0 {
- 	status = "okay";
+-	status = "okay";
 -
 -	button-200 {
 -		label = "Volume Up";
@@ -38,26 +37,48 @@ diff -uprN a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/dts/sun8i-
 -		linux,code = <KEY_SELECT>;
 -		channel = <0>;
 -		voltage = <600000>;
--	};
--
++&pio {
++	spi0_cs_pins: spi0_cs_pins {
++	    pins = "PC2", "PE22";
++	    function = "gpio_out";
+ 	};
++};
+ 
 -	button-800 {
 -		label = "Start";
 -		linux,code = <KEY_OK>;
 -		channel = <0>;
 -		voltage = <800000>;
++&spi0 {
++	status = "okay";
++	pinctrl-names = "default";
++	pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
++	cs-gpios = <&pio 2 2 GPIO_ACTIVE_HIGH>, <&pio 4 22 GPIO_ACTIVE_HIGH>;
 +      
-+      flash@0 {
++	st7789v: st7789v@1{
++		compatible = "sitronix,st7789v";
++		spi-max-frequency = <50000000>;
++		reg = <0>;
++        spi-cpol;
++        spi-cpha;
++		dc-gpios = <&pio 1 4 GPIO_ACTIVE_LOW>; //backlight
++        rotate = <270>;
++        fps = <60>;
++        buswidth = <8>;	
++	};
++
++    flash@0 {
 +		#address-cells = <1>;
 +		#size-cells = <1>;
 +		compatible = "gigadevice,gd25q08", "jedec,spi-nor";
-+		reg = <0>;
++		reg = <1>;
 +		spi-max-frequency = <40000000>;
  	};
  };
  
 diff -uprN a/build.sh b/build.sh
 --- a/build.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build.sh	2025-06-30 10:15:52.661204397 +0800
++++ b/build.sh	2025-06-30 10:15:52.000000000 +0800
 @@ -0,0 +1,7 @@
 +#!/bin/bash
 +
@@ -68,8 +89,8 @@ diff -uprN a/build.sh b/build.sh
 +#make modules_install INSTALL_MOD_PATH="bin"
 \ No newline at end of file
 diff -uprN a/drivers/mtd/spi/spi-nor-ids.c b/drivers/mtd/spi/spi-nor-ids.c
---- a/drivers/mtd/spi/spi-nor-ids.c	2025-06-30 10:53:37.975596203 +0800
-+++ b/drivers/mtd/spi/spi-nor-ids.c	2025-06-30 10:17:50.968351559 +0800
+--- a/drivers/mtd/spi/spi-nor-ids.c	2025-06-30 10:53:37.000000000 +0800
++++ b/drivers/mtd/spi/spi-nor-ids.c	2025-06-30 10:17:50.000000000 +0800
 @@ -89,6 +89,11 @@ const struct flash_info spi_nor_ids[] =
  #ifdef CONFIG_SPI_FLASH_GIGADEVICE	/* GIGADEVICE */
  	/* GigaDevice */
