@@ -1,6 +1,6 @@
 diff -uprN a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts
 --- a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2026-01-18 15:12:45.978398770 +0800
-+++ b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2026-01-18 15:28:50.868401131 +0800
++++ b/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts	2026-01-18 17:57:55.178423023 +0800
 @@ -45,7 +45,7 @@
  #include <dt-bindings/input/input.h>
  
@@ -54,25 +54,25 @@ diff -uprN a/arch/arm/dts/sun8i-v3s-licheepi-zero-dock.dts b/arch/arm/dts/sun8i-
 +	pinctrl-names = "default";
 +	pinctrl-0 = <&spi0_pins &spi0_cs_pins>;
 +	cs-gpios = <&pio 2 2 GPIO_ACTIVE_HIGH>, <&pio 4 22 GPIO_ACTIVE_HIGH>;
-+      
-+	st7789v: st7789v@1{
-+		compatible = "sitronix,st7789v";
-+		spi-max-frequency = <50000000>;
-+		reg = <0>;
-+        spi-cpol;
-+        spi-cpha;
-+		dc-gpios = <&pio 1 4 GPIO_ACTIVE_LOW>; //backlight
-+        rotate = <270>;
-+        fps = <60>;
-+        buswidth = <8>;	
-+	};
 +
 +    flash@0 {
 +		#address-cells = <1>;
 +		#size-cells = <1>;
 +		compatible = "gigadevice,gd25q08", "jedec,spi-nor";
-+		reg = <1>;
++		reg = <0>;
 +		spi-max-frequency = <40000000>;
++	};
++
++	st7789v: st7789v@1{
++		compatible = "sitronix,st7789v";
++		spi-max-frequency = <50000000>;
++		reg = <1>;
++        spi-cpol;
++        spi-cpha;
++		dc-gpios = <&pio 1 5 GPIO_ACTIVE_LOW>; //backlight
++        rotate = <270>;
++        fps = <60>;
++        buswidth = <8>;
  	};
  };
  
