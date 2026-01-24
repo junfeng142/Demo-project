@@ -1,6 +1,6 @@
 diff -uprN a/arch/arm/boot/dts/sun8i-v3s-funkey.dts b/arch/arm/boot/dts/sun8i-v3s-funkey.dts
 --- a/arch/arm/boot/dts/sun8i-v3s-funkey.dts	2025-04-28 10:31:06.000000000 +0800
-+++ b/arch/arm/boot/dts/sun8i-v3s-funkey.dts	2025-12-22 20:39:09.980522826 +0800
++++ b/arch/arm/boot/dts/sun8i-v3s-funkey.dts	2026-01-14 12:59:21.291802850 +0800
 @@ -41,7 +41,7 @@
   */
  
@@ -121,7 +121,21 @@ diff -uprN a/arch/arm/boot/dts/sun8i-v3s-funkey.dts b/arch/arm/boot/dts/sun8i-v3
  };
  
  &codec {
-@@ -114,13 +215,37 @@
+@@ -110,17 +211,51 @@
+ 	status = "okay";
+ };
+ 
++&mmc1 {
++	pinctrl-0 = <&mmc1_pins>;
++	pinctrl-names = "default";
++	broken-cd;
++	bus-width = <4>;
++	vmmc-supply = <&reg_vcc3v3>;
++	vqmmc-supply = <&reg_vcc3v3>;
++	status = "okay";
++};
++
+ &ohci0 {
  	status = "okay";
  };
  
@@ -134,10 +148,9 @@ diff -uprN a/arch/arm/boot/dts/sun8i-v3s-funkey.dts b/arch/arm/boot/dts/sun8i-v3
 +&uart0 {
 +	pinctrl-0 = <&uart0_pins_a>;
 +	pinctrl-names = "default";
- 	status = "okay";
- };
- 
--&axp_gpio {
++	status = "okay";
++};
++
 +&pwm {
 +        pinctrl-names = "default";
 +        pinctrl-0 = <&pwm0_pins>;
@@ -153,16 +166,17 @@ diff -uprN a/arch/arm/boot/dts/sun8i-v3s-funkey.dts b/arch/arm/boot/dts/sun8i-v3
 +	usb0_vbus-supply = <&reg_vcc5v0>;
 +	phy-supply = <&reg_vcc5v0>;
 +	vcc = <&reg_vcc5v0>;
-+	status = "okay";
-+};
-+
+ 	status = "okay";
+ };
+ 
+-&axp_gpio {
 +#include "axp209.dtsi"
 +
 +&ac_power_supply {
  	status = "okay";
  };
  
-@@ -174,69 +299,3 @@
+@@ -174,69 +309,3 @@
  	regulator-always-on;
  	status = "okay";
  };
@@ -714,8 +728,8 @@ diff -uprN a/drivers/video/fbdev/Makefile b/drivers/video/fbdev/Makefile
 +obj-$(CONFIG_FB_V3S_GC9307)		  += v3s_gc9307.o  fb_text.o
 diff -uprN a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
 --- a/drivers/video/fbdev/core/fbmem.c	2025-04-28 11:08:41.000000000 +0800
-+++ b/drivers/video/fbdev/core/fbmem.c	2025-12-22 20:39:09.980522826 +0800
-@@ -32,7 +32,6 @@
++++ b/drivers/video/fbdev/core/fbmem.c	2026-01-16 21:01:56.346244368 +0800
+@@ -32,12 +32,11 @@
  #include <linux/device.h>
  #include <linux/efi.h>
  #include <linux/fb.h>
@@ -723,6 +737,12 @@ diff -uprN a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
  #include <linux/fbcon.h>
  #include <linux/mem_encrypt.h>
  
+ #include <asm/fb.h>
+-
++#include "../v3s_i80.h"
+ 
+     /*
+      *  Frame buffer device initialization and setup routines
 @@ -1148,7 +1147,6 @@ static long do_fb_ioctl(struct fb_info *
  		ret = fb_cmap_to_user(&cmap_from, &cmap);
  		break;
@@ -731,18 +751,19 @@ diff -uprN a/drivers/video/fbdev/core/fbmem.c b/drivers/video/fbdev/core/fbmem.c
  		if (copy_from_user(&var, argp, sizeof(var)))
  			return -EFAULT;
  		console_lock();
-@@ -1157,10 +1155,6 @@ static long do_fb_ioctl(struct fb_info *
+@@ -1157,9 +1155,8 @@ static long do_fb_ioctl(struct fb_info *
  			return -ENODEV;
  		}
  		ret = fb_pan_display(info, &var);
 -
 -		/** fbtft switch buffer */
 -		fbtft_flip_backbuffer(info->par);
--		
++		
++		myfb_flip_backbuffer(info->par);
+ 		
  		unlock_fb_info(info);
  		console_unlock();
- 		if (ret == 0 && copy_to_user(argp, &var, sizeof(var)))
-@@ -1962,4 +1956,4 @@ int fb_new_modelist(struct fb_info *info
+@@ -1962,4 +1959,4 @@ int fb_new_modelist(struct fb_info *info
  	return err;
  }
  
@@ -4394,8 +4415,8 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +MODULE_LICENSE("GPL");
 diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 --- a/drivers/video/fbdev/v3s_gc9307.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_gc9307.c	2025-12-24 21:41:40.972063247 +0800
-@@ -0,0 +1,809 @@
++++ b/drivers/video/fbdev/v3s_gc9307.c	2026-01-24 14:36:38.844082678 +0800
+@@ -0,0 +1,775 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
 +#include <linux/cdev.h>
@@ -4419,6 +4440,770 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +DECLARE_WAIT_QUEUE_HEAD(wait_vsync_queue);
 +
++struct v3s_iomm {
++    uint8_t *ccm;
++    uint8_t *gpio;
++    uint8_t *lcdc;
++    uint8_t *de;
++};
++
++static int major = -1;
++static struct cdev mycdev;
++static struct class *myclass = NULL;
++static struct timer_list mytimer;
++static struct v3s_iomm iomm = {0};
++static struct myfb_par *mypar = NULL;
++
++static int wait_for_vsync(struct myfb_par *par)
++{
++    uint32_t count = par->vsync_count;
++    long t = wait_event_interruptible_timeout(wait_vsync_queue, count != par->vsync_count, HZ / 60);
++    return t > 0 ? 0 : (t < 0 ? (int)t : -ETIMEDOUT);
++}
++
++static void v3s_clrbits(void __iomem *reg, uint32_t clr_val)
++{
++	uint32_t ret;
++
++	ret = readl(reg);
++	ret &= ~(clr_val);
++	writel(ret, reg);
++}
++
++static void v3s_setbits(void __iomem *reg, uint32_t set_val)
++{
++	uint32_t ret;
++
++	ret = readl(reg);
++	ret |= set_val;
++	writel(ret, reg);
++}
++
++static void v3s_i80_lcd_init(void)
++{
++    uint32_t r = 0;
++
++    //PE0~7
++    r = readl(iomm.gpio + V3S_GPIOE_CFG0);
++    r&= 0x00000000;
++    r|= 0x33313333;
++    writel(r, iomm.gpio + V3S_GPIOE_CFG0);
++
++    //PE8~15
++    r = readl(iomm.gpio + V3S_GPIOE_CFG1);
++    r&= 0xfff00000;
++    r|= 0x00033333;
++    writel(r, iomm.gpio + V3S_GPIOE_CFG1);
++
++    //PE2 pull
++    r = readl(iomm.gpio + V3S_GPIOE_PUL0);
++    r&= 0xffffff0f;
++    r|= 0x00000010;
++    writel(r, iomm.gpio + V3S_GPIOE_PUL0);
++
++    //LCDreset
++    v3s_clrbits(iomm.gpio + V3S_GPIOE_DATA, (1 << 4));
++    mdelay(150);
++    v3s_setbits(iomm.gpio + V3S_GPIOE_DATA, (1 << 4));
++    mdelay(50);
++}
++
++static uint32_t lcdc_wait_busy(void)
++{
++    uint32_t cnt = 0;
++
++    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 0));   //trigger mode enable
++    ndelay(10);
++    while(1) {
++        if(readl(iomm.lcdc + TCON0_CPU_IF_REG) & 0x00c00000) {
++            if(cnt > 100) {
++                return -1;
++            }
++            else {
++                cnt += 1;
++            }
++        }
++        break;
++    }
++    return 0;
++}
++
++static uint32_t extend_16b_to_24b(uint32_t value)
++{
++    return ((value & 0xfc00) << 8) | ((value & 0x0300) << 6) | ((value & 0x00e0) << 5) | ((value & 0x001f) << 3);
++}
++
++static void lcdc_wr(uint8_t is_data, uint32_t data)
++{
++    while(lcdc_wait_busy());
++    if(is_data) {
++        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 25));
++    }
++    else {
++        v3s_clrbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 25));
++    }
++    while(lcdc_wait_busy());
++    writel(extend_16b_to_24b(data), iomm.lcdc + TCON0_CPU_WR_REG);
++}
++
++static void lcdc_gc9307_init(void)
++{
++    v3s_i80_lcd_init();
++
++    lcdc_wr(0, 0x11);	//sleep out
++
++    lcdc_wr(0, 0x36);
++    lcdc_wr(1, 0xe8);
++
++    lcdc_wr(0, 0x2a);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0x01);
++    lcdc_wr(1, 0x3f);
++
++    lcdc_wr(0, 0x2b);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0xef);
++
++    // gc9307 gamma setting
++    lcdc_wr(0, 0xf0);
++    lcdc_wr(1, 0x02);
++    lcdc_wr(1, 0x01);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0x02);
++    lcdc_wr(1, 0x09);
++
++    lcdc_wr(0, 0xf1);
++    lcdc_wr(1, 0x01);
++    lcdc_wr(1, 0x02);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0x11);
++    lcdc_wr(1, 0x1c);
++    lcdc_wr(1, 0x15);
++
++    lcdc_wr(0, 0xf2);
++    lcdc_wr(1, 0x0a);
++    lcdc_wr(1, 0x07);
++    lcdc_wr(1, 0x29);
++    lcdc_wr(1, 0x04);
++    lcdc_wr(1, 0x04);
++    lcdc_wr(1, 0x38);
++
++    lcdc_wr(0, 0xf3);
++    lcdc_wr(1, 0x15);
++    lcdc_wr(1, 0x0d);
++    lcdc_wr(1, 0x55);
++    lcdc_wr(1, 0x04);
++    lcdc_wr(1, 0x03);
++    lcdc_wr(1, 0x65);
++
++    lcdc_wr(0, 0x35);  //TE on
++    lcdc_wr(1, 0x00);
++
++    lcdc_wr(0, 0x3a);  //Interface pixel format
++    lcdc_wr(1, 0x05); //65K
++    
++    lcdc_wr(0, 0x29);  //Display on
++    lcdc_wr(0, 0x2c);  //Memory write
++}
++
++static void smartlcd_init(struct myfb_par *par)
++{   
++    uint32_t size = ((par->mode.yres - 1) << 16) | (par->mode.xres - 1);
++	int i;
++    
++    writel(0, iomm.lcdc + TCON_CTRL_REG);
++    writel(0, iomm.lcdc + TCON_INT_REG0);
++    v3s_clrbits(iomm.lcdc + TCON_CLK_CTRL_REG, (0xf << 28));
++    writel(0xffffffff, iomm.lcdc + TCON0_IO_CTRL_REG1);
++    
++	v3s_setbits(iomm.de + V3S_DE_MUX_CLK_RST, (1 << 0));
++    v3s_setbits(iomm.de + V3S_DE_MUX_CLK_GATE, (1 << 0));
++    v3s_setbits(iomm.de + V3S_DE_MUX_CLK_BUS, (1 << 0));
++    v3s_clrbits(iomm.de + V3S_DE_MUX_CLK_SEL, (1 << 0));
++
++    writel((1 << 0), iomm.de + V3S_DE_MUX_GLB_CTL);
++    writel(0, iomm.de + V3S_DE_MUX_GLB_STA);
++    writel(size, iomm.de + V3S_DE_MUX_GLB_SIZE);
++
++	for(i = 0; i < 4; i++) {
++		void * chan = (void *)(iomm.de + V3S_DE_MUX_CHAN + 0x1000 * i);
++		memset(chan, 0, i == 0 ? 256 : 140);
++	}
++	memset(iomm.de + V3S_DE_MUX_BLD, 0, 256);
++
++    writel(0x00000400, iomm.de + V3S_DE_MUX_BLD_FCOLOR_CTL);
++	writel((2 << 8), iomm.de + V3S_DE_MUX_BLD_ROUTE);
++	writel(0, iomm.de + V3S_DE_MUX_BLD_PREMULTIPLY);
++	writel(size, iomm.de + V3S_DE_MUX_BLD_OUTSIZE);
++	writel(size, iomm.de + V3S_DE_MUX_BLD_ATTR_INSIZE(2));
++
++    writel(0, iomm.de + V3S_DE_MUX_VSU);
++	writel(0, iomm.de + V3S_DE_MUX_GSU1);
++	writel(0, iomm.de + V3S_DE_MUX_GSU2);
++	writel(0, iomm.de + V3S_DE_MUX_GSU3);
++	writel(0, iomm.de + V3S_DE_MUX_FCE);
++	writel(0, iomm.de + V3S_DE_MUX_BWS);
++	writel(0, iomm.de + V3S_DE_MUX_LTI);
++	writel(0, iomm.de + V3S_DE_MUX_PEAK);
++	writel(0, iomm.de + V3S_DE_MUX_ASE);
++	writel(0, iomm.de + V3S_DE_MUX_FCC);
++	writel(0, iomm.de + V3S_DE_MUX_DCSC);
++	
++	writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
++	writel(size, iomm.de + V3S_DE_MUX_UI_CFG_SIZE);
++	writel(0, iomm.de + V3S_DE_MUX_UI_CFG_COORD);
++	writel((par->bpp / 8) * par->mode.xres, iomm.de + V3S_DE_MUX_UI_CFG_PITCH);
++	writel(size, iomm.de + V3S_DE_MUX_UI_CFG_OVL_SIZE);
++	
++	writel((1 << 31) | ((3 & 0x1f) << 4) | (1 << 24), iomm.lcdc + TCON0_CTRL_REG);
++    writel((0xf << 28) | (6 << 0), iomm.lcdc + TCON_CLK_CTRL_REG);
++    writel((7 << 29) | (1 << 26) | (5 << 0), iomm.lcdc + TCON0_CPU_IF_REG);
++    
++    writel(((par->mode.xres - 1) << 16) | ((par->mode.yres - 1) << 0), iomm.lcdc + TCON0_BASIC_TIMING_REG0);
++    writel((20 << 16) | (par->mode.xres - 1), iomm.lcdc + TCON0_CPU_TRI0_REG);//block space | size
++    writel((par->mode.yres - 1), iomm.lcdc + TCON0_CPU_TRI1_REG);//block num
++    writel(((3 << 15) | (par->mode.xres - 1)), iomm.lcdc + TCON0_CPU_TRI2_REG);//start delay3 | Trans Start
++    writel((2 << 28), iomm.lcdc + TCON0_CPU_TRI3_REG);//TE rising mode
++
++    writel(0, iomm.lcdc + TCON0_HV_TIMING_REG);
++    writel((1 << 28), iomm.lcdc + TCON0_IO_CTRL_REG0);
++    writel(0x1FFE307, iomm.lcdc + TCON0_IO_CTRL_REG1);
++    
++    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG0);
++    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG1);
++    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG2);
++    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG3);
++    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG4);
++    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG5);
++    writel(0x01010000, iomm.lcdc + TCON0_FRM_TAB_REG0);
++    writel(0x15151111, iomm.lcdc + TCON0_FRM_TAB_REG1);
++    writel(0x57575555, iomm.lcdc + TCON0_FRM_TAB_REG2);
++    writel(0x7f7f7777, iomm.lcdc + TCON0_FRM_TAB_REG3);
++    writel(((1 << 31) | (5 << 4)), iomm.lcdc + TCON0_FRM_CTL_REG);
++    
++	v3s_setbits(iomm.lcdc + TCON_CTRL_REG, (1 << 31));
++    v3s_setbits(iomm.lcdc + TCON_INT_REG0, (1 << 26));
++    
++	lcdc_gc9307_init();
++
++    writel(par->next_frame, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++}
++
++static void v3s_clock_init(struct myfb_par *par)
++{
++    writel(0x91002406, iomm.ccm + PLL_VIDEO_CTRL_REG);
++    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
++    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
++
++    v3s_setbits(iomm.ccm + DE_CLK_REG, (1 << 31));
++    v3s_setbits(iomm.ccm + TCON_CLK_REG, (1 << 31));
++    v3s_setbits(iomm.ccm + BUS_CLK_GATING_REG1, (1 << 12) | (1 << 4));
++    v3s_setbits(iomm.ccm + BUS_SOFT_RST_REG1, (1 << 12) | (1 << 4));
++}
++
++static void myfb_set_vram_buf(struct myfb_par *par){
++	if(par->nb_backbuffers_full > 0) {
++		par->nb_backbuffers_full = 0;
++		par->post_buf_index = 1;
++	} else {
++		par->post_buf_index = 0;
++		par->force_post_process = true; //necessary (to clear HID, not rotate multiple times the same buffer etc...)
++	}
++}
++
++static void myfb_post_process_vram(struct myfb_par *par)
++{
++	/* If notification, mark whole screen to update */
++	if (par->notification[0]) {
++		par->force_post_process = true;
++	}
++
++	/* Low battery icon */
++	if (par->low_battery) {
++		par->force_post_process = true;
++	}
++
++	/* Post process */
++	if (par->force_post_process) {
++
++		/* Clear flag */
++		par->force_post_process = false;
++
++		/* Copy buffer before post processing
++		Since the HID for battery, notifs... 
++		is added on top of the real framebufffer, 
++		we must not write directly inside the real 
++		framebuffer or it might never be cleared.
++		*/
++		if (par->post_buf_index > 0) {
++		    memcpy(par->virt_buf + 3 * par->vram_size, 
++		    par->virt_buf + par->vram_last_idx * par->vram_size, par->vram_size);
++		} else {
++		    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size * 2, DMA_TO_DEVICE);
++		    memcpy(par->virt_buf + 3 * par->vram_size, 
++		    par->vram_virt + par->info->var.yoffset * par->info->fix.line_length, par->vram_size);
++		}
++		
++		/* Notifications */
++        if (par->notification[0]) {
++            basic_text_out16_bg((uint16_t *)(par->virt_buf + 3 * par->vram_size), par->mode.xres, par->mode.yres,
++             0, 0, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
++        }
++        
++        /* Low battery icon */
++        if (par->low_battery) {
++            draw_low_battery((uint16_t *)(par->virt_buf + 3 * par->vram_size), par->mode.xres, par->mode.yres);
++        }
++	} 
++}
++
++void myfb_flip_backbuffer(struct myfb_par *par)
++{
++    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size * 2, DMA_TO_DEVICE);
++    memcpy(par->virt_buf + par->vram_cur_idx * par->vram_size, 
++		par->vram_virt + par->info->var.yoffset * par->info->fix.line_length, 
++		par->vram_size);
++	par->vram_last_idx = par->vram_cur_idx;
++	par->vram_cur_idx = (par->vram_cur_idx + 1) % 3;
++	if(par->nb_backbuffers_full < 3){
++		par->nb_backbuffers_full++;
++	}
++}
++
++static irqreturn_t lcdc_irq_handler(int irq, void *arg)
++{
++    struct myfb_par *par = arg;
++
++    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
++    
++    myfb_set_vram_buf(par);
++    myfb_post_process_vram(par);
++    
++    if ((par->post_buf_index == 0) || par->notification[0] || par->low_battery) {
++        writel(par->next_frame + 3 * par->vram_size, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++    } else {
++        writel(par->next_frame + par->vram_last_idx * par->vram_size, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++    }
++    
++    dma_sync_single_for_device(par->dev, par->next_frame, par->vram_size * 4, DMA_TO_DEVICE);
++    writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
++    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
++    
++    par->vsync_count += 1;
++    wake_up_interruptible_all(&wait_vsync_queue);
++    
++    return IRQ_HANDLED;
++}
++
++static void v3s_enable_irq(struct myfb_par *par)
++{
++    int ret = 0;
++
++    par->lcdc_irq = platform_get_irq(par->pdev, 0);
++    if(par->lcdc_irq < 0) {
++        printk("%s, failed to get irq number for lcdc irq\n", __func__);
++    } else {
++        ret = request_irq(par->lcdc_irq, lcdc_irq_handler, IRQF_SHARED, "lcdc_irq", par);
++        if(ret) {
++            printk("%s, failed to register lcdc interrupt(%d)\n", __func__, par->lcdc_irq);
++        }
++    }
++}
++
++static void lcd_delay_init(unsigned long param)
++{
++    v3s_clock_init(mypar);
++    smartlcd_init(mypar);
++    v3s_enable_irq(mypar);
++}
++
++static ssize_t store_notification(struct device *device, struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct myfb_par *par = fb_info->par;
++	char *tmp;
++
++	tmp = kmemdup(buf, count + 1, GFP_KERNEL);
++	if (!tmp)
++		return -ENOMEM;
++
++	/* Clear notif buffer if empty string */
++	if (!strcmp(buf, "clear")){
++		par->notification[0] = 0;
++	} else {
++		strncpy(par->notification, tmp, 400);
++	}
++
++	return count;
++}
++
++static ssize_t show_notification(struct device *device, struct device_attribute *attr, char *buf)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct myfb_par *par = fb_info->par;
++
++	return snprintf(buf, PAGE_SIZE, "%s\n", par->notification);
++}
++
++static struct device_attribute notification_device_attr = __ATTR(notification, 0660, show_notification, store_notification);
++
++static ssize_t store_low_battery(struct device *device, struct device_attribute *attr, const char *buf, size_t count)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct myfb_par *par = fb_info->par;
++	int ret;
++
++	ret = kstrtoul(buf, 10, &par->low_battery);
++	if (ret)
++		return ret;
++
++	par->low_battery = par->low_battery?1:0;
++
++	return count;
++}
++
++static ssize_t show_low_battery(struct device *device, struct device_attribute *attr, char *buf)
++{
++	struct fb_info *fb_info = dev_get_drvdata(device);
++	struct myfb_par *par = fb_info->par;
++
++	return snprintf(buf, PAGE_SIZE, "%lu\n", par->low_battery);
++}
++
++static struct device_attribute low_battery_device_attr = __ATTR(low_battery, 0660, show_low_battery, store_low_battery);
++
++#define CNVT_TOHW(val, width) ((((val) << (width)) + 0x7FFF - (val)) >> 16)
++static int myfb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue, unsigned transp, struct fb_info *info)
++{
++    red = CNVT_TOHW(red, info->var.red.length);
++    blue = CNVT_TOHW(blue, info->var.blue.length);
++    green = CNVT_TOHW(green, info->var.green.length);
++    ((uint32_t *)(info->pseudo_palette))[regno] = (red << info->var.red.offset) | (green << info->var.green.offset) | (blue << info->var.blue.offset);
++    return 0;
++}
++#undef CNVT_TOHW
++
++static int myfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
++{
++    if((var->xres != 320) || (var->yres != 240) || (var->bits_per_pixel != 16)) {
++        return -EINVAL;
++    }
++
++    var->transp.offset = 0;
++    var->transp.length = 0;
++    var->red.offset = 11;
++    var->red.length = 5;
++    var->green.offset = 5;
++    var->green.length = 6;
++    var->blue.offset = 0;
++    var->blue.length = 5;
++    var->red.msb_right = 0;
++    var->green.msb_right = 0;
++    var->blue.msb_right = 0;
++    var->transp.msb_right = 0;
++
++    return 0;
++}
++
++static int myfb_set_par(struct fb_info *info)
++{
++    struct myfb_par *par = info->par;
++
++    fb_var_to_videomode(&par->mode, &info->var);
++    par->bpp = info->var.bits_per_pixel;
++    info->fix.visual = FB_VISUAL_TRUECOLOR;
++    info->fix.line_length = (par->mode.xres * par->bpp) / 8;
++    writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
++
++    return 0;
++}
++
++static int myfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
++{
++    struct myfb_par *par = info->par;
++    
++    switch (cmd) {
++        case FBIO_WAITFORVSYNC:
++            wait_for_vsync(par);
++            break;
++        
++        case FBIO_SET_DEBE_MODE:
++            if(arg == 1) {
++                writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
++            } else {
++                writel((1 << 0) | (17 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
++            }
++            break;
++        
++        default:
++        return -1;
++    }
++    
++    return 0;
++}
++
++static int myfb_mmap(struct fb_info *info, struct vm_area_struct *vma)
++{
++    const unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++    const unsigned long size = vma->vm_end - vma->vm_start;
++
++    if(offset + size > info->fix.smem_len) {
++        return -EINVAL;
++    }
++
++    if(remap_pfn_range(vma, vma->vm_start, (info->fix.smem_start + offset) >> PAGE_SHIFT, size, vma->vm_page_prot)) {
++        return -EAGAIN;
++    }
++    return 0;
++}
++
++static struct fb_ops myfb_ops = {
++    .owner          = THIS_MODULE,
++    .fb_check_var   = myfb_check_var,
++    .fb_set_par     = myfb_set_par,
++    .fb_setcolreg   = myfb_setcolreg,
++    .fb_ioctl       = myfb_ioctl,
++    .fb_mmap        = myfb_mmap,
++
++    .fb_fillrect  = sys_fillrect,
++    .fb_copyarea  = sys_copyarea,
++    .fb_imageblit = sys_imageblit,
++};
++
++static int myfb_probe(struct platform_device *device)
++{
++    int ret = 0;
++    struct fb_info *info = NULL;
++    struct fb_videomode *mode = NULL;
++
++    mode = devm_kzalloc(&device->dev, sizeof(struct fb_videomode), GFP_KERNEL);
++    if(mode == NULL) {
++        return -ENOMEM;
++    }
++    mode->name = "320x240";
++    mode->xres = 320;
++    mode->yres = 240;
++    mode->vmode = FB_VMODE_NONINTERLACED;
++    pm_runtime_enable(&device->dev);
++    pm_runtime_get_sync(&device->dev);
++
++    info = framebuffer_alloc(sizeof(struct myfb_par), &device->dev);
++    if(!info) {
++        return -ENOMEM;
++    }
++
++    mypar = info->par;
++    mypar->info = info;
++    mypar->pdev = device;
++    mypar->dev = &device->dev;
++    mypar->bpp = 16;
++    fb_videomode_to_var(&(info->var), mode);
++
++    mypar->vram_size = (mode->xres * mode->yres * (mypar->bpp / 8));
++    mypar->vram_virt = dma_alloc_wc(&device->dev, mypar->vram_size * 2, (resource_size_t *)&mypar->vram_phys, GFP_KERNEL | GFP_DMA);
++    mypar->virt_buf = dma_alloc_wc(&device->dev, mypar->vram_size * 4, (resource_size_t *)&mypar->next_frame, GFP_KERNEL | GFP_DMA);
++    if(!mypar->vram_virt || !mypar->virt_buf) {
++        return -EINVAL;
++    }
++    info->screen_base = (char __iomem *)mypar->vram_virt;
++    info->fix.smem_start = mypar->vram_phys;
++    info->fix.smem_len = mypar->vram_size * 2;
++    info->fix.line_length = (mypar->mode.xres * mypar->bpp) / 8;
++	info->fix.type =           FB_TYPE_PACKED_PIXELS;
++	info->fix.visual =         FB_VISUAL_TRUECOLOR;
++    info->fix.type_aux =       0;
++	info->fix.xpanstep =	   0;
++	info->fix.ypanstep =	   1;
++	info->fix.ywrapstep =	   0;
++	info->fix.accel =          FB_ACCEL_NONE;
++    strncpy(info->fix.id, DRIVER_NAME, 9);
++
++    info->var.xres =           mode->xres;
++	info->var.yres =           mode->yres;
++	info->var.xres_virtual =   info->var.xres;
++	info->var.yres_virtual =   info->var.yres * 2;
++    info->var.grayscale = 0;
++    info->var.bits_per_pixel = mypar->bpp;
++
++    info->flags = FBINFO_FLAG_DEFAULT;
++    info->fbops = &myfb_ops;
++    info->pseudo_palette = mypar->pseudo_palette;
++    info->fix.visual = (info->var.bits_per_pixel <= 8) ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
++
++    info->var.activate = FB_ACTIVATE_FORCE;
++	info->var.nonstd =         2;
++
++    fb_set_var(info, &(info->var));
++    dev_set_drvdata(&device->dev, info);
++    if(register_framebuffer(info) < 0) {
++        return -EINVAL;
++    }
++    
++    mypar->vram_last_idx = 0;
++	mypar->vram_cur_idx = 0;
++	mypar->nb_backbuffers_full = 0;
++    mypar->vsync_count = 0;
++
++    setup_timer(&mytimer, lcd_delay_init, 0);
++    mod_timer(&mytimer, jiffies + HZ * 11 / 10);
++    
++    device_create_file(info->dev, &notification_device_attr);
++    device_create_file(info->dev, &low_battery_device_attr);
++
++    for(ret = 0; ret < of_clk_get_parent_count(device->dev.of_node); ret++) {
++        clk_prepare_enable(of_clk_get(device->dev.of_node, ret));
++    }
++
++    return 0;
++}
++
++static int myfb_remove(struct platform_device *dev)
++{
++    struct fb_info *info = dev_get_drvdata(&dev->dev);
++    struct myfb_par *par = info->par;
++
++    if(info) {
++        free_irq(par->lcdc_irq, par);
++        del_timer(&mytimer);
++        unregister_framebuffer(info);
++        fb_dealloc_cmap(&info->cmap);
++        dma_free_wc(&dev->dev, par->vram_size * 2, par->vram_virt, par->vram_phys);
++        dma_free_wc(&dev->dev, par->vram_size * 5, par->virt_buf, par->next_frame);
++        pm_runtime_put_sync(&dev->dev);
++        pm_runtime_disable(&dev->dev);
++        device_remove_file(info->dev, &notification_device_attr);
++        device_remove_file(info->dev, &low_battery_device_attr);
++        framebuffer_release(info);
++    }
++    
++    return 0;
++}
++
++static int myfb_suspend(struct platform_device *dev, pm_message_t state)
++{
++    struct fb_info *info = platform_get_drvdata(dev);
++
++    console_lock();
++    fb_set_suspend(info, 1);
++    pm_runtime_put_sync(&dev->dev);
++    console_unlock();
++    return 0;
++}
++
++static int myfb_resume(struct platform_device *dev)
++{
++    struct fb_info *info = platform_get_drvdata(dev);
++
++    console_lock();
++    pm_runtime_get_sync(&dev->dev);
++    fb_set_suspend(info, 0);
++    console_unlock();
++    return 0;
++}
++
++static const struct of_device_id fb_of_match[] = {
++    {
++        .compatible = "allwinner,sun8i-v3s-tcon0",
++    },{}
++};
++MODULE_DEVICE_TABLE(of, fb_of_match);
++
++static struct platform_driver fb_driver = {
++    .probe    = myfb_probe,
++    .remove   = myfb_remove,
++    .suspend  = myfb_suspend,
++    .resume   = myfb_resume,
++    .driver = {
++        .name   = DRIVER_NAME,
++        .owner  = THIS_MODULE,
++        .of_match_table = of_match_ptr(fb_of_match),
++    },
++};
++
++static int myopen(struct inode *inode, struct file *file)
++{
++    return 0;
++}
++
++static int myclose(struct inode *inode, struct file *file)
++{
++    return 0;
++}
++
++static long myioctl(struct file *filp, unsigned int cmd, unsigned long arg)
++{
++    int32_t w, bpp;
++
++    switch (cmd) {
++        case MIYOO_FB0_SET_MODE:
++            w = (arg >> 16);
++            bpp = (arg & 0xffff);
++            if ((bpp != 16)) {
++                writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
++            } else {
++                writel((1 << 0) | (17 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
++            }
++            break;
++    }
++    return 0;
++}
++
++static const struct file_operations myfops = {
++        .owner = THIS_MODULE,
++        .open = myopen,
++        .release = myclose,
++        .unlocked_ioctl = myioctl,
++};
++
++static int __init fb_init(void)
++{
++    iomm.ccm = (uint8_t *)ioremap(V3S_CCM_BASE, 0x400);
++    iomm.gpio = (uint8_t *)ioremap(V3S_GPIO_BASE, 0x400);
++    iomm.lcdc = (uint8_t *)ioremap(V3S_TCON0_BASE, 0x1000);
++    iomm.de = (uint8_t *)ioremap(V3S_DE_BASE, 0x200000);
++    alloc_chrdev_region(&major, 0, 1, "miyoo_fb0");
++    myclass = class_create(THIS_MODULE, "miyoo_fb0");
++    device_create(myclass, NULL, major, NULL, "miyoo_fb0");
++    cdev_init(&mycdev, &myfops);
++    cdev_add(&mycdev, major, 1);
++    return platform_driver_register(&fb_driver);
++}
++
++static void __exit fb_cleanup(void)
++{
++    iounmap(iomm.ccm);
++    iounmap(iomm.gpio);
++    iounmap(iomm.lcdc);
++    iounmap(iomm.de);
++    device_destroy(myclass, major);
++    cdev_del(&mycdev);
++    class_destroy(myclass);
++    unregister_chrdev_region(major, 1);
++    platform_driver_unregister(&fb_driver);
++}
++
++module_init(fb_init);
++module_exit(fb_cleanup);
++
++MODULE_DESCRIPTION("I80 Framebuffer driver for V3S");
++MODULE_AUTHOR("Steward Fu <steward.fu@gmail.com>");
++MODULE_LICENSE("GPL");
+diff -uprN a/drivers/video/fbdev/v3s_i80.h b/drivers/video/fbdev/v3s_i80.h
+--- a/drivers/video/fbdev/v3s_i80.h	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/video/fbdev/v3s_i80.h	2026-01-24 14:38:04.504081876 +0800
+@@ -0,0 +1,133 @@
++#ifndef V3S_I80_H
++#define V3S_I80_H
++
++#include <linux/types.h>
++
++#define DRIVER_NAME				"v3s-i80"
++
++
 +struct myfb_par {
 +    struct device *dev;
 +    struct platform_device *pdev;
@@ -4427,10 +5212,14 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    void *vram_virt;
 +    uint32_t vram_size;
 +    dma_addr_t vram_phys;
-+    char *virt_buf;
++    uint8_t *virt_buf;
 +    dma_addr_t next_frame;
++    uint8_t vram_last_idx;
++	uint8_t vram_cur_idx;
++	uint8_t nb_backbuffers_full;
++	uint8_t post_buf_index;
 +
-+    bool force_update;
++    bool force_post_process;
 +    uint32_t vsync_count;
 +    char notification[401];
 +    unsigned long low_battery;
@@ -4440,6 +5229,133 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    uint32_t pseudo_palette[16];
 +    struct fb_videomode mode;
 +};
++
++#define V3S_CCM_BASE			(0x01C20000)
++#define PLL_VIDEO_CTRL_REG      (0x0010)
++#define PLL_PERIPH_CTRL_REG     (0x0028)
++#define PLL_PERIPH1_CTRL_REG    (0x0044)
++#define BUS_CLK_GATING_REG1     (0x0064)
++#define DE_CLK_REG              (0x0104)
++#define TCON_CLK_REG            (0x0118)
++#define BUS_SOFT_RST_REG1       (0x02C4)
++
++#define V3S_GPIO_BASE       	(0x01c20800)
++#define V3S_GPIOB_CFG0      	((1 * 0x24) + 0x00)
++#define V3S_GPIOB_DATA      	((1 * 0x24) + 0x10)
++#define V3S_GPIOE_CFG0      	((4 * 0x24) + 0x00)
++#define V3S_GPIOE_CFG1      	((4 * 0x24) + 0x04)
++#define V3S_GPIOE_DATA      	((4 * 0x24) + 0x10)
++#define V3S_GPIOE_PUL0     		((4*0x24)+0x1C)
++
++#define V3S_TCON0_BASE      	(0x01c0c000)
++#define TCON_CTRL_REG       	(0x000)
++#define TCON_INT_REG0       	(0x004)
++#define TCON0_FRM_CTL_REG		(0x010)
++#define TCON0_FRM_SEED_REG0		(0x014)
++#define TCON0_FRM_SEED_REG1		(0x018)
++#define TCON0_FRM_SEED_REG2		(0x01C)
++#define TCON0_FRM_SEED_REG3		(0x020)
++#define TCON0_FRM_SEED_REG4		(0x024)
++#define TCON0_FRM_SEED_REG5		(0x028)
++#define TCON0_FRM_TAB_REG0		(0x02C)
++#define TCON0_FRM_TAB_REG1		(0x030)
++#define TCON0_FRM_TAB_REG2		(0x034)
++#define TCON0_FRM_TAB_REG3		(0x038)
++#define TCON0_CTRL_REG       	(0x040)
++#define TCON_CLK_CTRL_REG   	(0x044)
++#define TCON0_BASIC_TIMING_REG0	(0x048)
++#define TCON0_BASIC_TIMING_REG1	(0x04C)
++#define TCON0_BASIC_TIMING_REG2	(0x050)
++#define TCON0_BASIC_TIMING_REG3	(0x054)
++#define TCON0_HV_TIMING_REG		(0x058)
++#define TCON0_CPU_IF_REG    	(0x060)
++#define TCON0_CPU_WR_REG    	(0x064)
++#define TCON0_CPU_RD_REG        (0x068)
++#define TCON0_IO_CTRL_REG0  	(0x088)
++#define TCON0_IO_CTRL_REG1  	(0x08C)
++#define TCON0_IO_CTRL_REG1  	(0x08C)
++#define TCON0_ECC_FIFO_REG		(0x0F8)
++#define TCON0_CPU_TRI0_REG		(0x160)
++#define TCON0_CPU_TRI1_REG		(0x164)
++#define TCON0_CPU_TRI2_REG		(0x168)
++#define TCON0_CPU_TRI3_REG		(0x16C)
++
++#define V3S_DE_BASE				(0x01000000)
++#define V3S_DE_MUX_GLB			(0x00100000 + 0x00000)
++#define V3S_DE_MUX_BLD			(0x00100000 + 0x01000)
++#define V3S_DE_MUX_CHAN			(0x00100000 + 0x02000)
++#define V3S_DE_MUX_VSU			(0x00100000 + 0x20000)
++#define V3S_DE_MUX_GSU1			(0x00100000 + 0x30000)
++#define V3S_DE_MUX_GSU2			(0x00100000 + 0x40000)
++#define V3S_DE_MUX_GSU3			(0x00100000 + 0x50000)
++#define V3S_DE_MUX_FCE			(0x00100000 + 0xa0000)
++#define V3S_DE_MUX_BWS			(0x00100000 + 0xa2000)
++#define V3S_DE_MUX_LTI			(0x00100000 + 0xa4000)
++#define V3S_DE_MUX_PEAK			(0x00100000 + 0xa6000)
++#define V3S_DE_MUX_ASE			(0x00100000 + 0xa8000)
++#define V3S_DE_MUX_FCC			(0x00100000 + 0xaa000)
++#define V3S_DE_MUX_DCSC			(0x00100000 + 0xb0000)
++#define V3S_DE_MUX_CLK_GATE             (0x00)
++#define V3S_DE_MUX_CLK_BUS              (0x04)
++#define V3S_DE_MUX_CLK_RST              (0x08)
++#define V3S_DE_MUX_CLK_DIV              (0x0c)
++#define V3S_DE_MUX_CLK_SEL              (0x10)
++#define V3S_DE_MUX_GLB_CTL              (V3S_DE_MUX_GLB + 0x00)
++#define V3S_DE_MUX_GLB_STA              (V3S_DE_MUX_GLB + 0x04)
++#define V3S_DE_MUX_GLB_DBUF             (V3S_DE_MUX_GLB + 0x08)
++#define V3S_DE_MUX_GLB_SIZE             (V3S_DE_MUX_GLB + 0x0c)
++#define V3S_DE_MUX_BLD_FCOLOR_CTL       (V3S_DE_MUX_BLD + 0x00)
++#define V3S_DE_MUX_BLD_ATTR_FCOLOR(x)   (V3S_DE_MUX_BLD + 0x04 + 0x10 * (x) + 0x0)
++#define V3S_DE_MUX_BLD_ATTR_INSIZE(x)   (V3S_DE_MUX_BLD + 0x04 + 0x10 * (x) + 0x4)
++#define V3S_DE_MUX_BLD_ATTR_OFFSET(x)   (V3S_DE_MUX_BLD + 0x04 + 0x10 * (x) + 0x8)
++#define V3S_DE_MUX_BLD_ROUTE            (V3S_DE_MUX_BLD + 0x80)
++#define V3S_DE_MUX_BLD_PREMULTIPLY      (V3S_DE_MUX_BLD + 0x84)
++#define V3S_DE_MUX_BLD_BKCOLOR          (V3S_DE_MUX_BLD + 0x88)
++#define V3S_DE_MUX_BLD_OUTSIZE          (V3S_DE_MUX_BLD + 0x8c)
++#define V3S_DE_MUX_BLD_MODE(x)          (V3S_DE_MUX_BLD + 0x90 + 0x04 * (x))
++#define V3S_DE_MUX_BLD_CK_CTL           (V3S_DE_MUX_BLD + 0xb0)
++#define V3S_DE_MUX_BLD_CK_CFG           (V3S_DE_MUX_BLD + 0xb4)
++#define V3S_DE_MUX_BLD_CK_MAX(x)        (V3S_DE_MUX_BLD + 0xc0 + 0x04 * (x))
++#define V3S_DE_MUX_BLD_CK_MIN(x)        (V3S_DE_MUX_BLD + 0xe0 + 0x04 * (x))
++#define V3S_DE_MUX_BLD_OUTCTL           (V3S_DE_MUX_BLD + 0xfc)
++#define V3S_DE_MUX_UI_CFG_ATTR          (V3S_DE_MUX_CHAN + 0x1000 * 2 + 0x0)
++#define V3S_DE_MUX_UI_CFG_SIZE          (V3S_DE_MUX_CHAN + 0x1000 * 2 + 0x4)
++#define V3S_DE_MUX_UI_CFG_COORD         (V3S_DE_MUX_CHAN + 0x1000 * 2 + 0x8)
++#define V3S_DE_MUX_UI_CFG_PITCH         (V3S_DE_MUX_CHAN + 0x1000 * 2 + 0xc)
++#define V3S_DE_MUX_UI_CFG_TOP_ADDR      (V3S_DE_MUX_CHAN + 0x1000 * 2 + 0x10)      
++#define V3S_DE_MUX_UI_CFG_BT_ADDR       (V3S_DE_MUX_CHAN + 0x1000 * 2 + 0x14)
++#define V3S_DE_MUX_UI_CFG_OVL_SIZE      (V3S_DE_MUX_CHAN + 0x1000 * 2 + 0x88)
++
++void myfb_flip_backbuffer(struct myfb_par *par);
++
++#endif
+\ No newline at end of file
+diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789v2.c
+--- a/drivers/video/fbdev/v3s_st7789v2.c	1970-01-01 08:00:00.000000000 +0800
++++ b/drivers/video/fbdev/v3s_st7789v2.c	2026-01-24 14:37:49.694082015 +0800
+@@ -0,0 +1,822 @@
++#include <asm/io.h>
++#include <linux/clk.h>
++#include <linux/cdev.h>
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/console.h>
++#include <linux/fb.h>
++#include <linux/delay.h>
++#include <linux/interrupt.h>
++#include <linux/pm_runtime.h>
++#include <linux/omapfb.h>
++#include <linux/dma-mapping.h>
++#include <linux/clk-provider.h>
++#include <linux/platform_device.h>
++
++#include "v3s_i80.h"
++#include "fb_text.h"
++
++#define FBIO_SET_DEBE_MODE  _IOWR(0x1000, 0, unsigned long)
++#define MIYOO_FB0_SET_MODE  _IOWR(0x101, 0, unsigned long)
++
++DECLARE_WAIT_QUEUE_HEAD(wait_vsync_queue);
 +
 +struct v3s_iomm {
 +    uint8_t *ccm;
@@ -4539,12 +5455,11 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +	writel(tmp, iomm.gpio + V3S_GPIOE_DATA);
 +}
 +
-+static void lcdc_gc9307_init(void)
++static void lcdc_st7789v_init(void)
 +{
 +    v3s_i80_gpio_init();
 +
 +    lcdc_wr(0, 0x11);  //sleep out
-+    mdelay(250);
 +
 +    lcdc_wr(0, 0x36);
 +    lcdc_wr(1, 0xa0);
@@ -4685,7 +5600,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +	writel(0, iomm.de + V3S_DE_MUX_UI_CFG_COORD);
 +	writel((par->bpp / 8) * par->mode.xres, iomm.de + V3S_DE_MUX_UI_CFG_PITCH);
 +	writel(size, iomm.de + V3S_DE_MUX_UI_CFG_OVL_SIZE);
-+	writel(par->vram_phys, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++	writel(par->next_frame, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
 +	writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
 +}
 +
@@ -4735,7 +5650,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +static void smartlcd_init(struct myfb_par *par)
 +{   
 +    v3s_i80_gpio_init();
-+    lcdc_gc9307_init();
++    lcdc_st7789v_init();
 +    v3s_i80_lcd_init();
 +    v3s_tcon_disable(par);
 +	v3s_de_set_mode(par);
@@ -4745,7 +5660,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +static void v3s_clock_init(struct myfb_par *par)
 +{
-+    writel(0x91002a06, iomm.ccm + PLL_VIDEO_CTRL_REG);
++    writel(0x91002406, iomm.ccm + PLL_VIDEO_CTRL_REG);
 +    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
 +    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
 +
@@ -4755,15 +5670,73 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    v3s_setbits(iomm.ccm + BUS_SOFT_RST_REG1, (1 << 12) | (1 << 4));
 +}
 +
-+static void myfb_deferred_io(struct fb_info *info, struct list_head *pagelist)
++static void myfb_set_vram_buf(struct myfb_par *par){
++	if(par->nb_backbuffers_full > 0) {
++		par->nb_backbuffers_full = 0;
++		par->post_buf_index = 1;
++	} else {
++		par->post_buf_index = 0;
++		par->force_post_process = true; //necessary (to clear HID, not rotate multiple times the same buffer etc...)
++	}
++}
++
++static void myfb_post_process_vram(struct myfb_par *par)
 +{
-+    struct myfb_par *par = info->par;
-+    
-+	wait_for_vsync(par);
-+	
-+	if ((!par->force_update) && (!par->notification[0]) && (!par->low_battery)) {
-+        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
-+    }
++	/* If notification, mark whole screen to update */
++	if (par->notification[0]) {
++		par->force_post_process = true;
++	}
++
++	/* Low battery icon */
++	if (par->low_battery) {
++		par->force_post_process = true;
++	}
++
++	/* Post process */
++	if (par->force_post_process) {
++
++		/* Clear flag */
++		par->force_post_process = false;
++
++		/* Copy buffer before post processing
++		Since the HID for battery, notifs... 
++		is added on top of the real framebufffer, 
++		we must not write directly inside the real 
++		framebuffer or it might never be cleared.
++		*/
++		if (par->post_buf_index > 0) {
++		    memcpy(par->virt_buf + 3 * par->vram_size, 
++		    par->virt_buf + par->vram_last_idx * par->vram_size, par->vram_size);
++		} else {
++		    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size * 2, DMA_TO_DEVICE);
++		    memcpy(par->virt_buf + 3 * par->vram_size, 
++		    par->vram_virt + par->info->var.yoffset * par->info->fix.line_length, par->vram_size);
++		}
++		
++		/* Notifications */
++        if (par->notification[0]) {
++            basic_text_out16_bg((uint16_t *)(par->virt_buf + 3 * par->vram_size), par->mode.xres, par->mode.yres,
++             0, 0, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
++        }
++        
++        /* Low battery icon */
++        if (par->low_battery) {
++            draw_low_battery((uint16_t *)(par->virt_buf + 3 * par->vram_size), par->mode.xres, par->mode.yres);
++        }
++	} 
++}
++
++void myfb_flip_backbuffer(struct myfb_par *par)
++{
++    dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size * 2, DMA_TO_DEVICE);
++    memcpy(par->virt_buf + par->vram_cur_idx * par->vram_size, 
++		par->vram_virt + par->info->var.yoffset * par->info->fix.line_length, 
++		par->vram_size);
++	par->vram_last_idx = par->vram_cur_idx;
++	par->vram_cur_idx = (par->vram_cur_idx + 1) % 3;
++	if(par->nb_backbuffers_full < 3){
++		par->nb_backbuffers_full++;
++	}
 +}
 +
 +static irqreturn_t lcdc_irq_handler(int irq, void *arg)
@@ -4772,26 +5745,18 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
 +    
-+    /* Notifications */
-+	if (par->notification[0]) {
-+        basic_text_out16_bg((uint16_t *)(par->vram_virt + par->info->var.yoffset * par->info->fix.line_length), par->mode.xres, par->mode.yres, 0, 0, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
++    myfb_set_vram_buf(par);
++    myfb_post_process_vram(par);
++    
++    if ((par->post_buf_index == 0) || par->notification[0] || par->low_battery) {
++        writel(par->next_frame + 3 * par->vram_size, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
++    } else {
++        writel(par->next_frame + par->vram_last_idx * par->vram_size, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
 +    }
 +    
-+    /* Low battery icon */
-+	if (par->low_battery) {
-+		draw_low_battery((uint16_t *)(par->vram_virt + par->info->var.yoffset * par->info->fix.line_length), par->mode.xres, par->mode.yres);
-+	}
-+    
-+    if ((par->info->var.yoffset % par->mode.yres) == 0) {
-+        dma_sync_single_for_device(par->dev, par->vram_phys, par->vram_size * 2, DMA_TO_DEVICE);
-+        memcpy(par->virt_buf, par->vram_virt + par->info->var.yoffset * par->info->fix.line_length, par->vram_size);
-+    	writel(par->next_frame, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
-+        dma_sync_single_for_device(par->dev, par->next_frame, par->vram_size, DMA_TO_DEVICE);
-+	    writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
-+	    if (par->force_update || par->notification[0] || par->low_battery) {
-+	        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
-+	    }
-+    }
++    dma_sync_single_for_device(par->dev, par->next_frame, par->vram_size * 4, DMA_TO_DEVICE);
++    writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
++    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
 +    
 +    par->vsync_count += 1;
 +    wake_up_interruptible_all(&wait_vsync_queue);
@@ -4819,7 +5784,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    v3s_clock_init(mypar);
 +    smartlcd_init(mypar);
 +    v3s_enable_irq(mypar);
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
 +}
 +
 +static ssize_t store_notification(struct device *device, struct device_attribute *attr, const char *buf, size_t count)
@@ -4919,7 +5883,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    info->fix.visual = FB_VISUAL_TRUECOLOR;
 +    info->fix.line_length = (par->mode.xres * par->bpp) / 8;
 +    writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+    par->force_update = false;
 +
 +    return 0;
 +}
@@ -4937,7 +5900,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +            if(arg == 1) {
 +                writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
 +            } else {
-+                par->force_update = true;
 +                writel((1 << 0) | (17 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
 +            }
 +            break;
@@ -4982,7 +5944,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    int ret = 0;
 +    struct fb_info *info = NULL;
 +    struct fb_videomode *mode = NULL;
-+    struct fb_deferred_io *fbdefio = NULL;
 +
 +    mode = devm_kzalloc(&device->dev, sizeof(struct fb_videomode), GFP_KERNEL);
 +    if(mode == NULL) {
@@ -5009,7 +5970,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +    mypar->vram_size = (mode->xres * mode->yres * (mypar->bpp / 8));
 +    mypar->vram_virt = dma_alloc_wc(&device->dev, mypar->vram_size * 2, (resource_size_t *)&mypar->vram_phys, GFP_KERNEL | GFP_DMA);
-+    mypar->virt_buf = dma_alloc_wc(&device->dev, mypar->vram_size, (resource_size_t *)&mypar->next_frame, GFP_KERNEL | GFP_DMA);
++    mypar->virt_buf = dma_alloc_wc(&device->dev, mypar->vram_size * 4 + 1024, (resource_size_t *)&mypar->next_frame, GFP_KERNEL | GFP_DMA);
 +    if(!mypar->vram_virt || !mypar->virt_buf) {
 +        return -EINVAL;
 +    }
@@ -5047,6 +6008,9 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +        return -EINVAL;
 +    }
 +    
++    mypar->vram_last_idx = 0;
++	mypar->vram_cur_idx = 0;
++	mypar->nb_backbuffers_full = 0;
 +    mypar->vsync_count = 0;
 +
 +    setup_timer(&mytimer, lcd_delay_init, 0);
@@ -5055,16 +6019,6 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    device_create_file(info->dev, &notification_device_attr);
 +    device_create_file(info->dev, &low_battery_device_attr);
 +
-+    fbdefio = devm_kzalloc(&device->dev, sizeof(struct fb_deferred_io), GFP_KERNEL);
-+    if(fbdefio == NULL) {
-+        return -ENOMEM;
-+    }
-+    
-+    fbdefio->delay = (HZ / 60),
-+    fbdefio->deferred_io = myfb_deferred_io,
-+    info->fbdefio = fbdefio;
-+    fb_deferred_io_init(info);
-+
 +    for(ret = 0; ret < of_clk_get_parent_count(device->dev.of_node); ret++) {
 +        clk_prepare_enable(of_clk_get(device->dev.of_node, ret));
 +    }
@@ -5080,12 +6034,10 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    if(info) {
 +        free_irq(par->lcdc_irq, par);
 +        del_timer(&mytimer);
-+        flush_scheduled_work();
 +        unregister_framebuffer(info);
-+        fb_deferred_io_cleanup(info);
 +        fb_dealloc_cmap(&info->cmap);
 +        dma_free_wc(&dev->dev, par->vram_size * 2, par->vram_virt, par->vram_phys);
-+        dma_free_wc(&dev->dev, par->vram_size, par->virt_buf, par->next_frame);
++        dma_free_wc(&dev->dev, par->vram_size * 4 + 1024, par->virt_buf, par->next_frame);
 +        pm_runtime_put_sync(&dev->dev);
 +        pm_runtime_disable(&dev->dev);
 +        device_remove_file(info->dev, &notification_device_attr);
@@ -5157,968 +6109,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +            if ((bpp != 16)) {
 +                writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
 +            } else {
-+                mypar->force_update = true;
 +                writel((1 << 0) | (17 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+            }
-+            break;
-+    }
-+    return 0;
-+}
-+
-+static const struct file_operations myfops = {
-+        .owner = THIS_MODULE,
-+        .open = myopen,
-+        .release = myclose,
-+        .unlocked_ioctl = myioctl,
-+};
-+
-+static int __init fb_init(void)
-+{
-+    iomm.ccm = (uint8_t *)ioremap(V3S_CCM_BASE, 0x400);
-+    iomm.gpio = (uint8_t *)ioremap(V3S_GPIO_BASE, 0x400);
-+    iomm.lcdc = (uint8_t *)ioremap(V3S_TCON0_BASE, 0x1000);
-+    iomm.de = (uint8_t *)ioremap(V3S_DE_BASE, 0x200000);
-+    alloc_chrdev_region(&major, 0, 1, "miyoo_fb0");
-+    myclass = class_create(THIS_MODULE, "miyoo_fb0");
-+    device_create(myclass, NULL, major, NULL, "miyoo_fb0");
-+    cdev_init(&mycdev, &myfops);
-+    cdev_add(&mycdev, major, 1);
-+    return platform_driver_register(&fb_driver);
-+}
-+
-+static void __exit fb_cleanup(void)
-+{
-+    iounmap(iomm.ccm);
-+    iounmap(iomm.gpio);
-+    iounmap(iomm.lcdc);
-+    iounmap(iomm.de);
-+    device_destroy(myclass, major);
-+    cdev_del(&mycdev);
-+    class_destroy(myclass);
-+    unregister_chrdev_region(major, 1);
-+    platform_driver_unregister(&fb_driver);
-+}
-+
-+module_init(fb_init);
-+module_exit(fb_cleanup);
-+
-+MODULE_DESCRIPTION("I80 Framebuffer driver for V3S");
-+MODULE_AUTHOR("Steward Fu <steward.fu@gmail.com>");
-+MODULE_LICENSE("GPL");
-diff -uprN a/drivers/video/fbdev/v3s_i80.h b/drivers/video/fbdev/v3s_i80.h
---- a/drivers/video/fbdev/v3s_i80.h	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_i80.h	2025-12-22 20:39:09.980522826 +0800
-@@ -0,0 +1,104 @@
-+#ifndef V3S_I80_H
-+#define V3S_I80_H
-+
-+#include <linux/types.h>
-+
-+#define DRIVER_NAME				"v3s-i80"
-+
-+#define V3S_CCM_BASE			(0x01C20000)
-+#define PLL_VIDEO_CTRL_REG      (0x0010)
-+#define PLL_PERIPH_CTRL_REG     (0x0028)
-+#define PLL_PERIPH1_CTRL_REG    (0x0044)
-+#define BUS_CLK_GATING_REG1     (0x0064)
-+#define DE_CLK_REG              (0x0104)
-+#define TCON_CLK_REG            (0x0118)
-+#define BUS_SOFT_RST_REG1       (0x02C4)
-+
-+#define V3S_GPIO_BASE       	(0x01c20800)
-+#define V3S_GPIOB_CFG0      	((1 * 0x24) + 0x00)
-+#define V3S_GPIOB_DATA      	((1 * 0x24) + 0x10)
-+#define V3S_GPIOE_CFG0      	((4 * 0x24) + 0x00)
-+#define V3S_GPIOE_CFG1      	((4 * 0x24) + 0x04)
-+#define V3S_GPIOE_DATA      	((4 * 0x24) + 0x10)
-+#define V3S_GPIOE_PUL0     		((4*0x24)+0x1C)
-+
-+#define V3S_TCON0_BASE      	(0x01c0c000)
-+#define TCON_CTRL_REG       	(0x000)
-+#define TCON_INT_REG0       	(0x004)
-+#define TCON0_FRM_CTL_REG		(0x010)
-+#define TCON0_FRM_SEED_REG0		(0x014)
-+#define TCON0_FRM_SEED_REG1		(0x018)
-+#define TCON0_FRM_SEED_REG2		(0x01C)
-+#define TCON0_FRM_SEED_REG3		(0x020)
-+#define TCON0_FRM_SEED_REG4		(0x024)
-+#define TCON0_FRM_SEED_REG5		(0x028)
-+#define TCON0_FRM_TAB_REG0		(0x02C)
-+#define TCON0_FRM_TAB_REG1		(0x030)
-+#define TCON0_FRM_TAB_REG2		(0x034)
-+#define TCON0_FRM_TAB_REG3		(0x038)
-+#define TCON0_CTRL_REG       	(0x040)
-+#define TCON_CLK_CTRL_REG   	(0x044)
-+#define TCON0_BASIC_TIMING_REG0	(0x048)
-+#define TCON0_BASIC_TIMING_REG1	(0x04C)
-+#define TCON0_BASIC_TIMING_REG2	(0x050)
-+#define TCON0_BASIC_TIMING_REG3	(0x054)
-+#define TCON0_HV_TIMING_REG		(0x058)
-+#define TCON0_CPU_IF_REG    	(0x060)
-+#define TCON0_CPU_WR_REG    	(0x064)
-+#define TCON0_CPU_RD_REG        (0x068)
-+#define TCON0_IO_CTRL_REG0  	(0x088)
-+#define TCON0_IO_CTRL_REG1  	(0x08C)
-+#define TCON0_IO_CTRL_REG1  	(0x08C)
-+#define TCON0_ECC_FIFO_REG		(0x0F8)
-+#define TCON0_CPU_TRI0_REG		(0x160)
-+#define TCON0_CPU_TRI1_REG		(0x164)
-+#define TCON0_CPU_TRI2_REG		(0x168)
-+#define TCON0_CPU_TRI3_REG		(0x16C)
-+
-+#define V3S_DE_BASE				(0x01000000)
-+#define V3S_DE_MUX_GLB			(0x00100000 + 0x00000)
-+#define V3S_DE_MUX_BLD			(0x00100000 + 0x01000)
-+#define V3S_DE_MUX_CHAN			(0x00100000 + 0x02000)
-+#define V3S_DE_MUX_VSU			(0x00100000 + 0x20000)
-+#define V3S_DE_MUX_GSU1			(0x00100000 + 0x30000)
-+#define V3S_DE_MUX_GSU2			(0x00100000 + 0x40000)
-+#define V3S_DE_MUX_GSU3			(0x00100000 + 0x50000)
-+#define V3S_DE_MUX_FCE			(0x00100000 + 0xa0000)
-+#define V3S_DE_MUX_BWS			(0x00100000 + 0xa2000)
-+#define V3S_DE_MUX_LTI			(0x00100000 + 0xa4000)
-+#define V3S_DE_MUX_PEAK			(0x00100000 + 0xa6000)
-+#define V3S_DE_MUX_ASE			(0x00100000 + 0xa8000)
-+#define V3S_DE_MUX_FCC			(0x00100000 + 0xaa000)
-+#define V3S_DE_MUX_DCSC			(0x00100000 + 0xb0000)
-+#define V3S_DE_MUX_CLK_GATE             (0x00)
-+#define V3S_DE_MUX_CLK_BUS              (0x04)
-+#define V3S_DE_MUX_CLK_RST              (0x08)
-+#define V3S_DE_MUX_CLK_DIV              (0x0c)
-+#define V3S_DE_MUX_CLK_SEL              (0x10)
-+#define V3S_DE_MUX_GLB_CTL              (V3S_DE_MUX_GLB + 0x00)
-+#define V3S_DE_MUX_GLB_STA              (V3S_DE_MUX_GLB + 0x04)
-+#define V3S_DE_MUX_GLB_DBUF             (V3S_DE_MUX_GLB + 0x08)
-+#define V3S_DE_MUX_GLB_SIZE             (V3S_DE_MUX_GLB + 0x0c)
-+#define V3S_DE_MUX_BLD_FCOLOR_CTL       (V3S_DE_MUX_BLD + 0x00)
-+#define V3S_DE_MUX_BLD_ATTR_FCOLOR(x)   (V3S_DE_MUX_BLD + 0x04 + 0x10 * (x) + 0x0)
-+#define V3S_DE_MUX_BLD_ATTR_INSIZE(x)   (V3S_DE_MUX_BLD + 0x04 + 0x10 * (x) + 0x4)
-+#define V3S_DE_MUX_BLD_ATTR_OFFSET(x)   (V3S_DE_MUX_BLD + 0x04 + 0x10 * (x) + 0x8)
-+#define V3S_DE_MUX_BLD_ROUTE            (V3S_DE_MUX_BLD + 0x80)
-+#define V3S_DE_MUX_BLD_PREMULTIPLY      (V3S_DE_MUX_BLD + 0x84)
-+#define V3S_DE_MUX_BLD_BKCOLOR          (V3S_DE_MUX_BLD + 0x88)
-+#define V3S_DE_MUX_BLD_OUTSIZE          (V3S_DE_MUX_BLD + 0x8c)
-+#define V3S_DE_MUX_BLD_MODE(x)          (V3S_DE_MUX_BLD + 0x90 + 0x04 * (x))
-+#define V3S_DE_MUX_BLD_CK_CTL           (V3S_DE_MUX_BLD + 0xb0)
-+#define V3S_DE_MUX_BLD_CK_CFG           (V3S_DE_MUX_BLD + 0xb4)
-+#define V3S_DE_MUX_BLD_CK_MAX(x)        (V3S_DE_MUX_BLD + 0xc0 + 0x04 * (x))
-+#define V3S_DE_MUX_BLD_CK_MIN(x)        (V3S_DE_MUX_BLD + 0xe0 + 0x04 * (x))
-+#define V3S_DE_MUX_BLD_OUTCTL           (V3S_DE_MUX_BLD + 0xfc)
-+#define V3S_DE_MUX_UI_CFG_ATTR          (V3S_DE_MUX_CHAN +  0x1000 * 2 + 0x0)
-+#define V3S_DE_MUX_UI_CFG_SIZE          (V3S_DE_MUX_CHAN +  0x1000 * 2 + 0x4)
-+#define V3S_DE_MUX_UI_CFG_COORD         (V3S_DE_MUX_CHAN +  0x1000 * 2 + 0x8)
-+#define V3S_DE_MUX_UI_CFG_PITCH         (V3S_DE_MUX_CHAN +  0x1000 * 2 + 0xc)
-+#define V3S_DE_MUX_UI_CFG_TOP_ADDR      (V3S_DE_MUX_CHAN +  0x1000 * 2 + 0x10)      
-+#define V3S_DE_MUX_UI_CFG_BT_ADDR       (V3S_DE_MUX_CHAN +  0x1000 * 2 + 0x14) 
-+#define V3S_DE_MUX_UI_CFG_OVL_SIZE      (V3S_DE_MUX_CHAN +  0x1000 * 2 + 0x88)
-+
-+#endif
-\ No newline at end of file
-diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789v2.c
---- a/drivers/video/fbdev/v3s_st7789v2.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_st7789v2.c	2025-12-22 20:39:09.980522826 +0800
-@@ -0,0 +1,847 @@
-+#include <asm/io.h>
-+#include <linux/clk.h>
-+#include <linux/cdev.h>
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+#include <linux/console.h>
-+#include <linux/fb.h>
-+#include <linux/delay.h>
-+#include <linux/interrupt.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/omapfb.h>
-+#include <linux/dma-mapping.h>
-+#include <linux/clk-provider.h>
-+#include <linux/platform_device.h>
-+
-+#include "v3s_i80.h"
-+#include "fb_text.h"
-+
-+#define FBIO_SET_DEBE_MODE  _IOWR(0x1000, 0, unsigned long)
-+#define MIYOO_FB0_SET_MODE  _IOWR(0x101, 0, unsigned long)
-+
-+DECLARE_WAIT_QUEUE_HEAD(wait_vsync_queue);
-+
-+struct myfb_par {
-+    struct device *dev;
-+    struct platform_device *pdev;
-+    struct fb_info *info;
-+
-+    void *vram_virt[2];
-+    uint32_t vram_size;
-+    dma_addr_t vram_phys[2];
-+    uint32_t dirty_offset;
-+    uint32_t dirty_size;
-+
-+    uint32_t vsync_count;
-+    char notification[401];
-+    unsigned long low_battery;
-+
-+    int bpp;
-+    int lcdc_irq;
-+    uint32_t pseudo_palette[16];
-+    struct fb_videomode mode;
-+};
-+
-+struct v3s_iomm {
-+    uint8_t *ccm;
-+    uint8_t *gpio;
-+    uint8_t *lcdc;
-+    uint8_t *de;
-+};
-+
-+static int major = -1;
-+static struct cdev mycdev;
-+static struct class *myclass = NULL;
-+static struct timer_list mytimer;
-+static struct v3s_iomm iomm = {0};
-+static struct myfb_par *mypar = NULL;
-+bool ctrl_sta;
-+
-+static int wait_for_vsync(struct myfb_par *par)
-+{
-+    uint32_t count = par->vsync_count;
-+    long t = wait_event_interruptible_timeout(wait_vsync_queue, count != par->vsync_count, HZ / 10);
-+    return t > 0 ? 0 : (t < 0 ? (int)t : -ETIMEDOUT);
-+}
-+
-+static void v3s_clrbits(void __iomem *reg, uint32_t clr_val)
-+{
-+	uint32_t ret;
-+
-+	ret = readl(reg);
-+	ret &= ~(clr_val);
-+	writel(ret, reg);
-+}
-+
-+static void v3s_setbits(void __iomem *reg, uint32_t set_val)
-+{
-+	uint32_t ret;
-+
-+	ret = readl(reg);
-+	ret |= set_val;
-+	writel(ret, reg);
-+}
-+
-+static void v3s_i80_gpio_init(void)
-+{
-+    uint32_t r=0;
-+
-+    //PE0~7
-+    r = readl(iomm.gpio + V3S_GPIOE_CFG0);
-+    r&= 0x000f0000;
-+    r|= 0x33303333;
-+    writel(r, iomm.gpio + V3S_GPIOE_CFG0);
-+
-+    //PE8~15
-+    r = readl(iomm.gpio + V3S_GPIOE_CFG1);
-+    r&= 0xfff00000;
-+    r|= 0x00033333;
-+    writel(r, iomm.gpio + V3S_GPIOE_CFG1);
-+
-+    //PE2
-+    r = readl(iomm.gpio + V3S_GPIOE_PUL0);
-+    r &= 0xffffff0f;
-+    r |= 0x00000010;
-+    writel(r, iomm.gpio + V3S_GPIOE_PUL0);
-+
-+    //PB2
-+    r = readl(iomm.gpio + V3S_GPIOB_CFG0);
-+    r&= 0xfffff0ff;
-+    r|= 0x00000100;
-+    writel(r, iomm.gpio + V3S_GPIOB_CFG0);
-+
-+    //LCDreset
-+    v3s_clrbits(iomm.gpio + V3S_GPIOB_DATA, (1 << 2));
-+    mdelay(150);
-+    v3s_setbits(iomm.gpio + V3S_GPIOB_DATA, (1 << 2));
-+    mdelay(50);
-+}
-+
-+static uint32_t lcdc_wait_busy(void)
-+{
-+    uint32_t cnt = 0;
-+
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 0));   //trigger mode enable
-+    ndelay(10);
-+    while(1) {
-+        if(readl(iomm.lcdc + TCON0_CPU_IF_REG) & 0x00c00000) {
-+            if(cnt > 100) {
-+                return -1;
-+            }
-+            else {
-+                cnt += 1;
-+            }
-+        }
-+        break;
-+    }
-+    return 0;
-+}
-+
-+static uint32_t extend_16b_to_24b(uint32_t value)
-+{
-+    return ((value & 0xfc00) << 8) | ((value & 0x0300) << 6) | ((value & 0x00e0) << 5) | ((value & 0x001f) << 3);
-+}
-+
-+static void lcdc_wr(uint8_t is_data, uint32_t data)
-+{
-+    while(lcdc_wait_busy());
-+    if(is_data) {
-+        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 25));
-+    }
-+    else {
-+        v3s_clrbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 25));
-+    }
-+    while(lcdc_wait_busy());
-+    writel(extend_16b_to_24b(data), iomm.lcdc + TCON0_CPU_WR_REG);
-+}
-+
-+static void lcdc_st7789v_init(void)
-+{
-+    v3s_i80_gpio_init();
-+
-+    lcdc_wr(0, 0x11);  //sleep out
-+    mdelay(250);
-+
-+    lcdc_wr(0, 0x36);
-+    lcdc_wr(1, 0xa0);
-+
-+    lcdc_wr(0, 0x2a);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x01);
-+    lcdc_wr(1, 0x3f);
-+
-+    lcdc_wr(0, 0x2b);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0xef);
-+
-+    // ST7789S Frame rate setting
-+    lcdc_wr(0, 0xb2);
-+    lcdc_wr(1, 0x5a);
-+    lcdc_wr(1, 0x7f);
-+    lcdc_wr(1, 0x01);
-+    lcdc_wr(1, 0x33);
-+    lcdc_wr(1, 0x33);
-+
-+    // Gate Control
-+    lcdc_wr(0, 0xb7);
-+    lcdc_wr(1, 0x56);
-+    
-+    lcdc_wr(0, 0xb8);
-+    lcdc_wr(1, 0x56);
-+
-+    // gc9307 Power setting
-+    lcdc_wr(0, 0xbb);
-+    lcdc_wr(1, 0x18);
-+
-+    lcdc_wr(0, 0xc0);
-+    lcdc_wr(1, 0x2c);
-+
-+    lcdc_wr(0, 0xc2);
-+    lcdc_wr(1, 0x01);
-+
-+    lcdc_wr(0, 0xc3);
-+    lcdc_wr(1, 0x1f);
-+
-+    lcdc_wr(0, 0xc4);
-+    lcdc_wr(1, 0x20);
-+
-+    lcdc_wr(0, 0xc6);
-+    lcdc_wr(1, 0x08);
-+
-+    lcdc_wr(0, 0xd0);
-+    lcdc_wr(1, 0xa6);
-+    lcdc_wr(1, 0xa1);
-+
-+    // ST7789S gamma setting
-+    lcdc_wr(0, 0xe0);
-+    lcdc_wr(1, 0x70);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x06);
-+    lcdc_wr(1, 0x09);
-+    lcdc_wr(1, 0x0b);
-+    lcdc_wr(1, 0x2a);
-+    lcdc_wr(1, 0x3c);
-+    lcdc_wr(1, 0x33);
-+    lcdc_wr(1, 0x4b);
-+    lcdc_wr(1, 0x08);
-+    lcdc_wr(1, 0x16);
-+    lcdc_wr(1, 0x14);
-+    lcdc_wr(1, 0x2a);
-+    lcdc_wr(1, 0x23);
-+
-+    lcdc_wr(0, 0xe1);
-+    lcdc_wr(1, 0xd0);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x06);
-+    lcdc_wr(1, 0x09);
-+    lcdc_wr(1, 0x0b);
-+    lcdc_wr(1, 0x29);
-+    lcdc_wr(1, 0x36);
-+    lcdc_wr(1, 0x54);
-+    lcdc_wr(1, 0x4b);
-+    lcdc_wr(1, 0x0d);
-+    lcdc_wr(1, 0x16);
-+    lcdc_wr(1, 0x14);
-+    lcdc_wr(1, 0x28);
-+    lcdc_wr(1, 0x22);
-+
-+    lcdc_wr(0, 0x35);  //Memory data access control
-+    lcdc_wr(1, 0x00);  //TE
-+
-+    lcdc_wr(0, 0x3A);  //Interface pixel format
-+    lcdc_wr(1, 0x55);  //65K
-+    
-+    lcdc_wr(0, 0x21);  //ips Display inversion on
-+    lcdc_wr(0, 0x29);  //Display on
-+    lcdc_wr(0, 0x2c);  //Memory write
-+}
-+
-+static void smartlcd_init(struct myfb_par *par)
-+{   
-+    uint32_t size = (((par->mode.yres) - 1) << 16) | ((par->mode.xres) - 1);
-+	int i;
-+    
-+    writel(0, iomm.lcdc + TCON_CTRL_REG);
-+    writel(0, iomm.lcdc + TCON_INT_REG0);
-+    v3s_clrbits(iomm.lcdc + TCON_CLK_CTRL_REG, (0xf << 28));
-+    writel(0xffffffff, iomm.lcdc + TCON0_IO_CTRL_REG1);
-+    
-+	v3s_setbits(iomm.de + V3S_DE_MUX_CLK_RST, (1 << 0));
-+    v3s_setbits(iomm.de + V3S_DE_MUX_CLK_GATE, (1 << 0));
-+    v3s_setbits(iomm.de + V3S_DE_MUX_CLK_BUS, (1 << 0));
-+    v3s_clrbits(iomm.de + V3S_DE_MUX_CLK_SEL, (1 << 0));
-+
-+    writel((1 << 0), iomm.de + V3S_DE_MUX_GLB_CTL);
-+    writel(0, iomm.de + V3S_DE_MUX_GLB_STA);
-+    writel(size, iomm.de + V3S_DE_MUX_GLB_SIZE);
-+
-+	for(i = 0; i < 4; i++) {
-+		void * chan = (void *)(iomm.de + V3S_DE_MUX_CHAN + 0x1000 * i);
-+		memset(chan, 0, i == 0 ? 256 : 140);
-+	}
-+	memset(iomm.de + V3S_DE_MUX_BLD, 0, 256);
-+
-+    writel(0x00000101, iomm.de + V3S_DE_MUX_BLD_FCOLOR_CTL);
-+	writel(2, iomm.de + V3S_DE_MUX_BLD_ROUTE);
-+	writel(0, iomm.de + V3S_DE_MUX_BLD_PREMULTIPLY);
-+	writel(0xff000000, iomm.de + V3S_DE_MUX_BLD_BKCOLOR);
-+	writel(0x03010301, iomm.de + V3S_DE_MUX_BLD_MODE(0));
-+	writel(size, iomm.de + V3S_DE_MUX_BLD_OUTSIZE);
-+	writel(0, iomm.de + V3S_DE_MUX_BLD_OUTCTL);
-+	writel(0, iomm.de + V3S_DE_MUX_BLD_CK_CTL);
-+    writel(0xff000000, iomm.de + V3S_DE_MUX_BLD_ATTR_FCOLOR(0));
-+	writel(size, iomm.de + V3S_DE_MUX_BLD_ATTR_INSIZE(0));
-+
-+    writel(0, iomm.de + V3S_DE_MUX_VSU);
-+	writel(0, iomm.de + V3S_DE_MUX_GSU1);
-+	writel(0, iomm.de + V3S_DE_MUX_GSU2);
-+	writel(0, iomm.de + V3S_DE_MUX_GSU3);
-+	writel(0, iomm.de + V3S_DE_MUX_FCE);
-+	writel(0, iomm.de + V3S_DE_MUX_BWS);
-+	writel(0, iomm.de + V3S_DE_MUX_LTI);
-+	writel(0, iomm.de + V3S_DE_MUX_PEAK);
-+	writel(0, iomm.de + V3S_DE_MUX_ASE);
-+	writel(0, iomm.de + V3S_DE_MUX_FCC);
-+	writel(0, iomm.de + V3S_DE_MUX_DCSC);
-+	
-+	writel((1 << 0) | (10 << 8) | (1 << 1) | (0xff << 24), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+	writel(size, iomm.de + V3S_DE_MUX_UI_CFG_SIZE);
-+	writel(0, iomm.de + V3S_DE_MUX_UI_CFG_COORD);
-+	writel((par->bpp / 8) * (par->mode.xres), iomm.de + V3S_DE_MUX_UI_CFG_PITCH);
-+	writel(par->vram_phys, iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
-+	writel(size, iomm.de + V3S_DE_MUX_UI_CFG_OVL_SIZE);
-+	writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
-+	
-+	writel((1 << 31) | ((3 & 0x1f) << 4) | (1 << 24), iomm.lcdc + TCON0_CTRL_REG);
-+    writel((0xf << 28) | (6 << 0), iomm.lcdc + TCON_CLK_CTRL_REG);
-+    writel((7 << 29) | (1 << 26) | (5 << 0), iomm.lcdc + TCON0_CPU_IF_REG);
-+    
-+    writel(((par->mode.xres - 1) << 16) | ((par->mode.yres - 1) << 0), iomm.lcdc + TCON0_BASIC_TIMING_REG0);
-+    
-+    writel((20 << 16) | (par->mode.xres - 1), iomm.lcdc + TCON0_CPU_TRI0_REG);//block space | size
-+    writel((par->mode.yres - 1), iomm.lcdc + TCON0_CPU_TRI1_REG);//block num
-+    writel(((3 << 16) | (par->mode.xres - 1)), iomm.lcdc + TCON0_CPU_TRI2_REG);//start delay3 | Trans Start
-+    writel((2 << 28), iomm.lcdc + TCON0_CPU_TRI3_REG);//TE rising mode
-+
-+    writel((1 << 8), iomm.lcdc + TCON0_ECC_FIFO_REG);//enable ecc function in blanking
-+
-+    writel(0, iomm.lcdc + TCON0_HV_TIMING_REG);
-+    writel((1 << 28), iomm.lcdc + TCON0_IO_CTRL_REG0);
-+    writel(0x1FFE307, iomm.lcdc + TCON0_IO_CTRL_REG1);
-+    
-+    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG0);
-+    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG1);
-+    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG2);
-+    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG3);
-+    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG4);
-+    writel(0x11111111, iomm.lcdc + TCON0_FRM_SEED_REG5);
-+    writel(0x01010000, iomm.lcdc + TCON0_FRM_TAB_REG0);
-+    writel(0x15151111, iomm.lcdc + TCON0_FRM_TAB_REG1);
-+    writel(0x57575555, iomm.lcdc + TCON0_FRM_TAB_REG2);
-+    writel(0x7f7f7777, iomm.lcdc + TCON0_FRM_TAB_REG3);
-+    writel(((1 << 31) | (5 << 4)), iomm.lcdc + TCON0_FRM_CTL_REG);
-+    
-+	v3s_setbits(iomm.lcdc + TCON_CTRL_REG, (1 << 31));
-+    v3s_setbits(iomm.lcdc + TCON_INT_REG0, (1 << 26));
-+    
-+	lcdc_st7789v_init();
-+}
-+
-+static irqreturn_t lcdc_irq_handler(int irq, void *arg) {
-+    struct myfb_par *par = arg;
-+    
-+    v3s_clrbits(iomm.lcdc + TCON_INT_REG0, (1 << 10));
-+    
-+    if(par->dirty_size > par->info->fix.line_length) {
-+        dma_sync_single_for_device(par->dev, par->vram_phys[0], par->vram_size, DMA_TO_DEVICE);
-+        memcpy(par->vram_virt[1] + par->dirty_offset, par->info->screen_buffer + par->dirty_offset, par->dirty_size);
-+        writel(par->vram_phys[1], iomm.de + V3S_DE_MUX_UI_CFG_TOP_ADDR);
-+        dma_sync_single_for_device(par->dev, par->vram_phys[1], par->vram_size, DMA_TO_DEVICE);
-+        writel(1, iomm.de + V3S_DE_MUX_GLB_DBUF);
-+        if (ctrl_sta) {
-+	        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
-+	    }
-+    }
-+    
-+    par->vsync_count += 1;
-+    wake_up_interruptible_all(&wait_vsync_queue);
-+    
-+    return IRQ_HANDLED;
-+}
-+
-+static void myfb_deferred_io(struct fb_info *info, struct list_head *pagelist)
-+{
-+    struct myfb_par *par = info->par;
-+	unsigned int dirty_lines_start, dirty_lines_end;
-+	struct page *page;
-+	unsigned long index;
-+	unsigned int y_low = 0, y_high = 0;
-+	int x_notif, y_notif;
-+	
-+	dirty_lines_start = par->dirty_offset / info->fix.line_length;
-+	dirty_lines_end = (par->dirty_offset + par->dirty_size) / info->fix.line_length - 1;
-+	
-+	list_for_each_entry(page, pagelist, lru) {
-+		index = page->index << PAGE_SHIFT;
-+		y_low = index / info->fix.line_length;
-+		y_high = (index + PAGE_SIZE - 1) / info->fix.line_length;
-+		if (y_high > info->var.yres - 1)
-+			y_high = info->var.yres - 1;
-+		if (y_low < dirty_lines_start)
-+			dirty_lines_start = y_low;
-+		if (y_high > dirty_lines_end)
-+			dirty_lines_end = y_high;
-+	}
-+	
-+	/* Notifications */
-+	if (par->notification[0]) {
-+	    x_notif = 0;
-+		y_notif = 0;
-+        basic_text_out16_bg((uint16_t *)info->screen_buffer, par->mode.xres, par->mode.yres, x_notif, y_notif, RGB565(255, 255, 255), RGB565(0, 0, 0), par->notification);
-+        if (y_notif < dirty_lines_start)
-+			dirty_lines_start = y_notif;
-+		if (y_notif + MONACO_HEIGHT > dirty_lines_end)
-+			dirty_lines_end = y_notif + MONACO_HEIGHT;
-+    }
-+    
-+    /* Low battery icon */
-+	if (par->low_battery) {
-+		draw_low_battery((uint16_t *)info->screen_buffer, par->mode.xres, par->mode.yres);
-+	}
-+	
-+	par->dirty_offset = dirty_lines_start * info->fix.line_length;
-+	par->dirty_size = (dirty_lines_end - dirty_lines_start + 1) * info->fix.line_length;
-+	
-+	wait_for_vsync(par);
-+	
-+	if (!ctrl_sta) {
-+        v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
-+    }
-+}
-+
-+static void v3s_enable_irq(struct myfb_par *par)
-+{
-+    int ret = 0;
-+
-+    par->lcdc_irq = platform_get_irq(par->pdev, 0);
-+    if(par->lcdc_irq < 0) {
-+        printk("%s, failed to get irq number for lcdc irq\n", __func__);
-+    } else {
-+        ret = request_irq(par->lcdc_irq, lcdc_irq_handler, IRQF_SHARED, "lcdc_irq", par);
-+        if(ret) {
-+            printk("%s, failed to register lcdc interrupt(%d)\n", __func__, par->lcdc_irq);
-+        }
-+    }
-+}
-+
-+static void v3s_clock_init(struct myfb_par *par)
-+{
-+    writel(0x91002a06, iomm.ccm + PLL_VIDEO_CTRL_REG);
-+    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
-+    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
-+
-+    v3s_setbits(iomm.ccm + DE_CLK_REG, (1 << 31));
-+    v3s_setbits(iomm.ccm + TCON_CLK_REG, (1 << 31));
-+    v3s_setbits(iomm.ccm + BUS_CLK_GATING_REG1, (1 << 12) | (1 << 4));
-+    v3s_setbits(iomm.ccm + BUS_SOFT_RST_REG1, (1 << 12) | (1 << 4));
-+}
-+
-+static void lcd_delay_init(unsigned long param)
-+{
-+    v3s_clock_init(mypar);
-+    smartlcd_init(mypar);
-+    v3s_enable_irq(mypar);
-+    v3s_setbits(iomm.lcdc + TCON0_CPU_IF_REG, (1 << 1));
-+}
-+
-+static ssize_t store_notification(struct device *device, struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct fb_info *fb_info = dev_get_drvdata(device);
-+	struct myfb_par *par = fb_info->par;
-+	char *tmp;
-+
-+	tmp = kmemdup(buf, count + 1, GFP_KERNEL);
-+	if (!tmp)
-+		return -ENOMEM;
-+
-+	/* Clear notif buffer if empty string */
-+	if (!strcmp(buf, "clear")){
-+		par->notification[0] = 0;
-+	} else{
-+		strncpy(par->notification, tmp, 400);
-+	}
-+
-+	return count;
-+}
-+
-+static ssize_t show_notification(struct device *device, struct device_attribute *attr, char *buf)
-+{
-+	struct fb_info *fb_info = dev_get_drvdata(device);
-+	struct myfb_par *par = fb_info->par;
-+
-+	return snprintf(buf, PAGE_SIZE, "%s\n", par->notification);
-+}
-+
-+static struct device_attribute notification_device_attr = __ATTR(notification, 0660, show_notification, store_notification);
-+
-+static ssize_t store_low_battery(struct device *device, struct device_attribute *attr, const char *buf, size_t count)
-+{
-+	struct fb_info *fb_info = dev_get_drvdata(device);
-+	struct myfb_par *par = fb_info->par;
-+	int ret;
-+
-+	ret = kstrtoul(buf, 10, &par->low_battery);
-+	if (ret)
-+		return ret;
-+
-+	par->low_battery = par->low_battery?1:0;
-+
-+	return count;
-+}
-+
-+static ssize_t show_low_battery(struct device *device, struct device_attribute *attr, char *buf)
-+{
-+	struct fb_info *fb_info = dev_get_drvdata(device);
-+	struct myfb_par *par = fb_info->par;
-+
-+	return snprintf(buf, PAGE_SIZE, "%lu\n", par->low_battery);
-+}
-+
-+static struct device_attribute low_battery_device_attr = __ATTR(low_battery, 0660, show_low_battery, store_low_battery);
-+
-+#define CNVT_TOHW(val, width) ((((val) << (width)) + 0x7FFF - (val)) >> 16)
-+static int myfb_setcolreg(unsigned regno, unsigned red, unsigned green, unsigned blue, unsigned transp, struct fb_info *info)
-+{
-+    red = CNVT_TOHW(red, info->var.red.length);
-+    blue = CNVT_TOHW(blue, info->var.blue.length);
-+    green = CNVT_TOHW(green, info->var.green.length);
-+    ((uint32_t *)(info->pseudo_palette))[regno] = (red << info->var.red.offset) | (green << info->var.green.offset) | (blue << info->var.blue.offset);
-+    return 0;
-+}
-+#undef CNVT_TOHW
-+
-+static int myfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
-+{
-+    if((var->xres != 320) || (var->yres != 240) || (var->bits_per_pixel != 16)) {
-+        return -EINVAL;
-+    }
-+
-+    var->transp.offset = 0;
-+    var->transp.length = 0;
-+    var->red.offset = 11;
-+    var->red.length = 5;
-+    var->green.offset = 5;
-+    var->green.length = 6;
-+    var->blue.offset = 0;
-+    var->blue.length = 5;
-+    var->red.msb_right = 0;
-+    var->green.msb_right = 0;
-+    var->blue.msb_right = 0;
-+    var->transp.msb_right = 0;
-+
-+    return 0;
-+}
-+
-+static int myfb_set_par(struct fb_info *info)
-+{
-+    struct myfb_par *par = info->par;
-+
-+    fb_var_to_videomode(&par->mode, &info->var);
-+    par->bpp = info->var.bits_per_pixel;
-+    info->fix.visual = FB_VISUAL_TRUECOLOR;
-+    info->fix.line_length = (par->mode.xres * par->bpp) / 8;
-+    writel((1 << 0) | (10 << 8) | (1 << 1) | (0xff << 24), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+    ctrl_sta = false;
-+
-+    return 0;
-+}
-+
-+static int myfb_ioctl(struct fb_info *info, unsigned int cmd, unsigned long arg)
-+{
-+    struct myfb_par *par = info->par;
-+    
-+    switch (cmd) {
-+        case FBIO_WAITFORVSYNC:
-+            wait_for_vsync(par);
-+            break;
-+            
-+        case FBIO_SET_DEBE_MODE:
-+            if(arg == 1) {
-+                writel((1 << 0) | (10 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+            }
-+            else {
-+                ctrl_sta = true;
-+                writel((1 << 0) | (17 << 8), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+            }
-+            break;
-+        
-+        default:
-+        return -1;
-+    }
-+    return 0;
-+}
-+
-+static int myfb_mmap(struct fb_info *info, struct vm_area_struct *vma)
-+{
-+    const unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-+    const unsigned long size = vma->vm_end - vma->vm_start;
-+
-+    if(offset + size > info->fix.smem_len) {
-+        return -EINVAL;
-+    }
-+
-+    if(remap_pfn_range(vma, vma->vm_start, (info->fix.smem_start + offset) >> PAGE_SHIFT, size, vma->vm_page_prot)) {
-+        return -EAGAIN;
-+    }
-+    return 0;
-+}
-+
-+static struct fb_ops myfb_ops = {
-+    .owner          = THIS_MODULE,
-+    .fb_check_var   = myfb_check_var,
-+    .fb_set_par     = myfb_set_par,
-+    .fb_setcolreg   = myfb_setcolreg,
-+    .fb_ioctl       = myfb_ioctl,
-+    .fb_mmap        = myfb_mmap,
-+
-+    .fb_fillrect  = sys_fillrect,
-+    .fb_copyarea  = sys_copyarea,
-+    .fb_imageblit = sys_imageblit,
-+};
-+
-+static int myfb_probe(struct platform_device *device)
-+{
-+    int ret = 0;
-+    struct fb_info *info = NULL;
-+    struct fb_videomode *mode = NULL;
-+    struct fb_deferred_io *fbdefio = NULL;
-+
-+    mode = devm_kzalloc(&device->dev, sizeof(struct fb_videomode), GFP_KERNEL);
-+    if(mode == NULL) {
-+        return -ENOMEM;
-+    }
-+    mode->name = "320x240";
-+    mode->xres = 320;
-+    mode->yres = 240;
-+    mode->vmode = FB_VMODE_NONINTERLACED;
-+    pm_runtime_enable(&device->dev);
-+    pm_runtime_get_sync(&device->dev);
-+
-+    info = framebuffer_alloc(sizeof(struct myfb_par), &device->dev);
-+    if(!info) {
-+        return -ENOMEM;
-+    }
-+
-+    mypar = info->par;
-+    mypar->info = info;
-+    mypar->pdev = device;
-+    mypar->dev = &device->dev;
-+    mypar->bpp = 16;
-+    fb_videomode_to_var(&(info->var), mode);
-+
-+    mypar->vram_size = (mode->xres * mode->yres * (mypar->bpp / 8));
-+    mypar->vram_virt[0] = dma_alloc_wc(&device->dev, mypar->vram_size, (resource_size_t *)&mypar->vram_phys[0], GFP_KERNEL | GFP_DMA);
-+    mypar->vram_virt[1] = dma_alloc_wc(&device->dev, mypar->vram_size, (resource_size_t *)&mypar->vram_phys[1], GFP_KERNEL | GFP_DMA);
-+    if(!mypar->vram_virt[0] || !mypar->vram_virt[1]) {
-+        return -EINVAL;
-+    }
-+
-+    info->screen_base = (char __iomem *)mypar->vram_virt[0];
-+    info->fix.smem_start = mypar->vram_phys[0];
-+    info->fix.smem_len = mypar->vram_size * 2;
-+    info->fix.line_length = (mypar->mode.xres * mypar->bpp) / 8;
-+	info->fix.type =           FB_TYPE_PACKED_PIXELS;
-+    info->fix.type_aux =       0;
-+	info->fix.xpanstep =	   0;
-+	info->fix.ypanstep =	   0;
-+	info->fix.ywrapstep =	   0;
-+	info->fix.accel =          FB_ACCEL_NONE;
-+    strncpy(info->fix.id, DRIVER_NAME, 9);
-+    
-+    mypar->dirty_offset = 0;
-+    mypar->dirty_size = mypar->vram_size;
-+
-+    info->var.xres =           mode->xres;
-+	info->var.yres =           mode->yres;
-+	info->var.xres_virtual =   info->var.xres;
-+	info->var.yres_virtual =   info->var.yres * 2;
-+    info->var.grayscale = 0;
-+    info->var.bits_per_pixel = mypar->bpp;
-+
-+    info->flags = FBINFO_FLAG_DEFAULT;
-+    info->fbops = &myfb_ops;
-+    info->pseudo_palette = mypar->pseudo_palette;
-+    info->fix.visual = (info->var.bits_per_pixel <= 8) ? FB_VISUAL_PSEUDOCOLOR : FB_VISUAL_TRUECOLOR;
-+
-+    info->var.activate = FB_ACTIVATE_FORCE;
-+	info->var.nonstd =         2;
-+
-+    fb_set_var(info, &(info->var));
-+    dev_set_drvdata(&device->dev, info);
-+    if(register_framebuffer(info) < 0) {
-+        return -EINVAL;
-+    }
-+    
-+    mypar->vsync_count = 0;
-+    
-+    setup_timer(&mytimer, lcd_delay_init, 0);
-+    mod_timer(&mytimer, jiffies + HZ);
-+    fb_prepare_logo(info, 0);
-+    fb_show_logo(info, 0);
-+
-+    device_create_file(info->dev, &notification_device_attr);
-+    device_create_file(info->dev, &low_battery_device_attr);
-+    
-+    fbdefio = devm_kzalloc(&device->dev, sizeof(struct fb_deferred_io), GFP_KERNEL);
-+    if(fbdefio == NULL) {
-+        return -ENOMEM;
-+    }
-+    
-+    fbdefio->delay = (HZ / 60),
-+    fbdefio->deferred_io = myfb_deferred_io,
-+    info->fbdefio = fbdefio;
-+    fb_deferred_io_init(info);
-+
-+    for(ret = 0; ret < of_clk_get_parent_count(device->dev.of_node); ret++) {
-+        clk_prepare_enable(of_clk_get(device->dev.of_node, ret));
-+    }
-+    
-+    return 0;
-+}
-+
-+static int myfb_remove(struct platform_device *dev)
-+{
-+    struct fb_info *info = dev_get_drvdata(&dev->dev);
-+    struct myfb_par *par = info->par;
-+
-+    if(info) {
-+        free_irq(par->lcdc_irq, par);
-+        del_timer(&mytimer);
-+        flush_scheduled_work();
-+        unregister_framebuffer(info);
-+        fb_deferred_io_cleanup(info);
-+        fb_dealloc_cmap(&info->cmap);
-+        dma_free_wc(&dev->dev, par->vram_size, par->vram_virt[0], par->vram_phys[0]);
-+        dma_free_wc(&dev->dev, par->vram_size, par->vram_virt[1], par->vram_phys[1]);
-+        pm_runtime_put_sync(&dev->dev);
-+        pm_runtime_disable(&dev->dev);
-+        device_remove_file(info->dev, &notification_device_attr);
-+        device_remove_file(info->dev, &low_battery_device_attr);
-+        framebuffer_release(info);
-+    }
-+    return 0;
-+}
-+
-+static int myfb_suspend(struct platform_device *dev, pm_message_t state)
-+{
-+    struct fb_info *info = platform_get_drvdata(dev);
-+
-+    console_lock();
-+    fb_set_suspend(info, 1);
-+    pm_runtime_put_sync(&dev->dev);
-+    console_unlock();
-+    return 0;
-+}
-+
-+static int myfb_resume(struct platform_device *dev)
-+{
-+    struct fb_info *info = platform_get_drvdata(dev);
-+
-+    console_lock();
-+    pm_runtime_get_sync(&dev->dev);
-+    fb_set_suspend(info, 0);
-+    console_unlock();
-+    return 0;
-+}
-+
-+static const struct of_device_id fb_of_match[] = {
-+    {
-+        .compatible = "allwinner,sun8i-v3s-tcon0",
-+    },{}
-+};
-+MODULE_DEVICE_TABLE(of, fb_of_match);
-+
-+static struct platform_driver fb_driver = {
-+    .probe    = myfb_probe,
-+    .remove   = myfb_remove,
-+    .suspend  = myfb_suspend,
-+    .resume   = myfb_resume,
-+    .driver = {
-+        .name   = DRIVER_NAME,
-+        .owner  = THIS_MODULE,
-+        .of_match_table = of_match_ptr(fb_of_match),
-+    },
-+};
-+
-+static int myopen(struct inode *inode, struct file *file)
-+{
-+    return 0;
-+}
-+
-+static int myclose(struct inode *inode, struct file *file)
-+{
-+    return 0;
-+}
-+
-+static long myioctl(struct file *filp, unsigned int cmd, unsigned long arg)
-+{
-+    int32_t w, bpp;
-+
-+    switch (cmd) {
-+        case MIYOO_FB0_SET_MODE:
-+            w = (arg >> 16);
-+            bpp = (arg & 0xffff);
-+            if ((bpp != 16)) {
-+                writel((1 << 0) | (10 << 8) | (1 << 1) | (0xff << 24), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
-+            } else {
-+                ctrl_sta = true;
-+                writel((1 << 0) | (17 << 8) | (1 << 1) | (0xff << 24), iomm.de + V3S_DE_MUX_UI_CFG_ATTR);
 +            }
 +            break;
 +    }
