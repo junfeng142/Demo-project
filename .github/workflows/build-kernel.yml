@@ -5,7 +5,7 @@ on:
 
 env:
   REPO_URL: https://github.com/FunKey-Project/linux.git
-  REPO_BRANCH: master
+  REPO_BRANCH: linux-FunKey-1.0.2
   PKG_NAME: zImage
   BIN_DIR: /arch/arm/boot/
   CONFIG_FILE: configs/linux.config
