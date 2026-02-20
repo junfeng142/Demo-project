@@ -7,4 +7,4 @@ Exec=/mnt/OpenBOR/run.sh
 Terminal=true
 Type=Application
 Icon=openbor
-Categories=games
+Categories=emulators

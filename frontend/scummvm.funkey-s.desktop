@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=ScummVM UI
+Comment=Interpreter for several adventure games
+Comment[ch]=多款冒险游戏模拟器
+Exec=scummvm
+Icon=scummvm
+Terminal=false
+Type=Application
+Categories=emulators
+StartupNotify=false
+X-OD-Manual=README.man.txt
