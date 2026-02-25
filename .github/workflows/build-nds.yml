@@ -39,7 +39,7 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
-        git clone $REPO_URL -b --depth 1 $REPO_BRANCH $PKG_NAME
+        git clone $REPO_URL -b $REPO_BRANCH --depth 1 $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
         cd && tar xvf toolchain.tar.gz
