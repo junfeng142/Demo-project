@@ -155,7 +155,7 @@ diff -uprN a/src/selector.cpp b/src/selector.cpp
  				}
 diff -uprN a/src/surface.cpp b/src/surface.cpp
 --- a/src/surface.cpp	2026-02-25 13:06:45.721809947 +0800
-+++ b/src/surface.cpp	2026-02-25 13:07:28.841810170 +0800
++++ b/src/surface.cpp	2026-02-25 20:44:25.035049746 +0800
 @@ -29,9 +29,12 @@
  #include <cassert>
  #include <iomanip>
@@ -170,7 +170,15 @@ diff -uprN a/src/surface.cpp b/src/surface.cpp
  
  // RGBAColor:
  
-@@ -356,5 +359,6 @@ unique_ptr<OutputSurface> OutputSurface:
+@@ -312,6 +315,7 @@ OffscreenSurface::OffscreenSurface(Offsc
+ OffscreenSurface::~OffscreenSurface()
+ {
+ 	SDL_FreeSurface(raw);
++	close(fd);
+ }
+ 
+ OffscreenSurface& OffscreenSurface::operator=(OffscreenSurface other)
+@@ -356,5 +360,6 @@ unique_ptr<OutputSurface> OutputSurface:
  }
  
  void OutputSurface::flip() {
