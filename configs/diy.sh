@@ -16,6 +16,9 @@ mkdir -p _opk
 # libretro build
 [ -f libretro-super.sh ] && patch -p1 < fit_for_libretro_build.patch
 
+# gmenu2x build
+[ -f src/gmenu2x.cpp ] && patch -p1 < fit_for_gmenu2x_build.patch
+
 # scummvm build
 [ -f icons/scummvm.ico ] && patch -p1 < fit_for_scummvm_build.patch
 

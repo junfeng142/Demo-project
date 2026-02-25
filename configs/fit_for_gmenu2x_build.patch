@@ -1,0 +1,179 @@
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build.sh	2026-02-25 13:09:12.001810706 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++CMAKE=1
++CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
++cmake $CMAKE_ARGS .
++make
+diff -uprN a/buildopts.h.cmakein b/buildopts.h.cmakein
+--- a/buildopts.h.cmakein	2026-02-25 13:06:45.081809943 +0800
++++ b/buildopts.h.cmakein	2026-02-25 13:08:13.141810400 +0800
+@@ -1,7 +1,7 @@
+ #ifndef GMENU2X_BUILDOPTS_H
+ #define GMENU2X_BUILDOPTS_H
+ 
+-#define GMENU2X_SYSTEM_DIR "@CMAKE_INSTALL_FULL_DATADIR@/gmenu2x"
++#define GMENU2X_SYSTEM_DIR "/usr/share/gmenu2x"
+ #define GMENU2X_CARD_ROOT "@CARD_ROOT@"
+ 
+ #endif /* GMENU2X_BUILDOPTS_H */
+diff -uprN a/src/contextmenu.cpp b/src/contextmenu.cpp
+--- a/src/contextmenu.cpp	2026-02-25 13:06:45.201809944 +0800
++++ b/src/contextmenu.cpp	2026-02-25 13:07:28.841810170 +0800
+@@ -82,7 +82,7 @@ ContextMenu::ContextMenu(GMenu2X &gmenu2
+ 	for (auto option : options) {
+ 		w = std::max(w, font.getTextWidth(option->text));
+ 	}
+-	w += 23;
++	w += 80;
+ 	const int h = (font.getLineSpacing() + 2) * options.size() + 8;
+ 	box = {
+ 		static_cast<Sint16>((gmenu2x.width() - w) / 2),
+diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
+--- a/src/funkeymenu.cpp	2026-02-25 13:06:45.241809944 +0800
++++ b/src/funkeymenu.cpp	2026-02-25 13:07:28.841810170 +0800
+@@ -20,7 +20,7 @@
+ #define MENU_ERROR_PRINTF(...)
+ #endif //MENU_ERROR
+ 
+-#define SCREEN_HORIZONTAL_SIZE      240 //RES_HW_SCREEN_HORIZONTAL
++#define SCREEN_HORIZONTAL_SIZE      320 //RES_HW_SCREEN_HORIZONTAL
+ #define SCREEN_VERTICAL_SIZE        240 //RES_HW_SCREEN_VERTICAL
+ 
+ #define SCROLL_SPEED_PX             30
+@@ -394,7 +394,7 @@ void FunkeyMenu::init_menu_zones(){
+ 	/// Init USB Menu
+ 	add_menu_zone(MENU_TYPE_USB);
+ 	/// Init Launcher Menu
+-	add_menu_zone(MENU_TYPE_LAUNCHER);
++	//add_menu_zone(MENU_TYPE_LAUNCHER);
+ 	/// Init Powerdown Menu
+ 	add_menu_zone(MENU_TYPE_POWERDOWN);
+ }
+@@ -827,6 +827,8 @@ int FunkeyMenu::launch( )
+ 							/// ----- Shell cmd ----
+ 							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
+ 							system(shell_cmd);
++							// Turn audio amp off to avoid buzzing sound
++							system(SHELL_CMD_AUDIO_AMP_OFF);
+ 
+ 							/// ------ Refresh screen ------
+ 							screen_refresh = 1;
+@@ -883,6 +885,8 @@ int FunkeyMenu::launch( )
+ 							/// ----- Shell cmd ----
+ 							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
+ 							system(shell_cmd);
++							// Turn audio amp off to avoid buzzing sound
++							system(SHELL_CMD_AUDIO_AMP_OFF);
+ 
+ 							/// ------ Refresh screen ------
+ 							screen_refresh = 1;
+diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
+--- a/src/gmenu2x.cpp	2026-02-25 13:06:45.321809945 +0800
++++ b/src/gmenu2x.cpp	2026-02-25 13:07:28.841810170 +0800
+@@ -326,6 +326,9 @@ GMenu2X::GMenu2X() : input(*this), sc(th
+ 
+     // Init FunkeyMenu
+     FunkeyMenu::init( *this );
++	
++	// Turn audio amp off to avoid buzzing sound
++	system(SHELL_CMD_AUDIO_AMP_OFF);
+ 
+ 	//powerSaver->setScreenTimeout(confInt["backlightTimeout"]);
+ }
+@@ -523,6 +526,7 @@ void GMenu2X::readConfig(string conffile
+ 		confStr["skin"] = "Default";
+ 
+ 	evalIntConf( confInt, "outputLogs", 0, 0,1 );
++	evalIntConf( confInt, "trimExt", 0, 0,1);
+ 	evalIntConf( confInt, "backlightTimeout", 15, 0,120 );
+ 	evalIntConf( confInt, "buttonRepeatRate", 10, 0, 20 );
+ 	evalIntConf( confInt, "videoBpp", 32, 16, 32 );
+@@ -750,36 +754,40 @@ void GMenu2X::showSettings() {
+ 			*this, tr["Language"],
+ 			tr["Set the language used by GMenu2X"],
+ 			&lang, &translations)));
+-	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
++	/*sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
+ 			*this, tr["Save last selection"],
+ 			tr["Save the last selected link and section on exit"],
+-			&confInt["saveSelection"])));
++			&confInt["saveSelection"])));*/
+ 	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
+ 			*this, tr["Output logs"],
+ 			tr["Logs the output of the links. Use the Log Viewer to read them."],
+ 			&confInt["outputLogs"])));
+-	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
++	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
++			*this, tr["Trim extensions"],
++			tr["Trim extensions in the file explorer."],
++			&confInt["trimExt"])));
++	/*sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
+ 			*this, tr["Screen Timeout"],
+ 			tr["Set screen's backlight timeout in seconds"],
+-			&confInt["backlightTimeout"], 0, 120)));
++			&confInt["backlightTimeout"], 0, 120)));*/
+ 	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
+ 			*this, tr["Button repeat rate"],
+ 			tr["Set button repetitions per second"],
+ 			&confInt["buttonRepeatRate"], 0, 20)));
+-	if (brightnessmanager->available()) {
++	/*if (brightnessmanager->available()) {
+ 		sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
+ 				*this, tr["Brightness level"],
+ 				tr["Set the brightness level"],
+ 				&confInt["brightnessLevel"],
+ 				1, brightnessmanager->maxBrightness())));
+-	}
++	}*/
+ 
+ 	if (sd.exec()) {
+ 		//powerSaver->setScreenTimeout(confInt["backlightTimeout"]);
+ 
+ 		input.repeatRateChanged();
+-		if (brightnessmanager->available())
+-			brightnessmanager->setBrightness(confInt["brightnessLevel"]);
++		/*if (brightnessmanager->available())
++			brightnessmanager->setBrightness(confInt["brightnessLevel"]);*/
+ 
+ 		if (lang == "English") lang = "";
+ 		if (lang != tr.lang()) {
+diff -uprN a/src/selector.cpp b/src/selector.cpp
+--- a/src/selector.cpp	2026-02-25 13:06:45.701809947 +0800
++++ b/src/selector.cpp	2026-02-25 13:07:28.831810170 +0800
+@@ -142,7 +142,7 @@ int Selector::exec(int startSelection) {
+ 							x, iY + lineHeight / 2,
+ 							Font::HAlignLeft, Font::VAlignMiddle);
+ 				} else {
+-					gmenu2x.font->write(s, trimExtension(fl[i]),
++					gmenu2x.font->write(s, (gmenu2x.confInt["trimExt"] ? trimExtension(fl[i]) : fl[i]),
+ 							x, iY + lineHeight / 2,
+ 							Font::HAlignLeft, Font::VAlignMiddle);
+ 				}
+diff -uprN a/src/surface.cpp b/src/surface.cpp
+--- a/src/surface.cpp	2026-02-25 13:06:45.721809947 +0800
++++ b/src/surface.cpp	2026-02-25 13:07:28.841810170 +0800
+@@ -29,9 +29,12 @@
+ #include <cassert>
+ #include <iomanip>
+ #include <utility>
++#include <sys/ioctl.h>
++#include <fcntl.h>
++#include <linux/fb.h>
+ 
+ using namespace std;
+-
++int fd = open("/dev/fb0", O_RDWR);
+ 
+ // RGBAColor:
+ 
+@@ -356,5 +359,6 @@ unique_ptr<OutputSurface> OutputSurface:
+ }
+ 
+ void OutputSurface::flip() {
++    ioctl(fd, FBIO_WAITFORVSYNC, 0);
+ 	SDL_Flip(raw);
+ }
