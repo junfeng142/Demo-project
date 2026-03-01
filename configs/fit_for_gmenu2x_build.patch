@@ -1,7 +1,7 @@
 diff -uprN "a/Chinese (CN)" "b/Chinese (CN)"
 --- "a/Chinese (CN)"	1970-01-01 08:00:00.000000000 +0800
-+++ "b/Chinese (CN)"	2026-02-27 09:57:19.860809974 +0800
-@@ -0,0 +1,94 @@
++++ "b/Chinese (CN)"	2026-02-28 16:52:32.873016353 +0800
+@@ -0,0 +1,116 @@
 +Launch an application=启动应用程序
 +Configure GMenu2X's options=配置GMenu2X的选项
 +Skin=界面主题
@@ -96,6 +96,28 @@ diff -uprN "a/Chinese (CN)" "b/Chinese (CN)"
 +Wallpaper selection=壁纸选择窗口
 +Select a wallpaper from the list=从下列选择一个图片作为壁纸
 +Lng=ch
++applications=应用
++settings=设置
++emulators=模拟器
++games=游戏
++Explorer=文件浏览器
++VOLUME=音量
++BRIGHTNESS=背光
++POWERDOWN=关机
++SET LAUNCHER=前端切换
++EJECT=断开
++MOUNT=挂载
++In progress...=操作中...
++Saving...=保存中...
++Loading...=加载中...
++Are you sure ?=你确定?
++Shutting down...=关机...
++CONTROLS=操作
++A: Launch link / Confirm action=A: 启动应用/确认操作
++B: Show this help menu=B: 显示此帮助菜单
++L, R: Change section=L, R: 切换界面
++SELECT: Show contextual menu=SELECT: 显示上下文菜单
++START: Show options menu=START: 显示选项菜单
 diff -uprN a/build.sh b/build.sh
 --- a/build.sh	1970-01-01 08:00:00.000000000 +0800
 +++ b/build.sh	2026-02-27 09:14:15.760803649 +0800
@@ -119,7 +141,7 @@ diff -uprN a/buildopts.h.cmakein b/buildopts.h.cmakein
  
  #endif /* GMENU2X_BUILDOPTS_H */
 diff -uprN a/src/contextmenu.cpp b/src/contextmenu.cpp
---- a/src/contextmenu.cpp	2026-02-27 09:21:45.970804751 +0800
+--- a/src/contextmenu.cpp	2026-02-28 18:52:03.185473568 +0800
 +++ b/src/contextmenu.cpp	2026-02-27 09:16:36.350803993 +0800
 @@ -82,7 +82,7 @@ ContextMenu::ContextMenu(GMenu2X &gmenu2
  	for (auto option : options) {
@@ -131,41 +153,134 @@ diff -uprN a/src/contextmenu.cpp b/src/contextmenu.cpp
  	box = {
  		static_cast<Sint16>((gmenu2x.width() - w) / 2),
 diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
---- a/src/funkeymenu.cpp	2026-02-27 09:21:45.970804751 +0800
-+++ b/src/funkeymenu.cpp	2026-02-27 13:58:26.280845380 +0800
-@@ -20,7 +20,7 @@
- #define MENU_ERROR_PRINTF(...)
- #endif //MENU_ERROR
+--- a/src/funkeymenu.cpp	2026-02-28 18:52:03.185473568 +0800
++++ b/src/funkeymenu.cpp	2026-02-28 18:53:24.895474636 +0800
+@@ -1,4 +1,5 @@
+ #include "funkeymenu.h"
++#include "gmenu2x.h"
+ #include <iostream>
  
--#define SCREEN_HORIZONTAL_SIZE      240 //RES_HW_SCREEN_HORIZONTAL
-+#define SCREEN_HORIZONTAL_SIZE      320 //RES_HW_SCREEN_HORIZONTAL
- #define SCREEN_VERTICAL_SIZE        240 //RES_HW_SCREEN_VERTICAL
- 
- #define SCROLL_SPEED_PX             30
-@@ -32,11 +32,11 @@
+ /// -------------- DEFINES --------------
+@@ -32,15 +33,15 @@
  #define MENU_BG_SQURE_WIDTH         180
  #define MENU_BG_SQUREE_HEIGHT       140
  
 -#define MENU_FONT_NAME_TITLE        "/usr/games/menu_resources/OpenSans-Bold.ttf"
-+#define MENU_FONT_NAME_TITLE        "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf"
++#define MENU_FONT_NAME_TITLE        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
  #define MENU_FONT_SIZE_TITLE        22
 -#define MENU_FONT_NAME_INFO         "/usr/games/menu_resources/OpenSans-Bold.ttf"
-+#define MENU_FONT_NAME_INFO         "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf"
++#define MENU_FONT_NAME_INFO         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
  #define MENU_FONT_SIZE_INFO         16
 -#define MENU_FONT_NAME_SMALL_INFO   "/usr/games/menu_resources/OpenSans-Regular.ttf"
-+#define MENU_FONT_NAME_SMALL_INFO   "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed-Bold.ttf"
++#define MENU_FONT_NAME_SMALL_INFO   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
  #define MENU_FONT_SIZE_SMALL_INFO   13
- #define MENU_PNG_BG_PATH            "/usr/games/menu_resources/zone_bg.png"
- #define MENU_PNG_ARROW_TOP_PATH     "/usr/games/menu_resources/arrow_top.png"
-@@ -53,7 +53,6 @@
+-#define MENU_PNG_BG_PATH            "/usr/games/menu_resources/zone_bg.png"
+-#define MENU_PNG_ARROW_TOP_PATH     "/usr/games/menu_resources/arrow_top.png"
+-#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/games/menu_resources/arrow_bottom.png"
++#define MENU_PNG_BG_PATH            "/usr/share/gmenu2x/skins/320x240/Default/imgs/zone_bg.png"
++#define MENU_PNG_ARROW_TOP_PATH     "/usr/share/gmenu2x/skins/320x240/Default/imgs/arrow_top.png"
++#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/share/gmenu2x/skins/320x240/Default/imgs/arrow_bottom.png"
  
- #define MAXPATHLEN                  512
+ #define GRAY_MAIN_R                 85
+ #define GRAY_MAIN_G                 85
+@@ -279,13 +280,17 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	SDL_Surface *text_surface = NULL;
+ 	SDL_Surface *surface = menu_zone_surfaces[nb_menu_zones-1];
+ 	SDL_Rect text_pos;
++	std::string volume_str = gmenu2x_ptr->tr["VOLUME"];
++	std::string bright_str = gmenu2x_ptr->tr["BRIGHTNESS"];
++	std::string power_str = gmenu2x_ptr->tr["POWERDOWN"];
++	std::string launch_str = gmenu2x_ptr->tr["SET LAUNCHER"];
  
--
- /// -------------- STATIC VARIABLES --------------
- SDL_Surface * FunkeyMenu::backup_hw_screen = NULL;
- SDL_Surface * FunkeyMenu::draw_screen = NULL;
-@@ -394,7 +393,7 @@ void FunkeyMenu::init_menu_zones(){
+ 	/// --------- Add new zone ---------
+ 	switch(menu_type){
+ 	case MENU_TYPE_VOLUME:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_VOLUME\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "VOLUME", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, volume_str.c_str(), text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 - padding_y_from_center_menu_zone;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -298,7 +303,7 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_BRIGHTNESS:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_BRIGHTNESS\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "BRIGHTNESS", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, bright_str.c_str(), text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 - padding_y_from_center_menu_zone;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -311,7 +316,7 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_SAVE:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_SAVE\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "SAVE", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, "SAVE", text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 - padding_y_from_center_menu_zone*2;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -319,7 +324,7 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_LOAD:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_LOAD\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "LOAD", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, "LOAD", text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 - padding_y_from_center_menu_zone*2;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -327,7 +332,7 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_ASPECT_RATIO:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_ASPECT_RATIO\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "ASPECT RATIO", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, "ASPECT RATIO", text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 - padding_y_from_center_menu_zone;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -335,7 +340,7 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_EXIT:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_EXIT\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "EXIT GAME", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, "EXIT GAME", text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -343,7 +348,7 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_USB:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_USB\n");
+ 		/// ------ Text ------
+-		/*text_surface = TTF_RenderText_Blended(menu_title_font, "USB", text_color);
++		/*text_surface = TTF_RenderUTF8_Solid(menu_title_font, "USB", text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);*/
+@@ -351,12 +356,12 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_LAUNCHER:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_LAUNCHER\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "SET LAUNCHER", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, launch_str.c_str(), text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 - padding_y_from_center_menu_zone*2;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "RETROFE", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, "RETROFE", text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -364,7 +369,7 @@ void FunkeyMenu::add_menu_zone(ENUM_MENU
+ 	case MENU_TYPE_POWERDOWN:
+ 		MENU_DEBUG_PRINTF("Init MENU_TYPE_POWERDOWN\n");
+ 		/// ------ Text ------
+-		text_surface = TTF_RenderText_Blended(menu_title_font, "POWERDOWN", text_color);
++		text_surface = TTF_RenderUTF8_Solid(menu_title_font, power_str.c_str(), text_color);
+ 		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
+ 		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
+@@ -394,7 +399,7 @@ void FunkeyMenu::init_menu_zones(){
  	/// Init USB Menu
  	add_menu_zone(MENU_TYPE_USB);
  	/// Init Launcher Menu
@@ -174,133 +289,196 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  	/// Init Powerdown Menu
  	add_menu_zone(MENU_TYPE_POWERDOWN);
  }
-@@ -827,6 +826,8 @@ int FunkeyMenu::launch( )
- 							/// ----- Shell cmd ----
- 							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
- 							system(shell_cmd);
-+							// Turn audio amp off to avoid buzzing sound
-+							system(SHELL_CMD_AUDIO_AMP_OFF);
+@@ -486,6 +491,13 @@ void FunkeyMenu::menu_screen_refresh(int
+ 	SDL_Rect menu_blit_window;
+ 	menu_blit_window.x = 0;
+ 	menu_blit_window.w = SCREEN_HORIZONTAL_SIZE;
++	std::string mount_str = gmenu2x_ptr->tr["MOUNT"];
++	std::string eject_str = gmenu2x_ptr->tr["EJECT"];
++	std::string progress_str = gmenu2x_ptr->tr["In progress..."];
++	std::string save_str = gmenu2x_ptr->tr["Saving..."];
++	std::string load_str = gmenu2x_ptr->tr["Loading..."];
++	std::string sure_str = gmenu2x_ptr->tr["Are you sure ?"];
++	std::string shut_str = gmenu2x_ptr->tr["Shutting down..."];
  
- 							/// ------ Refresh screen ------
- 							screen_refresh = 1;
-@@ -883,6 +884,8 @@ int FunkeyMenu::launch( )
- 							/// ----- Shell cmd ----
- 							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
- 							system(shell_cmd);
-+							// Turn audio amp off to avoid buzzing sound
-+							system(SHELL_CMD_AUDIO_AMP_OFF);
+ 	/// --------- Blit prev menu Zone going away ----------
+ 	menu_blit_window.y = scroll;
+@@ -534,19 +546,19 @@ void FunkeyMenu::menu_screen_refresh(int
+ 		case MENU_TYPE_SAVE:
+ 			/// ---- Write slot -----
+ 			sprintf(text_tmp, "IN SLOT   < %d >", savestate_slot+1);
+-			text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++			text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 			text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 			text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
+ 			SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
  
- 							/// ------ Refresh screen ------
- 							screen_refresh = 1;
-diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
---- a/src/gmenu2x.cpp	2026-02-27 09:21:45.970804751 +0800
-+++ b/src/gmenu2x.cpp	2026-02-27 13:29:14.910841094 +0800
-@@ -71,6 +71,10 @@
- #include <sys/stat.h>
- #include <sys/types.h>
- #include <dirent.h>
-+#include <sys/ioctl.h>
-+#include <fcntl.h>
-+#include <unistd.h>
-+#include <linux/fb.h>
- 
- #define DEFAULT_FONT_PATH "/usr/share/fonts/truetype/dejavu/DejaVuSansCondensed.ttf"
- #define DEFAULT_FONT_SIZE 12
-@@ -326,6 +330,9 @@ GMenu2X::GMenu2X() : input(*this), sc(th
- 
-     // Init FunkeyMenu
-     FunkeyMenu::init( *this );
-+	
-+	// Turn audio amp off to avoid buzzing sound
-+	system(SHELL_CMD_AUDIO_AMP_OFF);
- 
- 	//powerSaver->setScreenTimeout(confInt["backlightTimeout"]);
- }
-@@ -523,6 +530,7 @@ void GMenu2X::readConfig(string conffile
- 		confStr["skin"] = "Default";
- 
- 	evalIntConf( confInt, "outputLogs", 0, 0,1 );
-+	evalIntConf( confInt, "trimExt", 0, 0,1);
- 	evalIntConf( confInt, "backlightTimeout", 15, 0,120 );
- 	evalIntConf( confInt, "buttonRepeatRate", 10, 0, 20 );
- 	evalIntConf( confInt, "videoBpp", 32, 16, 32 );
-@@ -626,7 +634,7 @@ void GMenu2X::mainLoop() {
- 				(!menu->selLinkApp()->getSelectorDir().empty()
- 				 || !lastSelectorDir.empty()))
- 		menu->selLinkApp()->selector(lastSelectorElement, lastSelectorDir);
--
-+    int fd = open("/dev/fb0", O_RDWR);
- 	while (true) {
- 		// Remove dismissed layers from the stack.
- 		for (auto it = layers.begin(); it != layers.end(); ) {
-@@ -647,6 +655,7 @@ void GMenu2X::mainLoop() {
- 		for (auto layer : layers) {
- 			layer->paint(*s);
- 		}
-+		ioctl(fd, FBIO_WAITFORVSYNC, 0);
- 		s->flip();
- 
- 		// Exit main loop once we have something to launch.
-@@ -704,6 +713,7 @@ void GMenu2X::mainLoop() {
+ 			if(menu_action){
+-				sprintf(text_tmp, "Saving...");
+-				text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++				sprintf(text_tmp, save_str.c_str());
++				text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
  			}
- 		}
+ 			else{
+ 				if(menu_confirmation){
+-					sprintf(text_tmp, "Are you sure ?");
+-					text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++					sprintf(text_tmp, sure_str.c_str());
++					text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 				}
+ 				else{
+ 					/// ---- Write current Save state ----
+@@ -560,19 +572,19 @@ void FunkeyMenu::menu_screen_refresh(int
+ 		case MENU_TYPE_LOAD:
+ 			/// ---- Write slot -----
+ 			sprintf(text_tmp, "FROM SLOT   < %d >", savestate_slot+1);
+-			text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++			text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 			text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 			text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
+ 			SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+ 
+ 			if(menu_action){
+-				sprintf(text_tmp, "Loading...");
+-				text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++				sprintf(text_tmp, load_str.c_str());
++				text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 			}
+ 			else{
+ 				if(menu_confirmation){
+-					sprintf(text_tmp, "Are you sure ?");
+-					text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++					sprintf(text_tmp, sure_str.c_str());
++					text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 				}
+ 				else{
+ 					/// ---- Write current Load state ----
+@@ -585,7 +597,7 @@ void FunkeyMenu::menu_screen_refresh(int
+ 
+ 		case MENU_TYPE_ASPECT_RATIO:
+ 			sprintf(text_tmp, "<   %s   >", aspect_ratio_name[aspect_ratio]);
+-			text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++			text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 			text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 			text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + padding_y_from_center_menu_zone;
+ 			SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+@@ -593,22 +605,22 @@ void FunkeyMenu::menu_screen_refresh(int
+ 
+ 		case MENU_TYPE_USB:
+ 			/// ---- Write slot -----
+-			sprintf(text_tmp, "%s USB", usb_sharing?"EJECT":"MOUNT");
+-			text_surface = TTF_RenderText_Blended(menu_title_font, text_tmp, text_color);
++			sprintf(text_tmp, "%s USB", usb_sharing?eject_str.c_str():mount_str.c_str());
++			text_surface = TTF_RenderUTF8_Solid(menu_title_font, text_tmp, text_color);
+ 			text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 			text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
+ 			SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+ 
+ 			if(menu_action){
+-				sprintf(text_tmp, "in progress ...");
+-				text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++				sprintf(text_tmp, progress_str.c_str());
++				text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 				text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 				text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
+ 				SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+ 			}
+ 			else if(menu_confirmation){
+-				sprintf(text_tmp, "Are you sure ?");
+-				text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++				sprintf(text_tmp, sure_str.c_str());
++				text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 				text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 				text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
+ 				SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+@@ -620,15 +632,15 @@ void FunkeyMenu::menu_screen_refresh(int
+ 
+ 		case MENU_TYPE_LAUNCHER:
+ 			if(menu_action){
+-				sprintf(text_tmp, "In progress...");
+-				text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++				sprintf(text_tmp, progress_str.c_str());
++				text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 				text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 				text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
+ 				SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+ 			}
+ 			else if(menu_confirmation){
+-				sprintf(text_tmp, "Are you sure ?");
+-				text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++				sprintf(text_tmp, sure_str.c_str());
++				text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 				text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 				text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
+ 				SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+@@ -638,16 +650,16 @@ void FunkeyMenu::menu_screen_refresh(int
+ 		case MENU_TYPE_EXIT:
+ 		case MENU_TYPE_POWERDOWN:
+ 			if(menu_action){
+-				sprintf(text_tmp, "Shutting down...");
+-				text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++				sprintf(text_tmp, shut_str.c_str());
++				text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 				text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 				text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
+ 				SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+ 			}
+ 			else{
+ 				if(menu_confirmation){
+-					sprintf(text_tmp, "Are you sure ?");
+-					text_surface = TTF_RenderText_Blended(menu_info_font, text_tmp, text_color);
++					sprintf(text_tmp, sure_str.c_str());
++					text_surface = TTF_RenderUTF8_Solid(menu_info_font, text_tmp, text_color);
+ 					text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
+ 					text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
+ 					SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
+@@ -684,8 +696,8 @@ void FunkeyMenu::menu_screen_refresh(int
+ 	if(SDL_BlitSurface(draw_screen, NULL, hw_screen, NULL)){
+ 		MENU_ERROR_PRINTF("ERROR Could not bit draw_screen to hw_screen: %s\n", SDL_GetError());
  	}
-+	close(fd);
+-	SDL_Flip(hw_screen);
+-	//gmenu2x_ptr->s->flip();
++//	SDL_Flip(hw_screen);
++	gmenu2x_ptr->s->flip();
  }
  
- void GMenu2X::explorer() {
-@@ -750,36 +760,40 @@ void GMenu2X::showSettings() {
- 			*this, tr["Language"],
- 			tr["Set the language used by GMenu2X"],
- 			&lang, &translations)));
--	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
-+	/*sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
- 			*this, tr["Save last selection"],
- 			tr["Save the last selected link and section on exit"],
--			&confInt["saveSelection"])));
-+			&confInt["saveSelection"])));*/
- 	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
- 			*this, tr["Output logs"],
- 			tr["Logs the output of the links. Use the Log Viewer to read them."],
- 			&confInt["outputLogs"])));
--	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
-+	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
-+			*this, tr["Trim extensions"],
-+			tr["Trim extensions in the file explorer."],
-+			&confInt["trimExt"])));
-+	/*sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
- 			*this, tr["Screen Timeout"],
- 			tr["Set screen's backlight timeout in seconds"],
--			&confInt["backlightTimeout"], 0, 120)));
-+			&confInt["backlightTimeout"], 0, 120)));*/
- 	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
- 			*this, tr["Button repeat rate"],
- 			tr["Set button repetitions per second"],
- 			&confInt["buttonRepeatRate"], 0, 20)));
--	if (brightnessmanager->available()) {
-+	/*if (brightnessmanager->available()) {
- 		sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
- 				*this, tr["Brightness level"],
- 				tr["Set the brightness level"],
- 				&confInt["brightnessLevel"],
- 				1, brightnessmanager->maxBrightness())));
--	}
-+	}*/
  
- 	if (sd.exec()) {
- 		//powerSaver->setScreenTimeout(confInt["backlightTimeout"]);
+diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
+--- a/src/gmenu2x.cpp	2026-02-28 18:52:03.185473568 +0800
++++ b/src/gmenu2x.cpp	2026-03-01 10:39:38.436337253 +0800
+@@ -76,7 +76,7 @@
+ #define DEFAULT_FONT_SIZE 12
  
- 		input.repeatRateChanged();
--		if (brightnessmanager->available())
--			brightnessmanager->setBrightness(confInt["brightnessLevel"]);
-+		/*if (brightnessmanager->available())
-+			brightnessmanager->setBrightness(confInt["brightnessLevel"]);*/
+ #ifndef DEFAULT_FALLBACK_FONTS
+-#define DEFAULT_FALLBACK_FONTS ,{"/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",13},{"/usr/share/fonts/truetype/droid/DroidSansFallback.ttf",13}
++#define DEFAULT_FALLBACK_FONTS ,{"/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf",12},{"/usr/share/fonts/truetype/droid/DroidSansFallback.ttf",12}
+ #endif
  
- 		if (lang == "English") lang = "";
- 		if (lang != tr.lang()) {
+ using namespace std;
+@@ -427,7 +427,7 @@ void GMenu2X::initMenu() {
+ 
+ 	// Add action links in the applications section.
+ 	auto appIdx = menu->sectionNamed("applications");
+-	menu->addActionLink(appIdx, "Explorer",
++	menu->addActionLink(appIdx, tr["Explorer"],
+ 			bind(&GMenu2X::explorer, this),
+ 			tr["Launch an application"],
+ 			"skin:icons/explorer.png");
+diff -uprN a/src/menu.cpp b/src/menu.cpp
+--- a/src/menu.cpp	2026-02-28 18:52:03.175473568 +0800
++++ b/src/menu.cpp	2026-02-28 13:13:56.917118000 +0800
+@@ -171,7 +171,7 @@ void Menu::updateSectionTextSurfaces() {
+ 	const auto &font = *gmenu2x.font;
+ 	section_text_surfaces.resize(sections.size());
+ 	for (std::size_t i = 0; i < sections.size(); ++i)
+-		section_text_surfaces[i] = font.render(sections[i]);
++		section_text_surfaces[i] = font.render(gmenu2x.tr[sections[i]]);
+ }
+ 
+ void Menu::calcSectionRange(int &leftSection, int &rightSection) {
 diff -uprN a/src/selector.cpp b/src/selector.cpp
---- a/src/selector.cpp	2026-02-27 09:21:45.970804751 +0800
-+++ b/src/selector.cpp	2026-02-27 14:06:17.330846533 +0800
+--- a/src/selector.cpp	2026-02-28 18:52:03.185473568 +0800
++++ b/src/selector.cpp	2026-02-28 20:04:16.545530185 +0800
 @@ -117,7 +117,7 @@ int Selector::exec(int startSelection) {
  				string path = screendir + trimExtension(fl[selected]) + ".png";
  				auto screenshot = OffscreenSurface::loadImage(path, false);
@@ -310,12 +488,30 @@ diff -uprN a/src/selector.cpp b/src/selector.cpp
  				}
  			}
  
-@@ -142,7 +142,7 @@ int Selector::exec(int startSelection) {
- 							x, iY + lineHeight / 2,
- 							Font::HAlignLeft, Font::VAlignMiddle);
- 				} else {
--					gmenu2x.font->write(s, trimExtension(fl[i]),
-+					gmenu2x.font->write(s, (gmenu2x.confInt["trimExt"] ? trimExtension(fl[i]) : fl[i]),
- 							x, iY + lineHeight / 2,
- 							Font::HAlignLeft, Font::VAlignMiddle);
- 				}
+diff -uprN a/src/surface.cpp b/src/surface.cpp
+--- a/src/surface.cpp	2026-03-01 10:32:03.346334891 +0800
++++ b/src/surface.cpp	2026-03-01 10:54:55.266342011 +0800
+@@ -29,6 +29,16 @@
+ #include <cassert>
+ #include <iomanip>
+ #include <utility>
++#include <sys/ioctl.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <linux/fb.h>
++
++void wait_for_HW() {
++	int fd0 = open("/dev/fb0", O_RDWR);
++	ioctl(fd0, FBIO_WAITFORVSYNC, 0);
++	close(fd0);
++}
+ 
+ using namespace std;
+ 
+@@ -356,5 +366,6 @@ unique_ptr<OutputSurface> OutputSurface:
+ }
+ 
+ void OutputSurface::flip() {
++    wait_for_HW();
+ 	SDL_Flip(raw);
+ }
