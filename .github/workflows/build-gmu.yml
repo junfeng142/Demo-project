@@ -56,7 +56,7 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
-        tar -zxvf tools/$PKG_NAME.tar.gz -C $PKG_NAME$PKG_NAME/_opk
+        tar -zxvf tools/$PKG_NAME.tar.gz -C $PKG_NAME/_opk
         chmod +x $PKG_NAME/_opk/*.sh
         cd $PKG_NAME
         mv _opk/build.sh ./
