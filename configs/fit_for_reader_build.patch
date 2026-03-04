@@ -1,0 +1,103 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-03-04 10:33:40.077411853 +0800
++++ b/Makefile	2026-03-04 10:31:57.527410917 +0800
+@@ -11,7 +11,6 @@ LDFLAGS  := -lstdc++ -lSDL -lSDL_ttf -lS
+ 
+ ifeq ($(PLATFORM),miyoomini)
+ CXXFLAGS := $(CXXFLAGS) \
+-	    -DPLATFORM_MIYOO_MINI=1 \
+ 	    -marm -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfloat-abi=hard -march=armv7ve+simd \
+ 	    -Icross-compile/miyoo-mini/include/libxml2 \
+ 	    -Icross-compile/miyoo-mini/include \
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build.sh	2026-03-04 10:32:07.937411012 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++export PATH=$PATH:/opt/mmiyoo/bin
++export CROSS_COMPILE=/opt/mmiyoo/bin/arm-linux-gnueabihf-
++export CPPFLAGS="-DMIYOO -DUSER_FONTS"
++
++make PLATFORM=miyoomini
+diff -uprN a/src/reader/config.h b/src/reader/config.h
+--- a/src/reader/config.h	2026-03-04 10:46:30.787418888 +0800
++++ b/src/reader/config.h	2026-03-04 10:56:53.667424573 +0800
+@@ -10,12 +10,12 @@
+ #define EXTRA_FONT_DIR      ""
+ #define CUSTOM_FONT_DIR     ""
+ #else
+-#define FONT_DIR            "/usr/share/fonts/dejavu"
+-#define EXTRA_FONT_DIR      "/usr/share/fonts/liberation"
++#define FONT_DIR            "fonts"
++#define EXTRA_FONT_DIR      "fonts"
+ #define CUSTOM_FONT_DIR     "fonts"
+ #endif
+-#define DEFAULT_FONT_NAME   FONT_DIR "/DejaVuSans.ttf"
+-#define SYSTEM_FONT         FONT_DIR "/DejaVuSansMono.ttf"
++#define DEFAULT_FONT_NAME   FONT_DIR "/DejaVuSansYuanTiMono.ttf"
++#define SYSTEM_FONT         FONT_DIR "/DejaVuSansYuanTiMono.ttf"
+ 
+ #ifdef MIYOO
+ #define MIN_FONT_SIZE      6
+@@ -33,15 +33,15 @@
+ #define DEFAULT_COLOR_THEME "night_contrast"
+ #endif
+ 
+-#define CONFIG_FILE_PATH "reader.cfg"
+-#define FALLBACK_STORE_PATH ".pixel_reader_store"
++#define CONFIG_FILE_PATH "/mnt/FunKey/.pixel_reader/reader.cfg"
++#define FALLBACK_STORE_PATH "/mnt/FunKey/.pixel_reader"
+ 
+ #if PLATFORM_MIYOO_MINI
+     #define DEFAULT_BROWSE_PATH "/mnt/SDCARD/Media/Books/"
+     #define EXTRA_FONTS_LIST    {"/customer/app/wqy-microhei.ttc"}
+ #elif defined(MIYOO)
+-    #define DEFAULT_BROWSE_PATH "/mnt/books/"
+-    #define EXTRA_FONTS_LIST    {"/mnt/gmenu2x/skins/Default/font.ttf"}
++    #define DEFAULT_BROWSE_PATH "/mnt/Books/"
++    #define EXTRA_FONTS_LIST    {"fonts/DejaVuSansYuanTiMono.ttf"}
+ #else
+     #define DEFAULT_BROWSE_PATH std::filesystem::current_path() / ""
+     #define EXTRA_FONTS_LIST    {}
+diff -uprN a/src/sys/keymap.h b/src/sys/keymap.h
+--- a/src/sys/keymap.h	2026-03-04 10:33:40.077411853 +0800
++++ b/src/sys/keymap.h	2026-03-04 10:32:48.417411382 +0800
+@@ -1,24 +1,24 @@
+ #include <SDL/SDL_keysym.h>
+ 
+ // https://github.com/OnionUI/Onion/blob/main/src/common/system/keymap_sw.h
+-#define SW_BTN_UP       SDLK_UP
+-#define SW_BTN_DOWN     SDLK_DOWN
+-#define SW_BTN_LEFT     SDLK_LEFT
+-#define SW_BTN_RIGHT    SDLK_RIGHT
++#define SW_BTN_UP       SDLK_u
++#define SW_BTN_DOWN     SDLK_d
++#define SW_BTN_LEFT     SDLK_l
++#define SW_BTN_RIGHT    SDLK_r
+ #ifdef MIYOO
+-#define SW_BTN_A        SDLK_LALT
+-#define SW_BTN_B        SDLK_LCTRL
+-#define SW_BTN_X        SDLK_LSHIFT
+-#define SW_BTN_Y        SDLK_SPACE
+-#define SW_BTN_L1       SDLK_TAB
+-#define SW_BTN_R1       SDLK_BACKSPACE
++#define SW_BTN_A        SDLK_a
++#define SW_BTN_B        SDLK_b
++#define SW_BTN_X        SDLK_x
++#define SW_BTN_Y        SDLK_y
++#define SW_BTN_L1       SDLK_m
++#define SW_BTN_R1       SDLK_n
+ #define SW_BTN_L2       SDLK_PAGEUP
+ #define SW_BTN_R2       SDLK_PAGEDOWN
+ #define SW_BTN_L3       SDLK_RALT
+ #define SW_BTN_R3       SDLK_RSHIFT
+-#define SW_BTN_SELECT   SDLK_ESCAPE
+-#define SW_BTN_START    SDLK_RETURN
+-#define SW_BTN_MENU     SDLK_RCTRL
++#define SW_BTN_SELECT   SDLK_k
++#define SW_BTN_START    SDLK_s
++#define SW_BTN_MENU     SDLK_q
+ #else
+ #define SW_BTN_A        SDLK_SPACE
+ #define SW_BTN_B        SDLK_LCTRL

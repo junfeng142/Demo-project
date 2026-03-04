@@ -16,6 +16,9 @@ mkdir -p _opk
 # libretro build
 [ -f libretro-super.sh ] && patch -p1 < fit_for_libretro_build.patch
 
+# pixel-reader build
+[ -f resources/miyoo-package/assets/reader.png ] && patch -p1 < fit_for_reader_build.patch
+
 # gmenu2x build
 [ -f src/gmenu2x.cpp ] && patch -p1 < fit_for_gmenu2x_build.patch
 
