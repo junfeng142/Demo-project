@@ -15,21 +15,21 @@ diff -uprN a/Makefile.miyoo b/Makefile.miyoo
  CC                    = $(GCW0_CC)
  else
 -CC                    = $(TOOLCHAIN_DIR)/usr/bin/arm-linux-gcc
-+CC                    = $(TOOLCHAIN_DIR)/usr/bin/arm-funkey-linux-gnueabihf-gcc
++CC                    = $(TOOLCHAIN_DIR)/bin/arm-funkey-linux-gnueabihf-gcc
  endif
  
  ifdef GCW0_CXX
  CXX                   = $(GCW0_CXX)
  else
 -CXX                   = $(TOOLCHAIN_DIR)/usr/bin/arm-linux-g++
-+CXX                   = $(TOOLCHAIN_DIR)/usr/bin/arm-funkey-linux-gnueabihf-g++
++CXX                   = $(TOOLCHAIN_DIR)/bin/arm-funkey-linux-gnueabihf-g++
  endif
  
  ifdef GCW0_STRIP
  STRIP                 = $(GCW0_STRIP)
  else
 -STRIP                 = $(TOOLCHAIN_DIR)/usr/bin/arm-linux-strip
-+STRIP                 = $(TOOLCHAIN_DIR)/usr/bin/arm-funkey-linux-gnueabihf-strip
++STRIP                 = $(TOOLCHAIN_DIR)/bin/arm-funkey-linux-gnueabihf-strip
  endif
  
 -SYSROOT              ?= $(shell $(CC) --print-sysroot)
@@ -121,7 +121,7 @@ diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl
 +#define SDL_DINGUX_SDLK_A      SDLK_SPACE
  #define SDL_DINGUX_SDLK_B      SDLK_LCTRL
 -#define SDL_DINGUX_SDLK_Y      SDLK_SPACE
-+#define SDL_DINGUX_SDLK_Y      SDLK_LEFTALT
++#define SDL_DINGUX_SDLK_Y      SDLK_LALT
  #else
 -#define SDL_DINGUX_SDLK_X      SDLK_SPACE
 -#define SDL_DINGUX_SDLK_A      SDLK_LCTRL
@@ -130,7 +130,7 @@ diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl
 +#define SDL_DINGUX_SDLK_X      SDLK_LSHIFT
 +#define SDL_DINGUX_SDLK_A      SDLK_SPACE
 +#define SDL_DINGUX_SDLK_B      SDLK_LCTRL
-+#define SDL_DINGUX_SDLK_Y      SDLK_LEFTALT
++#define SDL_DINGUX_SDLK_Y      SDLK_LALT
  #endif
  #define SDL_DINGUX_SDLK_L      SDLK_TAB
  #define SDL_DINGUX_SDLK_R      SDLK_BACKSPACE
