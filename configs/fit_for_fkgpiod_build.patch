@@ -1,0 +1,855 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2025-02-14 11:19:16.000000000 +0800
++++ b/Makefile	2026-03-05 16:33:34.726044715 +0800
+@@ -4,12 +4,9 @@ TOOLS_CFLAGS	:= -Wall -std=c99 -D _DEFAU
+ #
+ # Programs
+ #
+-all: fkgpiod termfix
++all: fkgpiod
+ 
+-fkgpiod: main.o daemon.o parse_config.o mapping_list.o gpio_mapping.o gpio_utils.o gpio_axp209.o gpio_pcal6416a.o smbus.o uinput.o keydefs.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+-
+-termfix: termfix.o
++fkgpiod: main.o daemon.o gpio_mapping.o gpio_utils.o gpio_axp209.o smbus.o uinput.o
+ 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $^
+ 
+ #
+diff -uprN a/gpio_axp209.c b/gpio_axp209.c
+--- a/gpio_axp209.c	2021-06-04 05:28:41.000000000 +0800
++++ b/gpio_axp209.c	2026-03-05 16:33:34.726044715 +0800
+@@ -61,7 +61,7 @@ bool axp209_init(void)
+ {
+     /* Open the I2C bus pseudo-file */
+     if ((fd_axp209 = open(i2c0_sysfs_filename,O_RDWR)) < 0) {
+-        FK_ERROR("Failed to open the I2C bus %s", i2c0_sysfs_filename);
++        FK_DEBUG("Failed to open the I2C bus %s", i2c0_sysfs_filename);
+         return false;
+     }
+ 
+@@ -69,26 +69,33 @@ bool axp209_init(void)
+     if (ioctl(fd_axp209, I2C_SLAVE, AXP209_I2C_ADDR) < 0) {
+         FK_DEBUG("Failed to acquire bus access and/or talk to slave, trying to force it\n");
+         if (ioctl(fd_axp209, I2C_SLAVE_FORCE, AXP209_I2C_ADDR) < 0) {
+-            FK_ERROR("Failed to acquire FORCED bus access and/or talk to slave.\n");
++            FK_DEBUG("Failed to acquire FORCED bus access and/or talk to slave.\n");
+             return false;
+         }
+     }
+ 
+     /* Set PEK Long press delay to 2.5s */
+     if (i2c_smbus_write_byte_data(fd_axp209, AXP209_REG_PEK_PARAMS, 0x9F) < 0) {
+-        FK_ERROR("Cannot set AXP209 PEK Long press delay to 2.5s\n");
++        FK_DEBUG("Cannot set AXP209 PEK Long press delay to 1.5s\n");
+     }
+ 
+     /* Set N_OE Shutdown delay to 3s*/
+     if (i2c_smbus_write_byte_data(fd_axp209, AXP209_REG_32H, 0x47) < 0) {
+-        FK_ERROR("Cannot set AXP209 N_OE Shutdown delay to 3s\n");
+-    }
++        FK_DEBUG("Cannot set AXP209 N_OE Shutdown delay to 3s\n");
++    } 
+ 
+     /* Enable only chosen interrupts (PEK short and long presses)*/
+     if (i2c_smbus_write_byte_data(fd_axp209, AXP209_INTERRUPT_BANK_3_ENABLE,
+         0x03) < 0) {
+-        FK_ERROR("Cannot intiialize interrupt bank 3 for AXP209\n");
++        FK_DEBUG("Cannot intiialize interrupt bank 3 for AXP209\n");
++    } 
++    
++    /* Enable only chosen interrupts (N_OE status)*/
++    if (i2c_smbus_write_byte_data(fd_axp209, AXP209_INTERRUPT_BANK_4_ENABLE,
++        0x41) < 0) {
++        FK_DEBUG("Cannot intiialize interrupt bank 4 for AXP209\n");
+     }
++    
+     return true;
+ }
+ 
+@@ -119,3 +126,22 @@ int axp209_read_interrupt_bank_3(void)
+     FK_DEBUG("READ AXP209_INTERRUPT_BANK_3_STATUS: 0x%02X\n", value);
+     return value & 0xFF;
+ }
++
++/* Read the AXP209 PMIC chip interrupt register bank 4 */
++int axp209_read_interrupt_bank_4(void)
++{
++  int value, result;
++
++    value = i2c_smbus_read_byte_data(fd_axp209, AXP209_INTERRUPT_BANK_4_STATUS);
++    if (value  < 0) {
++        return value;
++    }
++
++    /* Clear the interrupts */
++    result = i2c_smbus_write_byte_data(fd_axp209, AXP209_INTERRUPT_BANK_4_STATUS, 0xFF);
++    if (result < 0) {
++        return result;
++    }
++    FK_DEBUG("READ AXP209_INTERRUPT_BANK_4_STATUS: 0x%02X\n", value);
++    return value & 0xFF;
++}
+diff -uprN a/gpio_axp209.h b/gpio_axp209.h
+--- a/gpio_axp209.h	2021-06-04 05:28:41.000000000 +0800
++++ b/gpio_axp209.h	2026-03-05 16:33:34.726044715 +0800
+@@ -50,9 +50,11 @@
+ /* Masks */
+ #define AXP209_INTERRUPT_PEK_SHORT_PRESS        0x02
+ #define AXP209_INTERRUPT_PEK_LONG_PRESS         0x01
++#define AXP209_N_OE_POWEROFF                    0x40
+ 
+ bool axp209_init(void);
+ bool axp209_deinit(void);
+ int axp209_read_interrupt_bank_3(void);
++int axp209_read_interrupt_bank_4(void);
+ 
+ #endif  //_GPIO_AXP209_H_
+diff -uprN a/gpio_mapping.c b/gpio_mapping.c
+--- a/gpio_mapping.c	2021-06-04 05:28:41.000000000 +0800
++++ b/gpio_mapping.c	2026-03-05 17:00:03.006029845 +0800
+@@ -36,16 +36,14 @@
+ #include <sys/time.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
++#include <linux/input.h>
++#include <time.h>
+ #include "gpio_utils.h"
+ #include "gpio_axp209.h"
+ #include "gpio_mapping.h"
+-#include "gpio_pcal6416a.h"
+-#include "mapping_list.h"
+-#include "parse_config.h"
+ #include "uinput.h"
+ 
+-//#define DEBUG_GPIO
+-//#define DEBUG_PERIODIC_CHECK
++
+ #define ERROR_GPIO
+ 
+ #ifdef DEBUG_GPIO
+@@ -75,26 +73,54 @@
+ //#define TIMEOUT_SEC_SANITY_CHECK_GPIO_EXP     1
+ #define TIMEOUT_MICROSEC_SANITY_CHECK_GPIO_EXP  (30 * 1000)
+ 
+-/* Short Power Enable Key (PEK) duration in microseconds */
+-#define SHORT_PEK_PRESS_DURATION_US             (200 * 1000)
+-
+-/* PCAL6416A I2C GPIO expander interrupt pin */
+-#define GPIO_PIN_I2C_EXPANDER_INTERRUPT         ((('B' - '@') << 4) + 3) // PB3
+-
+ /* AXP209 I2C PMIC interrupt pin */
+ #define GPIO_PIN_AXP209_INTERRUPT               ((('B' - '@') << 4) + 5) // PB5
+ 
+-/* Pseudo-bitmask for the short PEK key press */
+-#define SHORT_PEK_PRESS_GPIO_MASK               (1 << 5)
+-
+-/* Pseudo-bitmask for the NOE signal */
+-#define NOE_GPIO_MASK                           (1 << 10)
+-
+ /* Shell command for shutdown upon receiving either long PEK or NOE signal */
+-#define SHELL_COMMAND_SHUTDOWN                  "powerdown schedule 0.1"
++#define SHELL_COMMAND_SHUTDOWN                  "powerdown now"
+ 
+-/* PCAL6416A/PCAL9539A I2C GPIO expander chip pseudo-file descriptor */
+-static int fd_pcal6416a;
++#define MAX_KEYS 11
++
++typedef struct {
++    int key_code;
++    int is_pressed;
++} key_state_t;
++
++typedef struct {
++    int key1;
++    int key2;
++} key_combo_t;
++
++
++key_state_t key_states[MAX_KEYS] = {0};
++static int key_count = 0;
++static int key_fd;
++
++/*
++ *  KEY_k + KEY_u "quick_action_volume_up"
++ *  KEY_k + KEY_d "quick_action_volume_down"
++ *  KEY_k + KEY_r "quick_action_bright_up"
++ *  KEY_k + KEY_l "quick_action_bright_down"
++ *  KEY_k + KEY_a "Fn+A"
++ *  KEY_k + KEY_b "Fn+B"
++ *  KEY_k + KEY_x "Fn+X"
++ *  KEY_k + KEY_y "Fn+Y"
++ *  KEY_k + KEY_m "Fn+L1"
++ *  KEY_k + KEY_n "Fn+R1"
++*/
++key_combo_t combos[] = {
++    {97, 103},
++    {97, 108},
++    {97, 106},
++    {97, 105},
++    {97, 57},
++    {97, 29},
++    {97, 42},
++    {97, 56},
++    {97, 15},
++    {97, 14},
++    {0, 0}
++};
+ 
+ /* AXP209 I2C PMIC pseudo-file descriptor */
+ static int fd_axp209;
+@@ -102,75 +128,24 @@ static int fd_axp209;
+ /* FIFO pseudo-file descriptor */
+ static int fd_fifo;
+ 
+-/* Mask of monitored GPIOs */
+-static uint32_t monitored_gpio_mask;
+-
+-/* Mask of current GPIOs */
+-static uint32_t current_gpio_mask;
+-
+ /* Total bytes read from the FIFO */
+ static size_t total_bytes = 0;
+ 
+ /* FIFO buffer */
+ char fifo_buffer[256];
+ 
+-/* Search for the GPIO mask into the mapping and apply the required actions */
+-static void apply_mapping(mapping_list_t *list, uint32_t gpio_mask)
+-{
+-    mapping_t *mapping;
+-
+-    /* Search the whole mapping sorted by decreasing simultaneous GPIO number
+-     * The whole mapping must be checked, as several GPIO combinations may be
+-     * active at the same time, and no longer matching combinations must be
+-     * deactivated
+-     */
+-    for (mapping = first_mapping(list); !last_mapping(list, mapping);
+-        mapping = next_mapping(mapping)) {
+-        if ((mapping->gpio_mask & gpio_mask) == mapping->gpio_mask)  {
+-
+-            /* If the current GPIO mask contains the mapping GPIO mask */
+-            FK_DEBUG("Found matching mapping:\n");
+-#ifdef DEBUG_GPIO
+-            dump_mapping(mapping);
+-#endif // DEBUG_GPIO
+-            if (mapping->activated == false) {
+-
+-                /* Activate mapping */
+-                mapping->activated = true;
+-                if (mapping->type == MAPPING_KEY) {
+-
+-                    /* Send the key down event */
+-                    FK_DEBUG("\t--> Key press %d\n", mapping->value.keycode);
+-                    sendKey(mapping->value.keycode, 1);
+-                } else if (mapping->type == MAPPING_COMMAND) {
+-
+-                    /* Execute the corresponding Shell command */
+-                    FK_DEBUG("\t--> Execute Shell command \"%s\"\n",
+-                    mapping->value.command);
+-                    system(mapping->value.command);
+-                }
+-            }
+-
+-            /* Subtract the matching GPIOs from
+-             * the current GPIO mask and activate it
+-             */
+-            gpio_mask ^= mapping->gpio_mask;
+-        } else if (mapping->activated) {
+-
+-            /* Non-matching activated mapping, deactivate it */
+-            FK_DEBUG("Found activated mapping:\n");
+-#ifdef DEBUG_GPIO
+-            dump_mapping(mapping);
+-#endif // DEBUG_GPIO
+-            mapping->activated = false;
+-            if (mapping->type == MAPPING_KEY) {
+-
+-                /* Send the key up event */
+-                FK_DEBUG("\t--> Key release %d\n", mapping->value.keycode);
+-                sendKey(mapping->value.keycode, 0);
+-            }
+-        }
+-    }
++static void init_key_states() {
++    key_states[key_count++] = (key_state_t){97, 0};
++    key_states[key_count++] = (key_state_t){103, 0};
++    key_states[key_count++] = (key_state_t){108, 0};
++    key_states[key_count++] = (key_state_t){106, 0};
++    key_states[key_count++] = (key_state_t){105, 0};
++    key_states[key_count++] = (key_state_t){57, 0};
++    key_states[key_count++] = (key_state_t){29, 0};
++    key_states[key_count++] = (key_state_t){42, 0};
++    key_states[key_count++] = (key_state_t){56, 0};
++    key_states[key_count++] = (key_state_t){15, 0};
++    key_states[key_count++] = (key_state_t){14, 0};
+ }
+ 
+ /* Initialize the GPIO interrupt for the I2C expander chip */
+@@ -207,43 +182,59 @@ static void deinit_gpio_interrupt(int fd
+     gpio_fd_close(fd);
+ }
+ 
+-/* Initialize the GPIO mapping */
+-bool init_gpio_mapping(const char *config_filename,
+-    mapping_list_t *mapping_list)
+-{
+-    init_mapping_list(mapping_list);
++static void update_key_state(int key_code, int value) {
++    int i;
+ 
+-    /* Read the configuration file to get all valid GPIO mappings */
+-    if (parse_config_file(config_filename, mapping_list, &monitored_gpio_mask) ==
+-        false) {
+-        return false;
++    for (i = 0; i < key_count; i++) {
++        if (key_states[i].key_code == key_code) {
++            key_states[i].is_pressed = value;
++            break;
++        }
+     }
+-#ifdef DEBUG_GPIO
+-    printf("\nGPIO Map:\n=========\n");
+-    dump_mapping_list(mapping_list);
+-#endif // DEBUG_GPIO
+-
+-    /* Force the NOE GPIO to be an active GPIO as it is not in the mapping */
+-    monitored_gpio_mask |= NOE_GPIO_MASK;
++}
+ 
+-    /* Clear the current GPIO mask */
+-    current_gpio_mask = 0;
++static int check_key_combos() {
++    int i, j, key1_pressed, key2_pressed;
+ 
+-    /* Initialize the PCAL5616AHF I2C GPIO expander chip */
+-    if (pcal6416a_init() == false) {
+-        return false;
++    for (i = 0; combos[i].key1 != 0; i++) {
++        key1_pressed = 0;
++        key2_pressed = 0;
++        
++        for (j = 0; j < key_count; j++) {
++            if (key_states[j].key_code == combos[i].key1 && key_states[j].is_pressed) {
++                key1_pressed = 1;
++            }
++            if (key_states[j].key_code == combos[i].key2 && key_states[j].is_pressed) {
++                key2_pressed = 1;
++            }
++        }
++        
++        if (key1_pressed && key2_pressed) {            
++            update_key_state(combos[i].key1, 0);
++            update_key_state(combos[i].key2, 0);
++            
++            return combos[i].key2;
++        }
+     }
++    
++    return 0;
++}
+ 
+-    /* Initialize the GPIO interrupt for the I2C GPIO expander chip */
+-    FK_DEBUG("Initialize interrupt for GPIO_PIN_I2C_EXPANDER_INTERRUPT\n");
+-    init_gpio_interrupt(GPIO_PIN_I2C_EXPANDER_INTERRUPT, &fd_pcal6416a,
+-        "both");
+-
++/* Initialize the GPIO mapping */
++bool init_gpio_mapping(void)
++{
+     /* Initialize the AXP209 PMIC */
+     if (axp209_init() == false) {
+         return false;
+     }
+ 
++    key_fd = open("/dev/input/event0", O_RDONLY | O_NONBLOCK);
++    if (key_fd < 0) {
++        return false;
++    }
++
++    init_key_states();
++    
+     /* Initialize the GPIO interrupt for the AXP209 chip */
+     FK_DEBUG("Initialize interrupt for GPIO_PIN_AXP209_INTERRUPT\n");
+     init_gpio_interrupt(GPIO_PIN_AXP209_INTERRUPT, &fd_axp209, "");
+@@ -251,8 +242,7 @@ bool init_gpio_mapping(const char *confi
+     /* Create the FIFO pseudo-file if it does not exist */
+     FK_DEBUG("Create the FIFO pseudo-file if it does not exist\n");
+     if (mkfifo(FIFO_FILE, O_RDWR | 0640) < 0 && errno != EEXIST) {
+-        FK_ERROR("Cannot create the \"%s\" FIFO: %s\n", FIFO_FILE,
+-            strerror(errno));
++        FK_ERROR("Cannot create the \"%s\" FIFO: %s\n", FIFO_FILE, strerror(errno));
+         return false;
+     }
+ 
+@@ -260,8 +250,7 @@ bool init_gpio_mapping(const char *confi
+     FK_DEBUG("Open the FIFO pseudo-file\n");
+     fd_fifo = open(FIFO_FILE, O_RDWR | O_NONBLOCK);
+     if (fd_fifo < 0) {
+-        FK_ERROR("Cannot open the \"%s\" FIFO: %s\n", FIFO_FILE,
+-            strerror(errno));
++        FK_ERROR("Cannot open the \"%s\" FIFO: %s\n", FIFO_FILE, strerror(errno));
+         return false;
+     }
+ 
+@@ -273,13 +262,6 @@ bool init_gpio_mapping(const char *confi
+ /*  Deinitialize the GPIO mapping */
+ void deinit_gpio_mapping(void)
+ {
+-    /* Deinitialize the GPIO interrupt for the I2C GPIO expander chip */
+-    FK_DEBUG("DeInitiating interrupt for GPIO_PIN_I2C_EXPANDER_INTERRUPT\n");
+-    deinit_gpio_interrupt(fd_pcal6416a);
+-
+-    /* Deinitialize the I2C GPIO expander chip */
+-    pcal6416a_deinit();
+-
+     /* Deinitialize the GPIO interrupt for the AXP209 PMIC chip */
+     FK_DEBUG("DeInitiating interrupt for GPIO_PIN_AXP209_INTERRUPT\n");
+     deinit_gpio_interrupt(fd_axp209);
+@@ -290,24 +272,21 @@ void deinit_gpio_mapping(void)
+     /* Close the FIFO pseudo-file */
+     FK_DEBUG("Close the FIFO pseudo-file \n");
+     close(fd_fifo);
++    close(key_fd);
+ }
+ 
+ /* Handle the GPIO mapping (with interrupts) */
+-void handle_gpio_mapping(mapping_list_t *list)
++void handle_gpio_mapping(void)
+ {
+-    int result, gpio, int_status, max_fd, fd, val_int_bank_3;
+-    ssize_t read_bytes;
++    int result, max_fd, fd, val_int_bank_3, val_int_bank_4;
++    ssize_t read_bytes, key_read;
+     fd_set read_fds, except_fds;
+-    uint32_t interrupt_mask, previous_gpio_mask;
+-    bool pcal6416a_interrupt = false;
+     bool axp209_interrupt = false;
+     bool forced_interrupt = false;
+     char buffer[2], *next_line;
+-    mapping_t *mapping;
++    struct input_event ev;
+ 
+-    /* Initialize masks */
+-    previous_gpio_mask = current_gpio_mask;
+-    current_gpio_mask = 0;
++    key_read = read(key_fd, &ev, sizeof(ev));
+ 
+     /* Listen to FIFO read availability */
+     FD_ZERO(&read_fds);
+@@ -315,12 +294,10 @@ void handle_gpio_mapping(mapping_list_t
+ 
+     /* Listen to interrupt exceptions */
+     FD_ZERO(&except_fds);
+-    FD_SET(fd_pcal6416a, &except_fds);
+     FD_SET(fd_axp209, &except_fds);
+ 
+     /* Compute the maximum file descriptor number */
+-    max_fd = (fd_pcal6416a > fd_axp209) ? fd_pcal6416a : fd_axp209;
+-    max_fd = (fd_fifo > max_fd) ? fd_fifo : max_fd;
++    max_fd = (fd_fifo > fd_axp209) ? fd_fifo : fd_axp209;
+ 
+ #ifdef TIMEOUT_MICROSEC_SANITY_CHECK_GPIO_EXP
+ 
+@@ -343,7 +320,7 @@ void handle_gpio_mapping(mapping_list_t
+         FK_PERIODIC("Timeout, forcing sanity check\n");
+ 
+         /* Timeout forces a "Found interrupt" event for sanity check */
+-        pcal6416a_interrupt = axp209_interrupt = forced_interrupt = true;
++        axp209_interrupt = forced_interrupt = true;
+     } else if (result < 0) {
+ 
+         /* Error case  */
+@@ -365,11 +342,6 @@ void handle_gpio_mapping(mapping_list_t
+                         (int) total_bytes, (int) total_bytes, fifo_buffer);
+                     if (strtok_r(fifo_buffer, "\r\n", &next_line) != NULL) {
+                         FK_DEBUG("Parse line \"%s\"\n", fifo_buffer);
+-                        if (parse_config_line(fifo_buffer, list,
+-                            &monitored_gpio_mask) == false) {
+-                            FK_ERROR("Error while parsing line \"%s\"\n",
+-                                fifo_buffer);
+-                        }
+                         total_bytes -= next_line - fifo_buffer;
+                         if (total_bytes != 0) {
+                             memmove(fifo_buffer, next_line, total_bytes);
+@@ -390,15 +362,12 @@ void handle_gpio_mapping(mapping_list_t
+                 /* Rewind file and dummy read the current GPIO value */
+                 lseek(fd, 0, SEEK_SET);
+                 if (read(fd, &buffer, 2) != 2) {
+-		    FK_ERROR("read: %s\n", strerror(errno));
++		            FK_ERROR("read: %s\n", strerror(errno));
+                     break;
+                 }
+ 
+                 /* Check if the interrupt is from I2C GPIO expander or AXP209 */
+-                if (fd == fd_pcal6416a) {
+-                    FK_DEBUG("Found interrupt generated by PCAL6416AHF\r\n");
+-                    pcal6416a_interrupt = true;
+-                } else if (fd == fd_axp209) {
++                if (fd == fd_axp209) {
+                     FK_DEBUG("Found interrupt generated by AXP209\r\n");
+                     axp209_interrupt = true;
+                 }
+@@ -414,114 +383,42 @@ void handle_gpio_mapping(mapping_list_t
+             FK_DEBUG("Processing real AXP209 interrupt\n");
+         }
+         val_int_bank_3 = axp209_read_interrupt_bank_3();
+-        if (val_int_bank_3 < 0) {
++        val_int_bank_4 = axp209_read_interrupt_bank_4();
++        if ((val_int_bank_3 < 0) && (val_int_bank_4 < 0)) {
+             FK_DEBUG("Could not read AXP209 by I2C\n");
+             return;
+         }
+ 
+-        /* Proccess the Power Enable Key (PEK) short keypress */
+-        if (val_int_bank_3 & AXP209_INTERRUPT_PEK_SHORT_PRESS) {
+-            FK_DEBUG("AXP209 short PEK key press detected\n");
+-            mapping = find_mapping(list, SHORT_PEK_PRESS_GPIO_MASK);
+-            if (mapping != NULL) {
+-                FK_DEBUG("Found matching mapping:\n");
+-#ifdef DEBUG_GPIO
+-                dump_mapping(mapping);
+-#endif // DEBUG_GPIO
+-                if (mapping->type == MAPPING_KEY) {
+-                    FK_DEBUG("\t--> Key press and release %d\n",
+-                        mapping->value.keycode);
+-                    sendKey(mapping->value.keycode, 1);
+-                    usleep(SHORT_PEK_PRESS_DURATION_US);
+-                    sendKey(mapping->value.keycode, 0);
+-                } else if (mapping->type == MAPPING_COMMAND) {
+-                    FK_DEBUG("\t--> Execute Shell command \"%s\"\n",
+-                        mapping->value.command);
+-                    system(mapping->value.command);
+-                }
+-            }
+-            }
+-
+         /* Proccess the Power Enable Key (PEK) long keypress, the AXP209
+          * will shutdown the system in 3s anyway
+          */
+-        if (val_int_bank_3 & AXP209_INTERRUPT_PEK_LONG_PRESS) {
+-            FK_DEBUG("AXP209 long PEK key press detected\n");
+-            FK_DEBUG("\t--> Execute Shell command \"%s\"\n",
+-                SHELL_COMMAND_SHUTDOWN);
++        if ((val_int_bank_3 & AXP209_INTERRUPT_PEK_LONG_PRESS) || (val_int_bank_4 & AXP209_N_OE_POWEROFF)) {
++            FK_DEBUG("\t--> Execute Shell command \"%s\"\n", SHELL_COMMAND_SHUTDOWN);
+             system(SHELL_COMMAND_SHUTDOWN);
+         }
+     }
+-
+-    /* Process the PCAL6416A interrupts, if any */
+-    if (pcal6416a_interrupt) {
+-        if (forced_interrupt) {
+-            FK_PERIODIC("Processing forced PCAL6416AHF interrupt\n");
+-        } else {
+-            FK_DEBUG("Processing real PCAL6416AHF interrupt\n");
+-        }
+-
+-        /* Read the interrupt mask */
+-        int_status = pcal6416a_read_mask_interrupts();
+-        if (int_status < 0) {
+-            FK_DEBUG("Could not read PCAL6416A interrupt status by I2C\n");
+-            return;
+-        }
+-        interrupt_mask = (uint32_t) int_status;
+-
+-        /* Read the GPIO mask */
+-        current_gpio_mask = pcal6416a_read_mask_active_GPIOs();
+-        if (current_gpio_mask < 0) {
+-            FK_DEBUG("Could not read PCAL6416A active GPIOS by I2C\n");
+-            return;
+-        }
+-
+-        /* Keep only monitored GPIOS */
+-        interrupt_mask &= monitored_gpio_mask;
+-        current_gpio_mask &= monitored_gpio_mask;
+-
+-        /* Invert the active low N_NOE GPIO signal */
+-        current_gpio_mask ^= (NOE_GPIO_MASK);
+-
+-        /* Sanity check: if we missed an interrupt for some reason,
+-         * check if the GPIO value has changed and force it
+-         */
+-        for (gpio = 0; gpio < MAX_NUM_GPIO; gpio++) {
+-            if (interrupt_mask & (1 << gpio)) {
+-
+-                /* Found the GPIO in the interrupt mask */
+-                FK_DEBUG("\t--> Interrupt GPIO: %d\n", gpio);
+-            } else if ((current_gpio_mask ^ previous_gpio_mask) & (1 << gpio)) {
+-
+-                /* The GPIO is not in the interrupt mask, but has changed, force
+-                * it
+-                */
+-                FK_DEBUG("\t--> No interrupt (missed) but value has changed on GPIO: %d\n",
+-                gpio);
+-                interrupt_mask |= 1 << gpio;
++    
++    if ((key_read >= 0) && (ev.type == EV_KEY)) {
++        int action = 0;
++    
++        update_key_state(ev.code, (ev.value != 0));
++        
++        if (ev.value == 1) {
++            action = check_key_combos();
++            
++            if (action == 103) {
++                system("volume up");
++            } else if (action == 108) {
++                system("volume down");
++            } else if (action == 106) {
++                system("brightness up");
++            } else if (action == 105) {
++                system("brightness down");
++            } else if (action == 14) {
++                system("system_stats toggle");
+             }
+-        }
+-        if (!interrupt_mask) {
+-
+-            /* No change */
+-            return;
+-        }
+-        FK_DEBUG("current_gpio_mask 0x%04X interrupt_mask 0x%04X\n",
+-            current_gpio_mask, int_status);
+-
+-        /* Proccess the N_OE signal from the magnetic Reed switch, the
+-         * AXP209 will shutdown the system in 3s anyway
+-         */
+-        if (interrupt_mask & NOE_GPIO_MASK) {
+-            FK_DEBUG("NOE detected\n");
+-            FK_DEBUG("\t--> Execute Shell command \"%s\"\n",
+-                SHELL_COMMAND_SHUTDOWN);
+-            interrupt_mask &= ~NOE_GPIO_MASK;
+-            system(SHELL_COMMAND_SHUTDOWN);
+-        }
++        } 
+     }
+ 
+-        /* Apply the mapping for the current gpio mask */
+-        apply_mapping(list, current_gpio_mask);
+     return;
+ }
+diff -uprN a/gpio_mapping.h b/gpio_mapping.h
+--- a/gpio_mapping.h	2021-06-04 05:28:41.000000000 +0800
++++ b/gpio_mapping.h	2026-03-05 16:33:34.726044715 +0800
+@@ -28,11 +28,9 @@
+ #ifndef _GPIO_MAPPING_H_
+ #define _GPIO_MAPPING_H_
+ 
+-#include "mapping_list.h"
+ 
+-bool init_gpio_mapping(const char* config_filename,
+-    mapping_list_t *mapping_list);
++bool init_gpio_mapping(void);
+ void deinit_gpio_mapping(void);
+-void handle_gpio_mapping(mapping_list_t *mapping_list);
++void handle_gpio_mapping(void);
+ 
+ #endif  //_GPIO_MAPPING_H_
+diff -uprN a/main.c b/main.c
+--- a/main.c	2021-06-04 05:28:41.000000000 +0800
++++ b/main.c	2026-03-05 16:33:34.726044715 +0800
+@@ -32,102 +32,15 @@
+ #include <syslog.h>
+ #include <getopt.h>
+ #include "daemon.h"
+-#include "uinput.h"
+ #include "gpio_mapping.h"
++#include "uinput.h"
+ 
+-#define VERSION     "0.0.1"
++#define VERSION     "0.1.1"
+ #define PID_FILE    "/var/run/fkgpiod.pid"
+ 
+ /* Background daemon flag */
+ static bool daemon = false;
+ 
+-/* GPIO configuration file name */
+-static const char *config_file = "fkgpiod.conf";
+-
+-/* Print usage information */
+-static void print_usage(void)
+-{
+-    printf("Usage: fkgpiod [options] [config_file]\n"
+-           "Options:\n"
+-           " -d, -D, --daemonize                                Launch as a background daemon\n"
+-           " -h, -H, --help                                     Print option help\n"
+-           " -k, -K, --kill                                     Kill background daemon\n"
+-           " -v, --version                                      Print version information\n"
+-           "\n"
+-           "You can send script commands to the fkgpiod daemon by writting to the /tmp/fkgpiod.fifo file:\n"
+-           "\n"
+-           "$ echo \"LOAD /etc/fkgpiod.conf\" > /tmp/fkgpiod.fifo\n"
+-           "\n"
+-           "Available script commands (commands are not case sensitive):\n"
+-           "-----------------------------------------------------------\n"
+-           "CLEAR                                               Clear the button mapping\n"
+-           "DUMP                                                Dump the button mapping\n"
+-           "KEYDOWN <keycode>                                   Send a key down event with the given keycode\n"
+-           "KEYPRESS <keycode>                                  Send key press event with the given keycode\n"
+-           "KEYUP <keycode>                                     Send a key up event with the given keycode\n"
+-           "LOAD <configuration_file>                           Load a configuration file\n"
+-           "MAP <button_combination> TO KEY <keycode>           Map a button combination to a keycode\n"
+-           "MAP <button_combination> TO COMMAND <shell_command> Map a button combination to a Shell command\n"
+-           "SLEEP <delays_ms>                                   Sleep for the given delay in ms\n"
+-           "TYPE <string>                                       Type in a string\n"
+-           "UNMAP <button_combination>                          Unmap a button combination\n"
+-           "\n"
+-           "where:\n"
+-           " - <button_combination> is a list of UP, DOWN, LEFT, RIGHT, A, B, L, R, X, Y, MENU, START or FN\n"
+-           "   separated by \"+\" signs\n"
+-           " - <shell_command> is any valid Shell command with its arguments\n"
+-           " - <configuration_file> is the full path to a configurtion file\n"
+-           " - <delay_ms> is a delay in ms\n"
+-           " - <string> is a character string\n"
+-           " - <keycode> is taken from the Linux key and button codes\n"
+-           "     (https://github.com/torvalds/linux/blob/master/include/uapi/linux/input-event-codes.h),\n"
+-           "     which in turn is modeled after USB HUT 1.12 (see http://www.usb.org/developers/hidpage):\n"
+-           "   - KEY_0 to KEY_9, KEY_A to KEY_Z\n"
+-           "   - KEY_F1 to KEY_F24, KEY_KP0 to KEY_KP9, KEY_PROG1 to KEY_PROG4\n"
+-           "   - BTN_0 to BTN_9, BTN_A to BTN_C, BTN_X to BTN_Z, BTN_BASE2 to BTN_BASE6\n"
+-           "   - BTN_BACK, BTN_BASE, BTN_DEAD, BTN_EXTRA, BTN_FORWARD, BTN_GAMEPAD, BTN_JOYSTICK, BTN_LEFT,\n"
+-           "     BTN_MIDDLE, BTN_MISC, BTN_MODE, BTN_MOUSE, BTN_PINKIE, BTN_RIGHT, BTN_SELECT, BTN_SIDE,\n"
+-           "     BTN_START, BTN_TASK, BTN_THUMB, BTN_THUMB2, BTN_THUMBL, BTN_THUMBR, BTN_TL, BTN_TL2, \n"
+-           "     BTN_TOP, BTN_TOP2, BTN_TR, BTN_TR2, BTN_TRIGGER,\n"
+-           "   - KEY_102ND, KEY_AGAIN, KEY_ALTERASE, KEY_APOSTROPHE, KEY_BACK, KEY_BACKSLASH, KEY_BACKSPACE,\n"
+-           "     KEY_BASSBOOST, KEY_BATTERY, KEY_BLUETOOTH, KEY_BOOKMARKS, KEY_BRIGHTNESSDOWN,\n"
+-           "     KEY_BRIGHTNESSUP, KEY_BRIGHTNESS_CYCLE, KEY_BRIGHTNESS_ZERO, KEY_CALC, KEY_CAMERA,\n"
+-           "     KEY_CANCEL, KEY_CAPSLOCK, KEY_CHAT, KEY_CLOSE, KEY_CLOSECD, KEY_COFFEE, KEY_COMMA,\n"
+-           "     KEY_COMPOSE, KEY_COMPUTER, KEY_CONFIG, KEY_CONNECT, KEY_COPY, KEY_CUT, KEY_CYCLEWINDOWS,\n"
+-           "     KEY_DASHBOARD, KEY_DELETE, KEY_DELETEFILE, KEY_DIRECTION, KEY_DISPLAY_OFF, KEY_DOCUMENTS,\n"
+-           "     KEY_DOT, KEY_DOWN, KEY_EDIT, KEY_EJECTCD, KEY_EJECTCLOSECD, KEY_EMAIL, KEY_END, KEY_ENTER,\n"
+-           "     KEY_EQUAL, KEY_ESC, KEY_EXIT, KEY_FASTFORWARD, KEY_FILE, KEY_FINANCE, KEY_FIND,\n"
+-           "     KEY_FORWARD, KEY_FORWARDMAIL, KEY_FRONT, KEY_GRAVE, KEY_HANGEUL, KEY_HANGUEL, KEY_HANJA,\n"
+-           "     KEY_HELP, KEY_HENKAN, KEY_HIRAGANA, KEY_HOME, KEY_HOMEPAGE, KEY_HP, KEY_INSERT, KEY_ISO,\n"
+-           "     KEY_KATAKANA, KEY_KATAKANAHIRAGANA, KEY_KBDILLUMDOWN, KEY_KBDILLUMTOGGLE, KEY_KBDILLUMUP,\n"
+-           "     KEY_KPASTERISK,KEY_KPCOMMA, KEY_KPDOT, KEY_KPENTER, KEY_KPEQUAL, KEY_KPJPCOMMA,\n"
+-           "     KEY_KPLEFTPAREN, KEY_KPMINUS, KEY_KPPLUS, KEY_KPPLUSMINUS, KEY_KPRIGHTPAREN, KEY_KPSLASH,\n"
+-           "     KEY_LEFT, KEY_LEFTALT, KEY_LEFTBRACE, KEY_LEFTCTRL, KEY_LEFTMETA, KEY_LEFTSHIFT,\n"
+-           "     KEY_LINEFEED, KEY_MACRO, KEY_MAIL, KEY_MEDIA, KEY_MENU, KEY_MICMUTE, KEY_MINUS, KEY_MOVE,\n"
+-           "     KEY_MSDOS, KEY_MUHENKAN, KEY_MUTE, KEY_NEW, KEY_NEXTSONG, KEY_NUMLOCK, KEY_OPEN,\n"
+-           "     KEY_PAGEDOWN, KEY_PAGEUP, KEY_PASTE, KEY_PAUSE, KEY_PAUSECD, KEY_PHONE, KEY_PLAY,\n"
+-           "     KEY_PLAYCD, KEY_PLAYPAUSE, KEY_POWER, EY_PREVIOUSSONG, KEY_PRINT, KEY_PROPS, KEY_QUESTION,\n"
+-           "     KEY_RECORD, KEY_REDO, KEY_REFRESH, KEY_REPLY, KEY_REWIND, KEY_RFKILL, KEY_RIGHT,\n"
+-           "     KEY_RIGHTALT, KEY_RIGHTBRACE, KEY_RIGHTCTRL, KEY_RIGHTMETA, KEY_RIGHTSHIFT, KEY_RO,\n"
+-           "     KEY_SAVE, KEY_SCALE, KEY_SCREENLOCK, KEY_SCROLLDOWN, KEY_SCROLLLOCK, KEY_SCROLLUP,\n"
+-           "     KEY_SEARCH, KEY_SEMICOLON, KEY_SEND, KEY_SENDFILE, KEY_SETUP, KEY_SHOP, KEY_SLASH,\n"
+-           "     KEY_SLEEP, KEY_SOUND, KEY_SPACE, KEY_SPORT, KEY_STOP, KEY_STOPCD, KEY_SUSPEND,\n"
+-           "     KEY_SWITCHVIDEOMODE, KEY_SYSRQ, KEY_TAB, KEY_UNDO, KEY_UNKNOWN, KEY_UP, KEY_UWB,\n"
+-           "     KEY_VIDEO_NEXT, KEY_VIDEO_PREV, KEY_VOLUMEDOWN, KEY_VOLUMEUP, KEY_WAKEUP, KEY_WIMAX,\n"
+-           "     KEY_WLAN, KEY_WWW, KEY_XFER, KEY_YEN, KEY_ZENKAKUHANKAKU\n");
+-}
+-
+-/* Print version information */
+-static void print_version(void)
+-{
+-    printf("fkgpiod version "VERSION"\n");
+-    printf("FunKey S GPIO daemon\n\n");
+-    printf("Copyright (C) 2020-2021, Vincent Buso <vincent.buso@funkey-project.com>,\n");
+-    printf("Copyright (C) 2021, Michel Stempin  <michel.stempin@funkey-project.com>,\n");
+-    printf("All rights reserved.\n");
+-    printf("Released under the GNU Lesser General Public License version 2.1 or later\n");
+-}
+-
+ /* Parse command line options */
+ static void parse_options(int argc, char *argv[])
+ {
+@@ -152,12 +65,8 @@ static void parse_options(int argc, char
+             /* Match long option names and convert them to short options */
+             if (!strcmp(long_options[opt].name, "daemonize")) {
+                 c = 'd';
+-            } else if (!strcmp(long_options[opt].name, "help")) {
+-                c = 'h';
+-             } else if (!strcmp(long_options[opt].name, "kill")) {
++            } else if (!strcmp(long_options[opt].name, "kill")) {
+                 c = 'k';
+-            } else if (!strcmp(long_options[opt].name, "version")) {
+-                c = 'v';
+             }
+         }
+         switch (c) {
+@@ -168,13 +77,6 @@ static void parse_options(int argc, char
+             daemon = true;
+             break;
+ 
+-        case 'h':
+-        case 'H':
+-
+-            /* Help */
+-            print_usage();
+-            exit(EXIT_SUCCESS);
+-
+         case 'k':
+         case 'K':
+ 
+@@ -182,40 +84,23 @@ static void parse_options(int argc, char
+             kill_daemon(PID_FILE);
+             exit(EXIT_SUCCESS);
+ 
+-        case 'v':
+-        case 'V':
+-
+-            /* Version */
+-            print_version();
+-            exit(EXIT_SUCCESS);
+-
+         default:
+-            print_usage();
+             exit(EXIT_FAILURE);
+         }
+     }
+     if (optind > argc) {
+-        print_usage();
+         exit(EXIT_FAILURE);
+-    } else if (optind < argc) {
+-
+-        /* Last argument is the GPIO confguration file name */
+-        config_file = strdup(argv[optind]);
+     }
+ }
+ 
+ /* Entry point */
+ int main(int argc, char *argv[])
+ {
+-    mapping_list_t mapping_list;
+-
+     /* Parse command line options */
+     parse_options(argc, argv);
+     if (daemon) {
+ 
+         /* Run as a background daemon, redirect all output to syslog */
+-//        to_log(&stdout);
+-//        to_log(&stderr);
+         daemonize("fkgpiod", "/", PID_FILE);
+     } else {
+         openlog("fkgpiod", LOG_PERROR | LOG_PID | LOG_NDELAY, LOG_DAEMON);
+@@ -225,21 +110,21 @@ int main(int argc, char *argv[])
+     init_uinput();
+ 
+     /* Initialize the GPIO mapping */
+-    if (init_gpio_mapping(config_file, &mapping_list) == false) {
+-
++    if (init_gpio_mapping() == false) {
++        
+         /* Close the uinput device */
+         close_uinput();
+-	if (daemon) {
+-
+-	    /* Close the syslog */
+-	    closelog();
+-	}
++    	if (daemon) {
++    
++    	    /* Close the syslog */
++    	    closelog();
++    	}
+         exit(EXIT_FAILURE);
+     }
+     while (true) {
+ 
+         /* Main loop to handle the GPIOs */
+-        handle_gpio_mapping(&mapping_list);
++        handle_gpio_mapping();
+     }
+ 
+     /* Deinitialize the GPIO mapping */
