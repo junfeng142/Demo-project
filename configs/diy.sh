@@ -22,6 +22,9 @@ mkdir -p _opk
 # gmenu2x build
 [ -f src/gmenu2x.cpp ] && patch -p1 < fit_for_gmenu2x_build.patch
 
+# fkgpiod build
+[ -f gpio_axp209.c ] && patch -p1 < fit_for_fkgpiod_build.patch
+
 # scummvm build
 [ -f icons/scummvm.ico ] && patch -p1 < fit_for_scummvm_build.patch
 
