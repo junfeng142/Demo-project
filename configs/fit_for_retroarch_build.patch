@@ -1,6 +1,6 @@
 diff -uprN a/Makefile.miyoo b/Makefile.miyoo
---- a/Makefile.miyoo	2025-05-20 15:27:21.343876285 +0800
-+++ b/Makefile.miyoo	2025-05-20 15:36:48.232429909 +0800
+--- a/Makefile.miyoo	2026-03-05 19:50:30.955934087 +0800
++++ b/Makefile.miyoo	2026-03-05 19:51:17.115933655 +0800
 @@ -3,7 +3,7 @@
  #########################
  
@@ -10,7 +10,7 @@ diff -uprN a/Makefile.miyoo b/Makefile.miyoo
  
  # All toolchain-related variables may be
  # overridden via the command line
-@@ -11,26 +11,26 @@ TOOLCHAIN_DIR=/opt/miyoo
+@@ -11,28 +11,26 @@ TOOLCHAIN_DIR=/opt/miyoo
  ifdef GCW0_CC
  CC                    = $(GCW0_CC)
  else
@@ -32,19 +32,21 @@ diff -uprN a/Makefile.miyoo b/Makefile.miyoo
 +STRIP                 = $(TOOLCHAIN_DIR)/usr/bin/arm-funkey-linux-gnueabihf-strip
  endif
  
--GCW0_SDL_CONFIG      ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/bin/sdl-config
--GCW0_FREETYPE_CONFIG ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/bin/freetype-config
+-SYSROOT              ?= $(shell $(CC) --print-sysroot)
 +GCW0_SDL_CONFIG      ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config
 +GCW0_FREETYPE_CONFIG ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/bin/freetype-config
  
--GCW0_INC_DIR         ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/include
--GCW0_LIB_DIR         ?= $(TOOLCHAIN_DIR)/usr/arm-miyoo-linux-uclibcgnueabi/sysroot/usr/lib
+-GCW0_SDL_CONFIG      ?= $(SYSROOT)/usr/bin/sdl-config
+-GCW0_FREETYPE_CONFIG ?= $(SYSROOT)/usr/bin/freetype-config
+-
+-GCW0_INC_DIR         ?= $(SYSROOT)/usr/include
+-GCW0_LIB_DIR         ?= $(SYSROOT)/usr/lib
 +GCW0_INC_DIR         ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/include
 +GCW0_LIB_DIR         ?= $(TOOLCHAIN_DIR)/arm-funkey-linux-gnueabihf/sysroot/usr/lib
  
  #########################
  #########################
-@@ -70,7 +70,7 @@ HAVE_GLSL = 0
+@@ -72,7 +70,7 @@ HAVE_GLSL = 0
  HAVE_HID = 0
  HAVE_IBXM = 1
  HAVE_IMAGEVIEWER = 0
@@ -53,7 +55,7 @@ diff -uprN a/Makefile.miyoo b/Makefile.miyoo
  HAVE_LIBRETRODB = 1
  HAVE_MENU = 1
  HAVE_MENU_COMMON = 1
-@@ -118,7 +118,7 @@ TARGET = retroarch
+@@ -120,7 +118,7 @@ TARGET = retroarch
  
  OBJ :=
  LINK := $(CXX)
