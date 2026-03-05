@@ -1,7 +1,10 @@
 diff -uprN a/Makefile b/Makefile
---- a/Makefile	2025-02-14 11:19:16.000000000 +0800
+--- a/Makefile	2026-03-05 19:26:02.865947832 +0800
 +++ b/Makefile	2026-03-05 16:33:34.726044715 +0800
-@@ -4,12 +4,9 @@ TOOLS_CFLAGS	:= -Wall -std=c99 -D _DEFAU
+@@ -1,13 +1,12 @@
++CC			= /opt/FunKey-sdk-2.3.0/usr/bin/arm-funkey-linux-gnueabihf-gcc
++CFLAGS		= -Os -std=gnu99 -I. -Ifont
+ TOOLS_CFLAGS	:= -Wall -std=c99 -D _DEFAULT_SOURCE
  #
  # Programs
  #
