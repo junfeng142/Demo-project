@@ -153,8 +153,8 @@ diff -uprN a/src/contextmenu.cpp b/src/contextmenu.cpp
  	box = {
  		static_cast<Sint16>((gmenu2x.width() - w) / 2),
 diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
---- a/src/funkeymenu.cpp	2026-02-28 18:52:03.185473568 +0800
-+++ b/src/funkeymenu.cpp	2026-02-28 18:53:24.895474636 +0800
+--- a/src/funkeymenu.cpp	2026-03-05 20:56:54.385896793 +0800
++++ b/src/funkeymenu.cpp	2026-03-05 21:01:44.915894073 +0800
 @@ -1,4 +1,5 @@
  #include "funkeymenu.h"
 +#include "gmenu2x.h"
@@ -443,6 +443,22 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  }
  
  
+@@ -740,6 +752,7 @@ int FunkeyMenu::launch( )
+ 					switch (event.key.keysym.sym)
+ 					{
+ 					case SDLK_b:
++					case SDLK_LCTRL:
+ 						if(menu_confirmation){
+ 							/// ------ Reset menu confirmation ------
+ 							menu_confirmation = 0;
+@@ -932,6 +945,7 @@ int FunkeyMenu::launch( )
+ 						break;
+ 
+ 					case SDLK_a:
++					case SDLK_SPACE:
+ 					case SDLK_RETURN:
+ 						if(idx_menus[menuItem] == MENU_TYPE_SAVE){
+ 							if(menu_confirmation){
 diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
 --- a/src/gmenu2x.cpp	2026-02-28 18:52:03.185473568 +0800
 +++ b/src/gmenu2x.cpp	2026-03-01 10:39:38.436337253 +0800
