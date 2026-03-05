@@ -109,56 +109,43 @@ diff -uprN a/dingux/dingux_utils.c b/dingux/dingux_utils.c
     return dingux_read_battery_sys_file(DINGUX_BATTERY_CAPACITY_FILE);
  #endif
 diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl_dingux_joypad.c
---- a/input/drivers_joypad/sdl_dingux_joypad.c	2025-05-20 15:30:34.211899461 +0800
-+++ b/input/drivers_joypad/sdl_dingux_joypad.c	2025-05-20 15:39:04.946775359 +0800
-@@ -88,22 +88,22 @@
-  * - R3:     SDLK_RSHIFT
+--- a/input/drivers_joypad/sdl_dingux_joypad.c	2026-03-05 19:35:48.015942353 +0800
++++ b/input/drivers_joypad/sdl_dingux_joypad.c	2026-03-05 19:44:10.545937649 +0800
+@@ -89,20 +89,20 @@
   */
  #if defined(MIYOO)
--#define SDL_DINGUX_SDLK_X      SDLK_LSHIFT
+ #define SDL_DINGUX_SDLK_X      SDLK_LSHIFT
 -#define SDL_DINGUX_SDLK_A      SDLK_LALT
--#define SDL_DINGUX_SDLK_B      SDLK_LCTRL
++#define SDL_DINGUX_SDLK_A      SDLK_SPACE
+ #define SDL_DINGUX_SDLK_B      SDLK_LCTRL
 -#define SDL_DINGUX_SDLK_Y      SDLK_SPACE
-+#define SDL_DINGUX_SDLK_X      SDLK_x
-+#define SDL_DINGUX_SDLK_A      SDLK_a
-+#define SDL_DINGUX_SDLK_B      SDLK_b
-+#define SDL_DINGUX_SDLK_Y      SDLK_y
++#define SDL_DINGUX_SDLK_Y      SDLK_LEFTALT
  #else
 -#define SDL_DINGUX_SDLK_X      SDLK_SPACE
 -#define SDL_DINGUX_SDLK_A      SDLK_LCTRL
 -#define SDL_DINGUX_SDLK_B      SDLK_LALT
 -#define SDL_DINGUX_SDLK_Y      SDLK_LSHIFT
-+#define SDL_DINGUX_SDLK_X      SDLK_x
-+#define SDL_DINGUX_SDLK_A      SDLK_a
-+#define SDL_DINGUX_SDLK_B      SDLK_b
-+#define SDL_DINGUX_SDLK_Y      SDLK_y
++#define SDL_DINGUX_SDLK_X      SDLK_LSHIFT
++#define SDL_DINGUX_SDLK_A      SDLK_SPACE
++#define SDL_DINGUX_SDLK_B      SDLK_LCTRL
++#define SDL_DINGUX_SDLK_Y      SDLK_LEFTALT
  #endif
--#define SDL_DINGUX_SDLK_L      SDLK_TAB
--#define SDL_DINGUX_SDLK_R      SDLK_BACKSPACE
+ #define SDL_DINGUX_SDLK_L      SDLK_TAB
+ #define SDL_DINGUX_SDLK_R      SDLK_BACKSPACE
 -#define SDL_DINGUX_SDLK_L2     SDLK_PAGEUP
-+#define SDL_DINGUX_SDLK_L      SDLK_m
-+#define SDL_DINGUX_SDLK_R      SDLK_n
-+#define SDL_DINGUX_SDLK_L2     SDLK_q
++#define SDL_DINGUX_SDLK_L2     SDLK_ESCAPE
  #define SDL_DINGUX_SDLK_R2     SDLK_PAGEDOWN
 -#define SDL_DINGUX_SDLK_SELECT SDLK_ESCAPE
--#define SDL_DINGUX_SDLK_START  SDLK_RETURN
-+#define SDL_DINGUX_SDLK_SELECT SDLK_k
-+#define SDL_DINGUX_SDLK_START  SDLK_s
++#define SDL_DINGUX_SDLK_SELECT SDLK_RCTRL
+ #define SDL_DINGUX_SDLK_START  SDLK_RETURN
  #if defined(MIYOO)
  #define SDL_DINGUX_SDLK_L3     SDLK_RALT
- #define SDL_DINGUX_SDLK_R3     SDLK_RSHIFT
-@@ -111,10 +111,10 @@
- #define SDL_DINGUX_SDLK_L3     SDLK_KP_DIVIDE
- #define SDL_DINGUX_SDLK_R3     SDLK_KP_PERIOD
- #endif
--#define SDL_DINGUX_SDLK_UP     SDLK_UP
--#define SDL_DINGUX_SDLK_RIGHT  SDLK_RIGHT
--#define SDL_DINGUX_SDLK_DOWN   SDLK_DOWN
--#define SDL_DINGUX_SDLK_LEFT   SDLK_LEFT
-+#define SDL_DINGUX_SDLK_UP     SDLK_u
-+#define SDL_DINGUX_SDLK_RIGHT  SDLK_r
-+#define SDL_DINGUX_SDLK_DOWN   SDLK_d
-+#define SDL_DINGUX_SDLK_LEFT   SDLK_l
+@@ -118,7 +118,7 @@
  #if defined(RETROFW)
  #define SDL_DINGUX_SDLK_MENU   SDLK_END
  #elif defined(MIYOO)
+-#define SDL_DINGUX_SDLK_MENU   SDLK_RCTRL
++#define SDL_DINGUX_SDLK_MENU   SDLK_HOME
+ #else
+ #define SDL_DINGUX_SDLK_MENU   SDLK_HOME
+ #endif
