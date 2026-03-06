@@ -63,9 +63,9 @@ diff -uprN a/build.sh b/build.sh
 +
 +make -j5 all sd-root sd-zip
 diff -uprN a/configure b/configure
---- a/configure	2025-12-27 15:25:42.223956583 +0800
-+++ b/configure	2025-12-27 14:21:25.423977508 +0800
-@@ -3755,8 +3755,8 @@ if test -n "$_host"; then
+--- a/configure	2026-03-06 16:55:52.197361198 +0800
++++ b/configure	2026-03-06 16:58:18.687359827 +0800
+@@ -3958,8 +3958,8 @@ if test -n "$_host"; then
  			_sysroot=`$CXX --print-sysroot`
  			_sdlpath=$_sysroot/usr/bin
  			append_var DEFINES  "-DMIYOO -DREDUCE_MEMORY_USAGE -DUNCACHED_PLUGINS"
