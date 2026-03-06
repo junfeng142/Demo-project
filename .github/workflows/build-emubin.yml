@@ -86,7 +86,7 @@ jobs:
       run: |
         mv ${PKG_NAME}/drastic/libs $PKG_NAME/_opk/
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/${EXTRA_NAME_1} -o $PKG_NAME/_opk/${EXTRA_NAME_1}
-        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/openbor-6391/engine/$PKG_NAME -o $PKG_NAME/_opk/${EXTRA_NAME_2}
+        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/openbor-6391/engine/${EXTRA_NAME_2} -o $PKG_NAME/_opk/${EXTRA_NAME_2}
         mv $PKG_NAME/${EXTRA_NAME_1}/scummvm_miyoo.zip $PKG_NAME/_opk/
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
