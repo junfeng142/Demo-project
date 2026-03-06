@@ -10,7 +10,6 @@ env:
   LIB_NAMES: ardens fceumm gambatte gpsp handy mednafen_ngp mednafen_pce_fast mednafen_wswan pcsx_rearmed picodrive pokemini retro8 snes9x2005 fbalpha2012
   BIN_DIR: /
   CONFIG_FILE: configs/libretro.config
-  DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -49,10 +48,9 @@ jobs:
     - name: Load custom configuration
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
-        mv configs/*.patch $PKG_NAME/
-        chmod +x $DIY_SH
-        cd $PKG_NAME
-        $GITHUB_WORKSPACE/$DIY_SH
+        mv configs/fit_for_libretro_build.patch $PKG_NAME/
+        cd $PKG_NAME && mkdir -p _opk
+        patch -p1 < fit_for_libretro_build.patch
         git submodule update --init --recursive
         ./libretro-fetch.sh $LIB_NAMES
 

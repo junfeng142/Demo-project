@@ -9,7 +9,6 @@ env:
   PKG_NAME: zImage
   BIN_DIR: /arch/arm/boot/
   CONFIG_FILE: configs/linux.config
-  DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -49,10 +48,10 @@ jobs:
     - name: Load custom configuration
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
-        mv configs/*.patch $PKG_NAME/
+        mv configs/fit_for_kernel_build.patch $PKG_NAME/
         chmod +x $DIY_SH
-        cd $PKG_NAME
-        $GITHUB_WORKSPACE/$DIY_SH
+        cd $PKG_NAME && mkdir -p _opk
+        patch -p1 < fit_for_kernel_build.patch
 
     - name: Compile the firmware
       id: compile

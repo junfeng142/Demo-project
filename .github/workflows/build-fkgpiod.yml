@@ -10,7 +10,6 @@ env:
   EXTRA_NAME_1: gmenu2x
   EXTRA_NAME_2: retroarch
   EXTRA_NAME_3: SDL2-30-10
-  DIY_SH: configs/diy.sh
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -91,7 +90,7 @@ jobs:
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${PKG_NAME} -o $PKG_NAME/_opk/${PKG_NAME}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/${EXTRA_NAME_1} -o $PKG_NAME/_opk/${EXTRA_NAME_1}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/${EXTRA_NAME_2} -o $PKG_NAME/_opk/${EXTRA_NAME_2}
-        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_3}/build/.libs/libSDL2-2.0.so.0.3000.10 -o $PKG_NAME/_opk/libSDL2-2.0.so.0.3000.10
+        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/SDL2-2.30.10/build/.libs/libSDL2-2.0.so.0.3000.10 -o $PKG_NAME/_opk/libSDL2-2.0.so.0.3000.10
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
