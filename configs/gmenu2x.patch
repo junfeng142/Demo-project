@@ -141,7 +141,7 @@ diff -uprN a/buildopts.h.cmakein b/buildopts.h.cmakein
  
  #endif /* GMENU2X_BUILDOPTS_H */
 diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
---- a/src/funkeymenu.cpp	2026-03-06 10:45:10.347569435 +0800
+--- a/src/funkeymenu.cpp	2026-03-06 10:58:54.297561721 +0800
 +++ b/src/funkeymenu.cpp	2026-03-06 10:43:28.047570393 +0800
 @@ -1,4 +1,5 @@
  #include "funkeymenu.h"
@@ -149,6 +149,15 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  #include <iostream>
  
  /// -------------- DEFINES --------------
+@@ -20,7 +21,7 @@
+ #define MENU_ERROR_PRINTF(...)
+ #endif //MENU_ERROR
+ 
+-#define SCREEN_HORIZONTAL_SIZE      240 //RES_HW_SCREEN_HORIZONTAL
++#define SCREEN_HORIZONTAL_SIZE      320 //RES_HW_SCREEN_HORIZONTAL
+ #define SCREEN_VERTICAL_SIZE        240 //RES_HW_SCREEN_VERTICAL
+ 
+ #define SCROLL_SPEED_PX             30
 @@ -32,15 +33,15 @@
  #define MENU_BG_SQURE_WIDTH         180
  #define MENU_BG_SQUREE_HEIGHT       140
@@ -439,7 +448,25 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  						if(menu_confirmation){
  							/// ------ Reset menu confirmation ------
  							menu_confirmation = 0;
-@@ -932,6 +945,7 @@ int FunkeyMenu::launch( )
+@@ -827,6 +840,8 @@ int FunkeyMenu::launch( )
+ 							/// ----- Shell cmd ----
+ 							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
+ 							system(shell_cmd);
++							// Turn audio amp off to avoid buzzing sound
++							system(SHELL_CMD_AUDIO_AMP_OFF);
+ 
+ 							/// ------ Refresh screen ------
+ 							screen_refresh = 1;
+@@ -883,6 +898,8 @@ int FunkeyMenu::launch( )
+ 							/// ----- Shell cmd ----
+ 							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
+ 							system(shell_cmd);
++							// Turn audio amp off to avoid buzzing sound
++							system(SHELL_CMD_AUDIO_AMP_OFF);
+ 
+ 							/// ------ Refresh screen ------
+ 							screen_refresh = 1;
+@@ -928,6 +945,7 @@ int FunkeyMenu::launch( )
  						break;
  
  					case SDLK_a:
@@ -448,7 +475,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  						if(idx_menus[menuItem] == MENU_TYPE_SAVE){
  							if(menu_confirmation){
 diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
---- a/src/gmenu2x.cpp	2026-03-06 10:45:10.347569435 +0800
+--- a/src/gmenu2x.cpp	2026-03-06 10:58:54.347561721 +0800
 +++ b/src/gmenu2x.cpp	2026-03-06 10:43:28.047570393 +0800
 @@ -76,7 +76,7 @@
  #define DEFAULT_FONT_SIZE 12
@@ -459,7 +486,17 @@ diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
  #endif
  
  using namespace std;
-@@ -427,7 +427,7 @@ void GMenu2X::initMenu() {
+@@ -326,6 +326,9 @@ GMenu2X::GMenu2X() : input(*this), sc(th
+ 
+     // Init FunkeyMenu
+     FunkeyMenu::init( *this );
++	
++	// Turn audio amp off to avoid buzzing sound
++	system(SHELL_CMD_AUDIO_AMP_OFF);
+ 
+ 	//powerSaver->setScreenTimeout(confInt["backlightTimeout"]);
+ }
+@@ -424,7 +427,7 @@ void GMenu2X::initMenu() {
  
  	// Add action links in the applications section.
  	auto appIdx = menu->sectionNamed("applications");
@@ -468,6 +505,63 @@ diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
  			bind(&GMenu2X::explorer, this),
  			tr["Launch an application"],
  			"skin:icons/explorer.png");
+@@ -523,6 +526,7 @@ void GMenu2X::readConfig(string conffile
+ 		confStr["skin"] = "Default";
+ 
+ 	evalIntConf( confInt, "outputLogs", 0, 0,1 );
++	evalIntConf( confInt, "trimExt", 0, 0,1);
+ 	evalIntConf( confInt, "backlightTimeout", 15, 0,120 );
+ 	evalIntConf( confInt, "buttonRepeatRate", 10, 0, 20 );
+ 	evalIntConf( confInt, "videoBpp", 32, 16, 32 );
+@@ -750,36 +754,40 @@ void GMenu2X::showSettings() {
+ 			*this, tr["Language"],
+ 			tr["Set the language used by GMenu2X"],
+ 			&lang, &translations)));
+-	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
++	/*sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
+ 			*this, tr["Save last selection"],
+ 			tr["Save the last selected link and section on exit"],
+-			&confInt["saveSelection"])));
++			&confInt["saveSelection"])));*/
+ 	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
+ 			*this, tr["Output logs"],
+ 			tr["Logs the output of the links. Use the Log Viewer to read them."],
+ 			&confInt["outputLogs"])));
+-	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
++	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingBool(
++			*this, tr["Trim extensions"],
++			tr["Trim extensions in the file explorer."],
++			&confInt["trimExt"])));
++	/*sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
+ 			*this, tr["Screen Timeout"],
+ 			tr["Set screen's backlight timeout in seconds"],
+-			&confInt["backlightTimeout"], 0, 120)));
++			&confInt["backlightTimeout"], 0, 120)));*/
+ 	sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
+ 			*this, tr["Button repeat rate"],
+ 			tr["Set button repetitions per second"],
+ 			&confInt["buttonRepeatRate"], 0, 20)));
+-	if (brightnessmanager->available()) {
++	/*if (brightnessmanager->available()) {
+ 		sd.addSetting(unique_ptr<MenuSetting>(new MenuSettingInt(
+ 				*this, tr["Brightness level"],
+ 				tr["Set the brightness level"],
+ 				&confInt["brightnessLevel"],
+ 				1, brightnessmanager->maxBrightness())));
+-	}
++	}*/
+ 
+ 	if (sd.exec()) {
+ 		//powerSaver->setScreenTimeout(confInt["backlightTimeout"]);
+ 
+ 		input.repeatRateChanged();
+-		if (brightnessmanager->available())
+-			brightnessmanager->setBrightness(confInt["brightnessLevel"]);
++		/*if (brightnessmanager->available())
++			brightnessmanager->setBrightness(confInt["brightnessLevel"]);*/
+ 
+ 		if (lang == "English") lang = "";
+ 		if (lang != tr.lang()) {
 diff -uprN a/src/menu.cpp b/src/menu.cpp
 --- a/src/menu.cpp	2026-03-06 10:44:59.137569540 +0800
 +++ b/src/menu.cpp	2026-03-06 10:43:28.047570393 +0800

@@ -90,9 +90,9 @@ diff -uprN c/ffplay-gcw0/ffplay.gcw0.desktop d/ffplay-gcw0/ffplay.gcw0.desktop
 -Categories=applications;
 -MimeType=video/avi;video/mp4;audio/mp4;video/ogg;audio/ogg;video/x-matroska;audio/x-matroska;audio/x-flac;audio/mpeg;video/mpeg;video/x-flv;video/x-ms-asf;video/quicktime;video/3gpp;video/webm;audio/vnd.rn-realaudio;audio/x-pn-realaudio;audio/x-pn-realaudio-plugin;video/vnd.rn-realvideo;application/vnd.rn-realmedia;application/vnd.rn-realmedia-vbr;audio/x-mpegurl;
 -X-OD-Manual=README.txt
-diff -uprN c/ffplay.c d/ffplay.c
---- c/ffplay.c	2025-02-06 08:56:22.398536573 +0800
-+++ d/ffplay.c	2025-02-06 08:54:38.968535629 +0800
+diff -uprN a/ffplay.c b/ffplay.c
+--- a/ffplay.c	2026-03-06 11:02:13.777559853 +0800
++++ b/ffplay.c	2026-03-06 11:06:16.967557577 +0800
 @@ -3236,17 +3236,17 @@ static void event_loop(VideoState *cur_s
                  cur_stream->force_refresh = 1;
                  break;
@@ -114,7 +114,7 @@ diff -uprN c/ffplay.c d/ffplay.c
              case SDLK_v:
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_VIDEO);
                  break;
-@@ -3255,30 +3255,30 @@ static void event_loop(VideoState *cur_s
+@@ -3255,18 +3255,18 @@ static void event_loop(VideoState *cur_s
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_AUDIO);
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_SUBTITLE);
                  break;
