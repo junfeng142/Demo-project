@@ -47,6 +47,10 @@ jobs:
         sudo mv mmiyoo /opt
         sudo mv prebuilt /opt
         export PATH=/opt/mmiyoo/bin/:$PATH
+        cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
+        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+        sudo mv FunKey-sdk-2.3.0 /opt
+        
 
     - name: Load custom configuration
       run: |
@@ -64,9 +68,9 @@ jobs:
         cd $PKG_NAME
         make cfg MOD=funkeys
         make MOD=funkeys
-        cd $EXTRA_NAME_1 && chmod +x ./build.sh
+        cd $EXTRA_NAME_2 && chmod +x ./build.sh
         ./build.sh
-        cd ../$EXTRA_NAME_2 && chmod +x ./build.sh
+        cd ../$EXTRA_NAME_1 && chmod +x ./build.sh
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV

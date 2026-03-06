@@ -50,16 +50,16 @@ diff -uprN a/build.sh b/build.sh
 @@ -0,0 +1,14 @@
 +#!/bin/bash
 +
-+export PATH=$PATH:/opt/mmiyoo/bin
++export PATH=$PATH:/opt/FunKey-sdk-2.3.0/bin
 +export TARGETMACH=arm-linux
 +export BUILDMACH=i686-pc-linux-gnu
-+export CROSS=arm-linux-gnueabihf
++export CROSS=arm-funkey-linux-gnueabihf
 +export CC=${CROSS}-gcc
 +export LD=${CROSS}-ld
 +export AS=${CROSS}-as
 +export CXX=${CROSS}-g++
 +
-+./configure --host=miyoo --enable-release --enable-plugins --default-dynamic --enable-engine=testbed --enable-ext-neon --with-freetype2-prefix=/opt/mmiyoo/arm-buildroot-linux-gnueabihf/libc/usr/bin/
++./configure --host=miyoo --enable-release --enable-plugins --default-dynamic --enable-engine=testbed --enable-ext-neon --with-freetype2-prefix=/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/libc/usr/bin/
 +
 +make -j5 all sd-root sd-zip
 diff -uprN a/configure b/configure
