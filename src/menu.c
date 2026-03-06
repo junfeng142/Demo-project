@@ -758,21 +758,21 @@ static int load_state_action(GN_MENU_ITEM *self, void *param)
     if(SDL_PollEvent(&event)) {
       if(event.type == SDL_KEYDOWN) {
         switch(event.key.keysym.sym) {
-        case SDLK_l:
+        case SDLK_LEFT:
           if(slot > 0) {
             slot--;
           }
           slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot), menu_buf->format, SDL_SWSURFACE);
           break;
-        case SDLK_r:
+        case SDLK_RIGHT:
           if(slot < nb_slot - 1) {
             slot++;
           }
           slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot), menu_buf->format, SDL_SWSURFACE);
           break;
-        case SDLK_b:
+        case SDLK_LCTRL:
           return MENU_STAY;
-        case SDLK_a:
+        case SDLK_SPACE:
           printf("Loading state %p!!\n", buffer);
           load_state(conf.game, slot);
           printf("Loaded state %p!!\n", buffer);
@@ -834,7 +834,7 @@ static int save_state_action(GN_MENU_ITEM *self, void *param)
     if(SDL_PollEvent(&event)) {
       if(event.type == SDL_KEYDOWN) {
         switch(event.key.keysym.sym) {
-        case SDLK_l:
+        case SDLK_LEFT:
           if(slot > 0) {
             slot--;
           }
@@ -842,7 +842,7 @@ static int save_state_action(GN_MENU_ITEM *self, void *param)
             slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
                                           menu_buf->format, SDL_SWSURFACE);
           break;
-        case SDLK_r:
+        case SDLK_RIGHT:
           if(slot < nb_slot) {
             slot++;
           }
@@ -850,11 +850,11 @@ static int save_state_action(GN_MENU_ITEM *self, void *param)
             slot_img = SDL_ConvertSurface(load_state_img(conf.game, slot),
                                           menu_buf->format, SDL_SWSURFACE);
           break;
-        case SDLK_b:
+        case SDLK_LCTRL:
           return MENU_STAY;
           break;
-        case SDLK_a:
-        case SDLK_y:
+        case SDLK_SPACE:
+        case SDLK_LALT:
           save_state(conf.game, slot);
           printf("Save state!!\n");
           return MENU_RETURNTOGAME;
@@ -887,7 +887,7 @@ int menu_event_handling(struct GN_MENU *self)
   if(SDL_PollEvent(&event)) {
     if(event.type == SDL_KEYDOWN) {
       switch(event.key.keysym.sym) {
-      case SDLK_u:
+      case SDLK_UP:
         if(self->current > 0) {
           self->current--;
         }
@@ -895,7 +895,7 @@ int menu_event_handling(struct GN_MENU *self)
           self->current = self->nb_elem - 1;
         }
         break;
-      case SDLK_d:
+      case SDLK_DOWN:
         if(self->current < self->nb_elem - 1) {
           self->current++;
         }
@@ -903,23 +903,23 @@ int menu_event_handling(struct GN_MENU *self)
           self->current = 0;
         }
         break;
-      case SDLK_l:
+      case SDLK_LEFT:
         self->current -= 10;
         if(self->current < 0) {
           self->current = 0;
         }
         break;
-      case SDLK_r:
+      case SDLK_RIGHT:
         self->current += 10;
         if(self->current >= self->nb_elem) {
           self->current = self->nb_elem - 1;
         }
         break;
-      case SDLK_b:
+      case SDLK_LCTRL:
         return MENU_CLOSE;
         break;
-      case SDLK_a:
-      case SDLK_x:
+      case SDLK_SPACE:
+      case SDLK_LSHIFT:
         mi = gn_menu_get_item_by_index(self, self->current);
         if(mi && mi->action) {
           if((a = mi->action(mi, NULL)) > 0) {

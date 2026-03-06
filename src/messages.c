@@ -125,15 +125,15 @@ int SDL_getchar(void)
   switch(event.type) {
   case SDL_KEYDOWN:
     switch(event.key.keysym.sym) {
-    case SDLK_s:
+    case SDLK_RETURN:
       return -1;
-    case SDLK_l:
+    case SDLK_LEFT:
       return LEFT;
-    case SDLK_r:
+    case SDLK_RIGHT:
       return RIGHT;
     case SDLK_o:
       return DEL;
-    case SDLK_n:
+    case SDLK_BACKSPACE:
       return BACKSPACE;
     default:
       break;

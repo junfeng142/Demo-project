@@ -117,31 +117,31 @@ int handle_event(void)
     case SDL_KEYUP:
     case SDL_KEYDOWN:
       switch(event.key.keysym.sym) {
-      case SDLK_u:
+      case SDLK_UP:
         set_key(KEY_UP, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_d:
+      case SDLK_DOWN:
         set_key(KEY_DOWN, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_l:
+      case SDLK_LEFT:
         set_key(KEY_LEFT, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_r:
+      case SDLK_RIGHT:
         set_key(KEY_RIGHT, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_a:
+      case SDLK_SPACE:
         set_abxylr(conf.a_btn, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_b:
+      case SDLK_LCTRL:
         set_abxylr(conf.b_btn, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_x:
+      case SDLK_LSHIFT:
         set_abxylr(conf.x_btn, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_y:
+      case SDLK_LALT:
         set_abxylr(conf.y_btn, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_k:
+      case SDLK_RCTRL:
         if(event.type == SDL_KEYDOWN) {
           //memory.intern_coin &= ~(1 << 0);
           memory.intern_coin = 0x07&0x06;
@@ -163,13 +163,13 @@ int handle_event(void)
           memory.intern_start = 0x8F;
         }
         break;
-      case SDLK_m:
+      case SDLK_TAB:
         set_abxylr(conf.l_btn, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_n:
+      case SDLK_BACKSPACE:
         set_abxylr(conf.r_btn, event.type == SDL_KEYDOWN ? 1 : 0);
         break;
-      case SDLK_q:
+      case SDLK_ESCAPE:
         return 1;
       }
       break;
