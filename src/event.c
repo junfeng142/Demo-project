@@ -153,7 +153,7 @@ int handle_event(void)
 		  memory.intern_start = 0x8F;  //支持UNIBIOS投币
         }
         break;
-      case SDLK_s:
+      case SDLK_RETURN:
         if(event.type == SDL_KEYDOWN) {
           //memory.intern_start &= ~(1 << 0);
           memory.intern_start = 0x8F&0xFE;
