@@ -74,7 +74,7 @@ jobs:
         cd $PKG_NAME/$PKG_NAME
         ./gcw0.sh
         make -j1 V=s
-        cd $EXTRA_NAME_1
+        cd ../$EXTRA_NAME_1
         make -j1 V=s
         cd ../$EXTRA_NAME_2
         make -j1 V=s
