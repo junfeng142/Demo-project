@@ -55,9 +55,6 @@ jobs:
         cd $PKG_NAME/$EXTRA_NAME_1 && patch -p1 < $EXTRA_NAME_1.patch
         cd ../$EXTRA_NAME_2 
         wget https://github.com/DCurrent/openbor/archive/refs/tags/v6391.tar.gz
-        tar -zxvf SDL2.tar.gz -C SDL2/
-        tar -zxvf opengl.tar.gz -C opengl/
-        wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
         tar xvf v6391.tar.gz
         patch -p1 < $EXTRA_NAME_2.patch
 
