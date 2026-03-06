@@ -318,7 +318,7 @@ char ss_prg_credit(void)
 		SDL_PollEvent(&event);
 		if(event.type == SDL_KEYDOWN) {
 			if(compteur == 0 || (compteur > cfg.delayspeed && ((compteur & joy_speed[cfg.repeatspeed]) == 0))) {
-				if(event.key.keysym.sym == SDLK_k ) {
+				if(event.key.keysym.sym == SDLK_RCTRL ) {
 					return 1;
 				} else return 0;
 			}
@@ -574,18 +574,18 @@ void gui_menu_key_init()
 		return;
 	}
 
-	gui_menu_key_values.push_back(SDLK_a);
-	gui_menu_key_values.push_back(SDLK_b);
-	gui_menu_key_values.push_back(SDLK_x);
-	gui_menu_key_values.push_back(SDLK_y);
-	gui_menu_key_values.push_back(SDLK_m);
-	gui_menu_key_values.push_back(SDLK_n);
-	gui_menu_key_labels[SDLK_a]     = "A";
-	gui_menu_key_labels[SDLK_b]     = "B";
-	gui_menu_key_labels[SDLK_x]     = "Y";
-	gui_menu_key_labels[SDLK_y]     = "X";
-	gui_menu_key_labels[SDLK_m]     = "L";
-	gui_menu_key_labels[SDLK_n]     = "R";
+	gui_menu_key_values.push_back(SDLK_SPACE);
+	gui_menu_key_values.push_back(SDLK_LCTRL);
+	gui_menu_key_values.push_back(SDLK_LSHIFT);
+	gui_menu_key_values.push_back(SDLK_LALT);
+	gui_menu_key_values.push_back(SDLK_TAB);
+	gui_menu_key_values.push_back(SDLK_BACKSPACE);
+	gui_menu_key_labels[SDLK_SPACE]     = "A";
+	gui_menu_key_labels[SDLK_LCTRL]     = "B";
+	gui_menu_key_labels[SDLK_LSHIFT]     = "Y";
+	gui_menu_key_labels[SDLK_LALT]     = "X";
+	gui_menu_key_labels[SDLK_TAB]     = "L";
+	gui_menu_key_labels[SDLK_BACKSPACE]     = "R";
 }
 void gui_menu_fps_init()
 {
@@ -884,7 +884,7 @@ void ss_prg_options(int first, int last)
 		SDL_PollEvent(&event);
 		if(event.type == SDL_KEYDOWN) {
 			if(compteur == 0 || (compteur > cfg.delayspeed && ((compteur & joy_speed[cfg.repeatspeed]) == 0))) {
-				if(event.key.keysym.sym == SDLK_d) {
+				if(event.key.keysym.sym == SDLK_DOWN) {
 					if (g_message[0] != 0) {
 						g_message[0] = 0;
 						prep_bg_opt(first);
@@ -905,7 +905,7 @@ void ss_prg_options(int first, int last)
 							++options_num;
 						}
 					}
-				} else if(event.key.keysym.sym == SDLK_u) {
+				} else if(event.key.keysym.sym == SDLK_UP) {
 					if (g_message[0] != 0) {
 						g_message[0] = 0;
 						prep_bg_opt(first);
@@ -927,7 +927,7 @@ void ss_prg_options(int first, int last)
 						}
 					}
 				// PROCESS OPTIONS
-				} else if (event.key.keysym.sym == SDLK_l) {
+				} else if (event.key.keysym.sym == SDLK_LEFT) {
 					switch(first + options_num) {
 						case OPTION_GUI_DELAYSPEED:
 							--cfg.delayspeed;
@@ -1030,7 +1030,7 @@ void ss_prg_options(int first, int last)
 							if(options.sense < 0) options.sense = 100;
 							break;
 					}
-				} else if(event.key.keysym.sym == SDLK_r) {
+				} else if(event.key.keysym.sym == SDLK_RIGHT) {
 					switch(first + options_num) {
 						case OPTION_GUI_DELAYSPEED:
 							++cfg.delayspeed;
@@ -1129,7 +1129,7 @@ void ss_prg_options(int first, int last)
 							if(options.sense > 100) options.sense = 0;
 							break;
 					}
-				} else if(event.key.keysym.sym == SDLK_a) {
+				} else if(event.key.keysym.sym == SDLK_SPACE) {
 					int option = first + options_num;		
 					if(option >= OPTION_GUI_PATH0 && option <= OPTION_GUI_PATH19) {
 						// call set path menu
@@ -1184,12 +1184,12 @@ void ss_prg_options(int first, int last)
 						sprintf((char*)g_message, "Favorites list successfully cleared");
 						prep_bg_opt(first);
 					}
-				} else if(event.key.keysym.sym == SDLK_s || event.key.keysym.sym == SDLK_y) {
+				} else if(event.key.keysym.sym == SDLK_RETURN || event.key.keysym.sym == SDLK_LALT) {
 					int option = first + options_num;
 					if(option >= OPTION_GUI_PATH0 && option <= OPTION_GUI_PATH19) {
 						strcpy(szAppRomPaths[option - OPTION_GUI_PATH0], "");
 					}
-				} else if(event.key.keysym.sym == SDLK_k || event.key.keysym.sym == SDLK_b) {
+				} else if(event.key.keysym.sym == SDLK_RCTRL || event.key.keysym.sym == SDLK_LCTRL) {
 					prep_bg_main();
 					Quit = 1;
 				}
@@ -1334,7 +1334,7 @@ void ss_prog_run(void)
 		SDL_PollEvent(&event);
 		if(event.type == SDL_KEYDOWN) {
 			if(compteur == 0 || (compteur > cfg.delayspeed && ((compteur & joy_speed[cfg.repeatspeed]) == 0))) {
-				if(event.key.keysym.sym == SDLK_d) {
+				if(event.key.keysym.sym == SDLK_DOWN) {
 					run_num++;
 					if(run_num > OPTION_FBA_LAST) {
 						run_y = START_Y - 1;
@@ -1345,7 +1345,7 @@ void ss_prog_run(void)
 							run_y += 9;
 						} else run_off++;
 					}
-				} else if(event.key.keysym.sym == SDLK_u) {
+				} else if(event.key.keysym.sym == SDLK_UP) {
 					run_num--;
 					if(run_num < OPTION_FBA_FIRST){
 						run_y = START_Y - 1 + ((OPTION_FBA_LAST < 12 ? OPTION_FBA_LAST : 12) * 9);
@@ -1354,7 +1354,7 @@ void ss_prog_run(void)
 					} else {
 						if(run_num >= OPTION_FBA_LAST - 7 || run_off == 0) run_y -= 9; else run_off--;
 					}
-				} else if (event.key.keysym.sym == SDLK_l) {
+				} else if (event.key.keysym.sym == SDLK_LEFT) {
 					switch(run_options[run_num]) {
 						case OPTION_FBA_SOUND:
 							options.sound--;
@@ -1391,7 +1391,7 @@ void ss_prog_run(void)
 							}
 							break;
 					}
-				} else if (event.key.keysym.sym == SDLK_r) {
+				} else if (event.key.keysym.sym == SDLK_RIGHT) {
 					switch(run_options[run_num]) {
 						case OPTION_FBA_SOUND:
 							options.sound++;
@@ -1428,7 +1428,7 @@ void ss_prog_run(void)
 							}
 							break;
 					}
-				} else if (event.key.keysym.sym == SDLK_a) {
+				} else if (event.key.keysym.sym == SDLK_SPACE) {
 					save_lastsel();
 
 					nBurnDrvActive = nBurnDrvSelect[0] = nb_rom;
@@ -1448,7 +1448,7 @@ void ss_prog_run(void)
 
 					prep_bg();
 					Quit = 1;
-				} else if(event.key.keysym.sym == SDLK_b || event.key.keysym.sym == SDLK_k) {
+				} else if(event.key.keysym.sym == SDLK_LCTRL || event.key.keysym.sym == SDLK_RCTRL) {
 					prep_bg();
 					Quit = 1;
 				}
@@ -1573,12 +1573,12 @@ void gui_menu_main()
 				//	sel.ofs = sel.rom;
 				//	sel.y = START_Y - 1;
 				//} else if(event.key.keysym.sym == SDLK_x) { // X button
-				if(event.key.keysym.sym == SDLK_x) { // X button
+				if(event.key.keysym.sym == SDLK_LSHIFT) { // X button
 					// no need to increment compteur
 					continue;
-				} else if(event.key.keysym.sym == SDLK_m) { // page up
+				} else if(event.key.keysym.sym == SDLK_TAB) { // page up
 					Uint8* keystate = SDL_GetKeyState(NULL);
-					if (keystate[SDLK_x]) {
+					if (keystate[SDLK_LSHIFT]) {
 						if (compteur == 0) {
 							// prev genre
 							cfg.genre--;
@@ -1597,9 +1597,9 @@ void gui_menu_main()
 							sel.y = START_Y - 1;
 						}
 					}
-				} else if(event.key.keysym.sym == SDLK_n) { // page down
+				} else if(event.key.keysym.sym == SDLK_BACKSPACE) { // page down
 					Uint8* keystate = SDL_GetKeyState(NULL);
-					if (keystate[SDLK_x]) {
+					if (keystate[SDLK_LSHIFT]) {
 						if (compteur == 0) {
 							// next genre
 							cfg.genre = (cfg.genre + 1) % NB_GENRES;
@@ -1618,9 +1618,9 @@ void gui_menu_main()
 							sel.y = START_Y - 1 + (LINES_COUNT - 1) * LINE_HEIGHT;
 						}
 					}
-				} else if(event.key.keysym.sym == SDLK_d) {
+				} else if(event.key.keysym.sym == SDLK_DOWN) {
 					Uint8* keystate = SDL_GetKeyState(NULL);
-					if (keystate[SDLK_x]) {
+					if (keystate[SDLK_LSHIFT]) {
 						if (compteur == 0) {
 							// next filter
 							cfg.list = (cfg.list + 1) % NB_FILTERS;
@@ -1662,9 +1662,9 @@ void gui_menu_main()
 							}
 						}
 					}
-				} else if(event.key.keysym.sym == SDLK_u) {
+				} else if(event.key.keysym.sym == SDLK_UP) {
 					Uint8* keystate = SDL_GetKeyState(NULL);
-					if (keystate[SDLK_x]) {
+					if (keystate[SDLK_LSHIFT]) {
 						if (compteur == 0) {
 							// prev filter
 							cfg.list--;
@@ -1700,9 +1700,9 @@ void gui_menu_main()
 							}
 						}
 					}
-				} else if(event.key.keysym.sym == SDLK_l) {
+				} else if(event.key.keysym.sym == SDLK_LEFT) {
 					Uint8* keystate = SDL_GetKeyState(NULL);
-					if (keystate[SDLK_x]) {
+					if (keystate[SDLK_LSHIFT]) {
 						if (compteur == 0) {
 							// prev hardware
 							cfg.hardware--;
@@ -1715,9 +1715,9 @@ void gui_menu_main()
 					} else if (sel.x > 0) {
 						--sel.x;
 					}
-				} else if(event.key.keysym.sym == SDLK_r) {
+				} else if(event.key.keysym.sym == SDLK_RIGHT) {
 					Uint8* keystate = SDL_GetKeyState(NULL);
-					if (keystate[SDLK_x]) {
+					if (keystate[SDLK_LSHIFT]) {
 						if (compteur == 0) {
 							// next hardware
 							cfg.hardware = (cfg.hardware + 1) % NB_HARDWARES;
@@ -1730,9 +1730,9 @@ void gui_menu_main()
 						++sel.x;
 					}
 
-				} else if(event.key.keysym.sym == SDLK_k || event.key.keysym.sym == SDLK_b) {
+				} else if(event.key.keysym.sym == SDLK_RCTRL || event.key.keysym.sym == SDLK_LCTRL) {
 					if(ss_prg_credit()) Quit = 1;
-				} else if(event.key.keysym.sym == SDLK_a){
+				} else if(event.key.keysym.sym == SDLK_SPACE){
 					// executer l'emu
 					if(romlist.nb_list[cfg.list] != 0 && ROMLIST(etat, sel.rom) != ROUGE) {
 						ss_prog_run();
@@ -1743,14 +1743,14 @@ void gui_menu_main()
 						// simulate key unpress
 						// important
 						event.type = SDL_KEYUP;
-						event.key.keysym.sym = SDLK_a;
+						event.key.keysym.sym = SDLK_SPACE;
 						SDL_PushEvent(&event);
 						compteur = 0;
 						continue;
 					}
-				} else if(event.key.keysym.sym == SDLK_y ){
+				} else if(event.key.keysym.sym == SDLK_LALT ){
 					if(compteur == 0) ss_prg_help();
-				} else if(event.key.keysym.sym == SDLK_s ){
+				} else if(event.key.keysym.sym == SDLK_RETURN ){
 					ss_prg_options(OPTION_MAIN_FIRST, OPTION_MAIN_LAST);
 				}
 			}

@@ -86,7 +86,7 @@ char *gui_KeyNames[] = {"A", "B", "Y", "X", "L", "R"};
 char *gui_KeyNames[] = {"A", "B", "X", "Y", "L", "R"};
 #endif
 int gui_KeyData[] = {0, 1, 2, 3, 4, 5};
-int gui_KeyValue[] = {SDLK_a, SDLK_b, SDLK_x, SDLK_y, SDLK_m, SDLK_n};
+int gui_KeyValue[] = {SDLK_SPACE, SDLK_LCTRL, SDLK_LSHIFT, SDLK_LALT, SDLK_TAB, SDLK_BACKSPACE};
 char *gui_SoundDrvNames[] = {"No sound", "LIBAO", "SDL mutex", "SDL"};
 char *gui_SoundSampleRates[] = {"11025", "16000", "22050", "32000", "44100"};
 char *gui_AutofireFpsNames[] = {"off", "6 fps", "10 fps", "16 fps", "30 fps"};
@@ -255,19 +255,19 @@ void gui_MenuRun(MENU *menu)
 		while(SDL_PollEvent(&gui_event)) {
 			if(gui_event.type == SDL_KEYDOWN) {
 				// DINGOO A - apply parameter or enter submenu
-				if(gui_event.key.keysym.sym == SDLK_a) if(mi->itemOnA != NULL) (*mi->itemOnA)();
+				if(gui_event.key.keysym.sym == SDLK_SPACE) if(mi->itemOnA != NULL) (*mi->itemOnA)();
 				// DINGOO B - exit or back to previous menu
-				if(gui_event.key.keysym.sym == SDLK_b) return;
+				if(gui_event.key.keysym.sym == SDLK_LCTRL) return;
 				// DINGOO UP - arrow down
-				if(gui_event.key.keysym.sym == SDLK_u) if(--menu->itemCur < 0) menu->itemCur = menu->itemNum - 1;
+				if(gui_event.key.keysym.sym == SDLK_UP) if(--menu->itemCur < 0) menu->itemCur = menu->itemNum - 1;
 				// DINGOO DOWN - arrow up
-				if(gui_event.key.keysym.sym == SDLK_d) if(++menu->itemCur == menu->itemNum) menu->itemCur = 0;
+				if(gui_event.key.keysym.sym == SDLK_DOWN) if(++menu->itemCur == menu->itemNum) menu->itemCur = 0;
 				// DINGOO LEFT - decrease parameter value
-				if(gui_event.key.keysym.sym == SDLK_l) {
+				if(gui_event.key.keysym.sym == SDLK_LEFT) {
 					if(mi->itemPar != NULL && *mi->itemPar > 0) *mi->itemPar -= 1;
 				}
 				// DINGOO RIGHT - increase parameter value
-				if(gui_event.key.keysym.sym == SDLK_r) {
+				if(gui_event.key.keysym.sym == SDLK_RIGHT) {
 					if(mi->itemPar != NULL && *mi->itemPar < mi->itemParMaxValue) *mi->itemPar += 1;
 				}
 			}
@@ -341,7 +341,7 @@ static void gui_help()
 		while(SDL_PollEvent(&gui_event)) {
 			if(gui_event.type == SDL_KEYDOWN) {
 				// DINGOO B - exit or back to previous menu
-				if(gui_event.key.keysym.sym == SDLK_b) return;
+				if(gui_event.key.keysym.sym == SDLK_LCTRL) return;
 			}
 		}
 		SDL_Delay(16);
@@ -537,20 +537,20 @@ void dbg_handler(unsigned int pc, int id)
 						return;
 					}
 
-					if(gui_event.key.keysym.sym == SDLK_a)
+					if(gui_event.key.keysym.sym == SDLK_SPACE)
 						return;
 
-					if(gui_event.key.keysym.sym == SDLK_b) {
+					if(gui_event.key.keysym.sym == SDLK_LCTRL) {
 						skip = 0x100;
 						return;
 					}
 
-					if(gui_event.key.keysym.sym == SDLK_y) {
+					if(gui_event.key.keysym.sym == SDLK_LALT) {
 						skip = 0x1000;
 						return;
 					}
 
-					if(gui_event.key.keysym.sym == SDLK_x) {
+					if(gui_event.key.keysym.sym == SDLK_LSHIFT) {
 						debug = 0;
 						//SekDbgBreakpointHandlerFetch = NULL;
 						return;

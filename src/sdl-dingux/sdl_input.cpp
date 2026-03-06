@@ -130,19 +130,19 @@ void sdl_input_read(bool process_autofire) // called from do_keypad()
 
 			// handheld keypresses
 			if (!process_autofire) {
-				if (event.key.keysym.sym == SDLK_a) keypc &= ~BUTTON_A;
-				else if (event.key.keysym.sym == SDLK_b) keypc &= ~BUTTON_B;
-				else if (event.key.keysym.sym == SDLK_x) keypc &= ~BUTTON_X;
-				else if (event.key.keysym.sym == SDLK_y) keypc &= ~BUTTON_Y;
-				else if (event.key.keysym.sym == SDLK_m) keypc &= ~BUTTON_SL;
-				else if (event.key.keysym.sym == SDLK_n) keypc &= ~BUTTON_SR;
-				else if (event.key.keysym.sym == SDLK_k) keypc &= ~BUTTON_SELECT;
-				else if (event.key.keysym.sym == SDLK_s) keypc &= ~BUTTON_START;
+				if (event.key.keysym.sym == SDLK_SPACE) keypc &= ~BUTTON_A;
+				else if (event.key.keysym.sym == SDLK_LCTRL) keypc &= ~BUTTON_B;
+				else if (event.key.keysym.sym == SDLK_LSHIFT) keypc &= ~BUTTON_X;
+				else if (event.key.keysym.sym == SDLK_LALT) keypc &= ~BUTTON_Y;
+				else if (event.key.keysym.sym == SDLK_TAB) keypc &= ~BUTTON_SL;
+				else if (event.key.keysym.sym == SDLK_BACKSPACE) keypc &= ~BUTTON_SR;
+				else if (event.key.keysym.sym == SDLK_RCTRL) keypc &= ~BUTTON_SELECT;
+				else if (event.key.keysym.sym == SDLK_RETURN) keypc &= ~BUTTON_START;
 				else if (event.key.keysym.sym == SDLK_e) keypc &= ~BUTTON_QT;
 				else if (event.key.keysym.sym == SDLK_p) keypc &= ~BUTTON_PAUSE;
 				else if (event.key.keysym.sym == SDLK_i) keypc &= ~BUTTON_QSAVE;
 				else if (event.key.keysym.sym == SDLK_j) keypc &= ~BUTTON_QLOAD;
-				else if (event.key.keysym.sym == SDLK_q) keypc &= ~BUTTON_MENU;
+				else if (event.key.keysym.sym == SDLK_ESCAPE) keypc &= ~BUTTON_MENU;
 			}
 		} else if (event.type == SDL_KEYDOWN) {
 			// FBA keypresses
@@ -161,19 +161,19 @@ void sdl_input_read(bool process_autofire) // called from do_keypad()
 
 			// handheld keypresses
 			if (!process_autofire) {
-				if (event.key.keysym.sym == SDLK_a) keypc |= BUTTON_A;
-				else if (event.key.keysym.sym == SDLK_b) keypc |= BUTTON_B;
-				else if (event.key.keysym.sym == SDLK_x) keypc |= BUTTON_X;
-				else if (event.key.keysym.sym == SDLK_y) keypc |= BUTTON_Y;
-				else if (event.key.keysym.sym == SDLK_m) keypc |= BUTTON_SL;
-				else if (event.key.keysym.sym == SDLK_n) keypc |= BUTTON_SR;
-				else if (event.key.keysym.sym == SDLK_k) keypc |= BUTTON_SELECT;
-				else if (event.key.keysym.sym == SDLK_s) keypc |= BUTTON_START;
+				if (event.key.keysym.sym == SDLK_SPACE) keypc |= BUTTON_A;
+				else if (event.key.keysym.sym == SDLK_LCTRL) keypc |= BUTTON_B;
+				else if (event.key.keysym.sym == SDLK_LSHIFT) keypc |= BUTTON_X;
+				else if (event.key.keysym.sym == SDLK_LALT) keypc |= BUTTON_Y;
+				else if (event.key.keysym.sym == SDLK_TAB) keypc |= BUTTON_SL;
+				else if (event.key.keysym.sym == SDLK_BACKSPACE) keypc |= BUTTON_SR;
+				else if (event.key.keysym.sym == SDLK_RCTRL) keypc |= BUTTON_SELECT;
+				else if (event.key.keysym.sym == SDLK_RETURN) keypc |= BUTTON_START;
 				else if (event.key.keysym.sym == SDLK_e) keypc |= BUTTON_QT;
 				else if (event.key.keysym.sym == SDLK_p) keypc |= BUTTON_PAUSE;
 				else if (event.key.keysym.sym == SDLK_i) keypc |= BUTTON_QSAVE;
 				else if (event.key.keysym.sym == SDLK_j) keypc |= BUTTON_QLOAD;
-				else if (event.key.keysym.sym == SDLK_q) keypc |= BUTTON_MENU;
+				else if (event.key.keysym.sym == SDLK_ESCAPE) keypc |= BUTTON_MENU;
 			}
 		}
 		if (process_autofire && auto_it <= 0) {
@@ -303,12 +303,12 @@ void sdl_autofire_init() {
 			autofire_state[autofire_count].interval = af->fps / 2;
 			
 			int keydef = 0;
-			if (af->key == SDLK_a) keydef = BUTTON_A;
-			else if (af->key == SDLK_b) keydef = BUTTON_B;
-			else if (af->key == SDLK_x) keydef = BUTTON_X;
-			else if (af->key == SDLK_y) keydef = BUTTON_Y;
-			else if (af->key == SDLK_m) keydef = BUTTON_SL;
-			else if (af->key == SDLK_n) keydef = BUTTON_SR;
+			if (af->key == SDLK_SPACE) keydef = BUTTON_A;
+			else if (af->key == SDLK_LCTRL) keydef = BUTTON_B;
+			else if (af->key == SDLK_LSHIFT) keydef = BUTTON_X;
+			else if (af->key == SDLK_LALT) keydef = BUTTON_Y;
+			else if (af->key == SDLK_TAB) keydef = BUTTON_SL;
+			else if (af->key == SDLK_BACKSPACE) keydef = BUTTON_SR;
 
 			if (key != 0) {
 				autofire_state[autofire_count++].keypc = keydef;

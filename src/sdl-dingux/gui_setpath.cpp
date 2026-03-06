@@ -247,7 +247,7 @@ int gui_setpath(char *path)
 			// change to read key state later
 			while(SDL_PollEvent(&gui_event)) {
 				if(gui_event.type == SDL_KEYDOWN) {
-					if(gui_event.key.keysym.sym == SDLK_s) {
+					if(gui_event.key.keysym.sym == SDLK_RETURN) {
 						if(current_column == 1) {
 							repeat = 0;
 							return_value = 0;
@@ -255,7 +255,7 @@ int gui_setpath(char *path)
 							break;
 						}
 					}
-					if(gui_event.key.keysym.sym == SDLK_a) {
+					if(gui_event.key.keysym.sym == SDLK_SPACE) {
 						if(current_column == 1) {
 							repeat = 0;
 							chdir(dir_list[current_dir_selection]);
@@ -269,12 +269,12 @@ int gui_setpath(char *path)
 							}
 						}*/
 					}
-					if(gui_event.key.keysym.sym == SDLK_b || gui_event.key.keysym.sym == SDLK_k) {
+					if(gui_event.key.keysym.sym == SDLK_LCTRL || gui_event.key.keysym.sym == SDLK_RCTRL) {
 						return_value = -1;
 						repeat = 0;
 						break;
 					}
-					if(gui_event.key.keysym.sym == SDLK_u) { // DINGOO UP - arrow down
+					if(gui_event.key.keysym.sym == SDLK_UP) { // DINGOO UP - arrow down
 						/*if(current_column == 0) {
 							if(current_file_selection) {
 								current_file_selection--;
@@ -297,7 +297,7 @@ int gui_setpath(char *path)
 							}
 						}
 					}
-					if(gui_event.key.keysym.sym == SDLK_d) {
+					if(gui_event.key.keysym.sym == SDLK_DOWN) {
 						/*if(current_column == 0) {
 							if(current_file_selection < (num_files - 1)) {
 								current_file_selection++;
