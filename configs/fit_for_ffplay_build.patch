@@ -92,7 +92,7 @@ diff -uprN c/ffplay-gcw0/ffplay.gcw0.desktop d/ffplay-gcw0/ffplay.gcw0.desktop
 -X-OD-Manual=README.txt
 diff -uprN a/ffplay.c b/ffplay.c
 --- a/ffplay.c	2026-03-06 11:02:13.777559853 +0800
-+++ b/ffplay.c	2026-03-06 11:06:16.967557577 +0800
++++ b/ffplay.c	2026-03-06 11:33:22.577542357 +0800
 @@ -3236,17 +3236,17 @@ static void event_loop(VideoState *cur_s
                  cur_stream->force_refresh = 1;
                  break;
@@ -104,8 +104,9 @@ diff -uprN a/ffplay.c b/ffplay.c
              case SDLK_s: // S: Step to next frame
                  step_to_next_frame(cur_stream);
                  break;
-             case SDLK_TAB: // GCW0: Left shoulder button.
+-            case SDLK_TAB: // GCW0: Left shoulder button.
 -            case SDLK_a:
++            case SDLK_m: // GCW0: Left shoulder button.
 +            case SDLK_RCTRL:
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_AUDIO);
                  break;
