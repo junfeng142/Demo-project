@@ -103,7 +103,7 @@ jobs:
       run: |
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/output/${PKG_NAME} -o $PKG_NAME/_opk/${PKG_NAME}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/out/bin/${EXTRA_NAME_1} -o ${PKG_NAME}/${EXTRA_NAME_1}/_opk/${EXTRA_NAME_1}
-        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/${EXTRA_NAME_2} -o ${PKG_NAME}/${EXTRA_NAME_2}/_opk/${EXTRA_NAME_2}
+        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/${EXTRA_NAME_2}.bin -o ${PKG_NAME}/${EXTRA_NAME_2}/_opk/${EXTRA_NAME_2}.bin
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_3}/MPlayer-1.4/mplayer -o ${PKG_NAME}/${EXTRA_NAME_3}/_opk/${EXTRA_NAME_3}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_4}/build/${EXTRA_NAME_4} -o ${PKG_NAME}/${EXTRA_NAME_4}/_opk/${EXTRA_NAME_4}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_5}/st -o ${PKG_NAME}/${EXTRA_NAME_5}/_opk/st
