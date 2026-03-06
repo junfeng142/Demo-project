@@ -1,15 +1,14 @@
-name: dosbox-opk Build
+name: FK-BIN Build
 
 on:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/jbanes/rs97-dosbox.git
-  REPO_BRANCH: master
-  PKG_NAME: dosbox
-  BIN_DIR: /dosbox/src/
-  CONFIG_FILE: configs/doxbox.config
-  DIY_SH: configs/diy.sh
+  REPO_URL: https://github.com/junfeng142/Demo-project.git
+  REPO_BRANCH: nds
+  PKG_NAME: nds
+  EXTRA_NAME_1: scummvm
+  EXTRA_NAME_2: openbor
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -40,26 +39,38 @@ jobs:
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH --depth 1 $PKG_NAME
+        git clone https://github.com/scummvm/scummvm.git -b master --depth 1 ${PKG_NAME}/$EXTRA_NAME_1
+        mkdir -p $PKG_NAME/$EXTRA_NAME_2 && mkdir -p $PKG_NAME/_opk
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
-        cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
-        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
-        sudo mv FunKey-sdk-2.3.0 /opt
+        cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
+        cd && tar xvf toolchain.tar.gz
+        sudo mv mmiyoo /opt
+        sudo mv prebuilt /opt
+        export PATH=/opt/mmiyoo/bin/:$PATH
 
     - name: Load custom configuration
       run: |
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
-        mv configs/*.patch $PKG_NAME/
-        chmod +x $DIY_SH
-        cd $PKG_NAME
-        $GITHUB_WORKSPACE/$DIY_SH
+        mv configs/$EXTRA_NAME_1.* $PKG_NAME/$EXTRA_NAME_1/
+        mv configs/$EXTRA_NAME_2.* $PKG_NAME/$EXTRA_NAME_2/
+        cd $PKG_NAME/$EXTRA_NAME_1 && patch -p1 < $EXTRA_NAME_1.patch
+        cd ../$EXTRA_NAME_2 
+        wget https://github.com/DCurrent/openbor/archive/refs/tags/v6391.tar.gz
+        tar -zxvf SDL2.tar.gz -C SDL2/
+        tar -zxvf opengl.tar.gz -C opengl/
+        wget https://github.com/libsdl-org/SDL/releases/download/release-2.30.10/SDL2-2.30.10.tar.gz
+        tar xvf v6391.tar.gz
+        patch -p1 < $EXTRA_NAME_2.patch
 
     - name: Compile the firmware
       id: compile
       run: |
-        export PATH=/opt/FunKey-sdk-2.3.0/bin/:$PATH
-        cd $PKG_NAME/$PKG_NAME
-        ./gcw0.sh
-        make -j1 V=s
+        cd $PKG_NAME
+        make cfg MOD=funkeys
+        make MOD=funkeys
+        cd $EXTRA_NAME_1 && chmod +x ./build.sh
+        ./build.sh
+        cd ../$EXTRA_NAME_2 && chmod +x ./build.sh
+        ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
@@ -72,9 +83,10 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        mv frontend/$PKG_NAME.* $PKG_NAME/_opk/
-        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}${BIN_DIR}${PKG_NAME} -o $PKG_NAME/_opk/${PKG_NAME}
-        tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/_opk/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        mv ${PKG_NAME}/drastic/libs $PKG_NAME/_opk/
+        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/${EXTRA_NAME_1} -o $PKG_NAME/_opk/${EXTRA_NAME_1}
+        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/openbor-6391/engine/$PKG_NAME -o $PKG_NAME/_opk/${EXTRA_NAME_2}
+        mv $PKG_NAME/${EXTRA_NAME_1}/scummvm_miyoo.zip $PKG_NAME/_opk/
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT

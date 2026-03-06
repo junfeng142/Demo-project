@@ -109,6 +109,7 @@ jobs:
         tools/mksquashfs ${PKG_NAME}/${EXTRA_NAME_3}/_opk/* $PKG_NAME/_opk/${EXTRA_NAME_3}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         tools/mksquashfs ${PKG_NAME}/${EXTRA_NAME_4}/_opk/* $PKG_NAME/_opk/${EXTRA_NAME_4}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         tools/mksquashfs ${PKG_NAME}/${EXTRA_NAME_5}/_opk/* $PKG_NAME/_opk/${EXTRA_NAME_5}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+        mv $PKG_NAME/${EXTRA_NAME_4}/scummvm_miyoo.zip $PKG_NAME/_opk/
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
