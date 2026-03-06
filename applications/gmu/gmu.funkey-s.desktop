@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=GMU
+Name[ch]=音乐播放器
+Comment=A multi-format music player
+Comment[ch]=多格式音乐播放器
+Exec=run.sh
+Icon=gmu
+Terminal=false
+Type=Application
+StartupNotify=false
+Categories=applications

@@ -1,0 +1,136 @@
+#!/bin/sh
+
+#*******************************************************************#
+#       Name:           ffplay-subs.dge                             #
+#       Author:         radon86 gas.radon86@gmail.com               #
+#       Description:    Launches ffplay                             #
+#       Date:           2014-06-17                                  #
+#*******************************************************************#
+
+export set LD_LIBRARY_PATH=lib
+export set PATH="lua:$PATH"
+export set LIBQUVI_SCRIPTSDIR=libquvi-scripts
+
+# Default arguments for the ffplay
+ARGS='-x 320 -y 240 -fs -autoexit'
+
+input_file="$@"
+ext=""
+format=""
+correct_url=1
+
+#------------------------------------------------------------------------#
+# f_get_extension                                                        #
+# Returns filename extension.                                            #
+#------------------------------------------------------------------------#
+f_get_extension ()
+{
+        if [ -n "$@" ]
+        then
+                if [ -d "$@" ]
+                then
+                        ext=""
+                else
+                        # get file's extension
+                        ext=$(echo "$@"|sed 's/.\{1,\}\.//g')
+                fi
+
+                if [ "$ext" = "$1" ]
+                then
+                        ext=""
+                fi
+        fi
+}
+
+f_correct_url ()
+{
+	input=$(expr "$1" : '\(.......\)')
+        if [ "$input" = 'http://' ]
+        then
+                return 0
+        else
+                return 1
+        fi
+}
+
+f_onlinevideo_format ()
+{
+        case "$1" in
+                *youtube.com* )
+                        youtube_formats=$(./quvi "$1" --query-formats 2>/dev/null | grep 'fmt')
+                        case  "$youtube_formats" in
+                                *fmt36_240p* ) format='-format fmt36_240p';;
+                                *fmt18_360p* ) format='-format fmt18_360p';;
+                                *fmt18_360p* ) format='-format fmt18_360p';;
+                        esac
+                        ;;
+                *vimeo.com* )
+                        mobile=$(./quvi "$1" --query-formats 2>/dev/null | grep 'mobile'; echo $?)
+                        if [ "$mobile" ]
+                        then
+                                format='-format '$(./quvi "$1" --query-formats 2>/dev/null | grep 'mobile'| awk -F '|' '{print $2}')
+                        fi
+                        ;;
+        esac
+        input_file="$1"
+}
+
+correct_url=$(f_correct_url "$input_file"; echo $?)
+
+if [ -r "$input_file" ]
+then
+        f_get_extension "$input_file"
+
+        if [ "x$ext" = "xm3u" -o x"$ext" = "xm3u" ]
+        then
+                textfile=$(file "$input_file" | grep "text"; echo $?)
+                if [ "$textfile" ]
+                then
+                        url=""
+                        while read url
+                        do
+                            symbol=$(expr "$url" : '\(.\)')
+                            if [ "$symbol" != '#' ]
+                            then
+                                break
+                            fi
+                        done <"$input_file"
+                        
+                        correct_url=$(f_correct_url "$url"; echo $?)
+                        if [ "$correct_url" -eq "0" ]
+                        then
+                                f_onlinevideo_format "$url"
+                        else
+                                echo 'Bad URL in the input .m3u[8] file.'
+                                exit 3
+                        fi
+                else
+                        echo 'Bad input .m3u[8] file.'
+                        exit 2
+                fi
+        fi
+elif [ "$correct_url" -eq "0" ]
+then
+        f_onlinevideo_format "$input_file"
+else
+        echo "Bad input file."
+        exit 1
+fi
+
+if [ -d "$HOME" ]
+then
+        mkdir -p "$HOME"/.ffplay/file_settings
+
+        if [ ! -d "$HOME/.ffplay/video/Qbertaddict1's YouTube Channel" ]
+        then
+                cp -r "video" "$HOME/.ffplay"
+        fi
+fi
+
+echo "format: $format"
+echo "input_file: $input_file"
+
+# Run player
+./ffplay $ARGS $format "$input_file"
+
+exit 0

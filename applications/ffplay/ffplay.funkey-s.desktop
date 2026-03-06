@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=FFplay
+Name[ch]=媒体播放器
+Version=2.1.4
+Comment=Simple media player
+Comment[ch]=轻量级媒体播放器
+Exec=ffplay.dge %f
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=ffplay
+Categories=applications;
+SelectorDir=/mnt/Media
+SelectorFilter=mp4,mp3,mpa,ogg,flac,rmvb,avi
+MimeType=video/avi;video/mp4;audio/mp4;video/ogg;audio/ogg;video/x-matroska;audio/x-matroska;audio/x-flac;audio/mpeg;video/mpeg;video/x-flv;video/x-ms-asf;video/quicktime;video/3gpp;video/webm;audio/vnd.rn-realaudio;audio/x-pn-realaudio;audio/x-pn-realaudio-plugin;video/vnd.rn-realvideo;application/vnd.rn-realmedia;application/vnd.rn-realmedia-vbr;audio/x-mpegurl;
+X-OD-Manual=README.txt

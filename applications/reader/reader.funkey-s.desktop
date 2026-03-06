@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=Pixel Reader
+Name[ch]=电子书阅读器
+Comment=An ebook reader,Supports epub and txt formats
+Comment[ch]=一款电子书阅读器，支持epub和txt格式
+Exec=run.sh
+Icon=reader
+Terminal=false
+Type=Application
+StartupNotify=false
+Categories=applications
