@@ -55,11 +55,11 @@ jobs:
     - name: Load custom configuration
       run: |
         mkdir -p $PKG_NAME/_opk && mv applications/$PKG_NAME/* $PKG_NAME/_opk
-        mkdir -p $PKG_NAME/$EXTRA_NAME_1/_opk && mv configs/$EXTRA_NAME_1/* $PKG_NAME/$EXTRA_NAME_1/_opk
-        mkdir -p $PKG_NAME/$EXTRA_NAME_2/_opk && mv configs/$EXTRA_NAME_2/* $PKG_NAME/$EXTRA_NAME_2/_opk
-        mkdir -p $PKG_NAME/$EXTRA_NAME_3/_opk && mv configs/$EXTRA_NAME_3/* $PKG_NAME/$EXTRA_NAME_3/_opk
-        mkdir -p $PKG_NAME/$EXTRA_NAME_4/_opk && mv configs/$EXTRA_NAME_4/* $PKG_NAME/$EXTRA_NAME_4/_opk
-        mkdir -p $PKG_NAME/$EXTRA_NAME_5/_opk && mv configs/$EXTRA_NAME_5/* $PKG_NAME/$EXTRA_NAME_5/_opk
+        mkdir -p $PKG_NAME/$EXTRA_NAME_1/_opk && mv applications/$EXTRA_NAME_1/* $PKG_NAME/$EXTRA_NAME_1/_opk
+        mkdir -p $PKG_NAME/$EXTRA_NAME_2/_opk && mv applications/$EXTRA_NAME_2/* $PKG_NAME/$EXTRA_NAME_2/_opk
+        mkdir -p $PKG_NAME/$EXTRA_NAME_3/_opk && mv applications/$EXTRA_NAME_3/* $PKG_NAME/$EXTRA_NAME_3/_opk
+        mkdir -p $PKG_NAME/$EXTRA_NAME_4/_opk && mv applications/$EXTRA_NAME_4/* $PKG_NAME/$EXTRA_NAME_4/_opk
+        mkdir -p $PKG_NAME/$EXTRA_NAME_5/_opk && mv applications/$EXTRA_NAME_5/* $PKG_NAME/$EXTRA_NAME_5/_opk
         cd $PKG_NAME && mv _opk/fit_for_commander_build.patch ./
         patch -p1 < fit_for_commander_build.patch
         cd $EXTRA_NAME_1 && mv _opk/fit_for_ffplay_build.patch ./
