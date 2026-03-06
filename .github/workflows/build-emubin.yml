@@ -1,4 +1,4 @@
-name: FK-BIN Build
+name: EMU-BIN Build
 
 on:
   workflow_dispatch:
