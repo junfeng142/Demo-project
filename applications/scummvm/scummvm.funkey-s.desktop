@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=ScummVM
+Name[ch]=ScummVM模拟器
+Comment=ScummVM s a virtual machine for classic adventure game engines
+Comment[ch]=ScummVM是经典冒险游戏引擎的虚拟机
+Exec=scummvm
+Icon=scummvm
+Terminal=false
+Type=Application
+Categories=emulators
+StartupNotify=false

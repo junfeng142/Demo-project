@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=DOSBOX
+Name[ch]=DOS模拟器
+Comment=DOSBox an x86 emulator with DOS
+Comment[ch]=DOSBox是一个带有DOS的x86模拟器
+Icon=dosbox
+Exec=dosbox %f
+Categories=emulators
+SelectorDir=/mnt/dosbox
+SelectorFilter=exe,EXE,bat,BAT,cue,CUE,iso,ISO,chd,CHD

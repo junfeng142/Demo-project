@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=PCSX
+Name[ch]=PS1模拟器
+Comment=PlayStation emulator(high framerate)
+Comment[ch]=PlayStation1模拟器(效率高)
+Icon=pcsx
+Exec=pcsx -cdfile %f
+Categories=emulators
+SelectorDir=/mnt/PS1
+SelectorFilter=bin,img,cue,pbp,chd,BIN,IMG,CUE,PBP,CHD

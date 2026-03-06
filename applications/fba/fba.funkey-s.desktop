@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=FBA
+Name[ch]=FBA街机模拟器
+Comment=Final Burn Alpha SDL
+Comment[ch]=Final Burn Alpha街机模拟器
+Icon=fba
+Exec=fba %f
+Categories=emulators;
+SelectorDir=/mnt/FBA
+SelectorFilter=zip,ZIP,fba,FBA

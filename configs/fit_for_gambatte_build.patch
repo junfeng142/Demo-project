@@ -1,0 +1,195 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	1970-01-01 08:00:00.000000000 +0800
++++ b/Makefile	2025-01-22 12:44:23.940482426 +0800
+@@ -0,0 +1,100 @@
++CHAINPREFIX=/opt/FunKey-sdk-2.3.0
++CROSS_COMPILE=$(CHAINPREFIX)/bin/arm-funkey-linux-gnueabihf-
++
++CC = $(CROSS_COMPILE)gcc
++CXX = $(CROSS_COMPILE)g++
++SYSROOT     := $(CHAINPREFIX)/arm-funkey-linux-gnueabihf/sysroot
++SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
++
++OUTPUTNAME = gambatte
++
++DEFINES = -DHAVE_STDINT_H -DVERSION_FUNKEYS
++INCLUDES = -Isrc/gambatte_sdl -Ilibgambatte -Icommon -Iinclude -Ilibgambatte/include -Ilibgambatte/src $(SDL_CFLAGS)
++OPT_FLAGS  = -Ofast -fdata-sections -fdata-sections -fno-common -fno-PIC -flto
++EXTRA_LDFLAGS = -lasound -lmikmod -Wl,--as-needed -Wl,--gc-sections -flto -s
++
++CFLAGS = $(DEFINES) $(INCLUDES) $(OPT_FLAGS) -std=gnu11 
++CXXFLAGS = $(DEFINES) $(INCLUDES) $(OPT_FLAGS) -std=gnu++11 
++LDFLAGS = -Wl,--start-group -lSDL -lSDL_image -lpng -ljpeg -lSDL_mixer -logg -lvorbisidec -lmikmod -lm -pthread -lz -lstdc++ $(EXTRA_LDFLAGS) -Wl,--end-group
++
++# Redream (main engine)
++OBJS =  \
++	libgambatte/src/bitmap_font.o \
++	libgambatte/src/bootloader.o \
++	libgambatte/src/cpu.o \
++	libgambatte/src/gambatte.o \
++	libgambatte/src/initstate.o \
++	libgambatte/src/interrupter.o \
++	libgambatte/src/interruptrequester.o \
++	libgambatte/src/loadres.o \
++	libgambatte/src/memory.o \
++	libgambatte/src/sound.o \
++	libgambatte/src/state_osd_elements.o \
++	libgambatte/src/statesaver.o \
++	libgambatte/src/tima.o \
++	libgambatte/src/video.o \
++	libgambatte/src/mem/cartridge.o \
++	libgambatte/src/mem/memptrs.o \
++	libgambatte/src/mem/pakinfo.o \
++	libgambatte/src/mem/rtc.o \
++	libgambatte/src/sound/channel1.o \
++	libgambatte/src/sound/channel2.o \
++	libgambatte/src/sound/channel3.o \
++	libgambatte/src/sound/channel4.o \
++	libgambatte/src/sound/duty_unit.o \
++	libgambatte/src/sound/envelope_unit.o \
++	libgambatte/src/sound/length_counter.o \
++	libgambatte/src/video/ly_counter.o \
++	libgambatte/src/video/lyc_irq.o \
++	libgambatte/src/video/next_m0_time.o \
++	libgambatte/src/video/ppu.o \
++	libgambatte/src/video/sprite_mapper.o
++	
++ifeq ($(NOZIP), YES)
++OBJS += libgambatte/src/file/file.o
++else
++OBJS += libgambatte/src/file/file_zip.o libgambatte/src/file/unzip/ioapi.o libgambatte/src/file/unzip/unzip.o
++endif
++	
++OBJS +=	gambatte_sdl/src/audiosink.o \
++	gambatte_sdl/src/blitterwrapper.o \
++	gambatte_sdl/src/parser.o \
++	gambatte_sdl/src/sdlblitter.o \
++	gambatte_sdl/src/str_to_sdlkey.o \
++	gambatte_sdl/src/usec.o \
++	gambatte_sdl/src/gambatte_sdl.o \
++	gambatte_sdl/SFont.o \
++	gambatte_sdl/menu.o \
++	gambatte_sdl/libmenu.o \
++	gambatte_sdl/scaler.o \
++	common/adaptivesleep.o \
++	common/resample/src/chainresampler.o \
++	common/resample/src/i0.o \
++	common/resample/src/kaiser50sinc.o \
++	common/resample/src/kaiser70sinc.o \
++	common/resample/src/makesinckernel.o \
++	common/resample/src/resamplerinfo.o \
++	common/resample/src/u48div.o \
++	common/rateest.o \
++	common/skipsched.o \
++	common/videolink/rgb32conv.o \
++	common/videolink/vfilterinfo.o
++	
++.c.o:
++	$(CC) $(CFLAGS) -c -o $@ $< 
++	
++.cpp.o:
++	$(CXX) $(CXXFLAGS) -c -o $@ $< 
++	
++all: executable
++
++gambatte_sdl/menu.o: builddate
++
++builddate:
++	echo "#define BUILDDATE \"$$(date +'%Y%m%d-%H%M%S')"\" > ./gambatte_sdl/builddate.h
++
++executable: $(OBJS)
++	$(CC) -o $(OUTPUTNAME) $(OBJS) $(CFLAGS) $(LDFLAGS)
++
++clean:
++	rm $(OBJS) $(OUTPUTNAME)
+diff -uprN a/gambatte_sdl/builddate.h b/gambatte_sdl/builddate.h
+--- a/gambatte_sdl/builddate.h	2025-01-22 12:45:24.042257086 +0800
++++ b/gambatte_sdl/builddate.h	2025-01-22 12:44:23.960481687 +0800
+@@ -1 +1 @@
+-#define BUILDDATE "20231203-020959"
++#define BUILDDATE "20241220-155553"
+diff -uprN a/gambatte_sdl/menu.cpp b/gambatte_sdl/menu.cpp
+--- a/gambatte_sdl/menu.cpp	2025-01-22 12:45:24.062256345 +0800
++++ b/gambatte_sdl/menu.cpp	2025-01-22 12:44:23.980480946 +0800
+@@ -440,7 +440,7 @@ static void callback_loaddmggame(menu_t
+     menu->back_callback = callback_back;
+ 
+ #ifdef VERSION_FUNKEYS
+-    std::string romdir = (gamedir + "/Game Boy");
++    std::string romdir = (gamedir + "/GB");
+ #else
+     std::string romdir = (gamedir + "/gb");
+ #endif
+@@ -484,7 +484,7 @@ static void callback_selecteddmggame(men
+     currgamename = strip_Extension(gamename);
+     loadConfig();
+ #ifdef VERSION_FUNKEYS
+-    std::string fullgamepath = (gamedir + "/Game Boy/");
++    std::string fullgamepath = (gamedir + "/GB/");
+ #else
+     std::string fullgamepath = (gamedir + "/gb/");
+ #endif
+@@ -526,7 +526,7 @@ static void callback_loadgbcgame(menu_t
+     menu->back_callback = callback_back;
+ 
+ #ifdef VERSION_FUNKEYS
+-    std::string romdir = (gamedir + "/Game Boy Color");
++    std::string romdir = (gamedir + "/GBC");
+ #else
+     std::string romdir = (gamedir + "/gbc");
+ #endif
+@@ -570,7 +570,7 @@ static void callback_selectedgbcgame(men
+     currgamename = strip_Extension(gamename);
+     loadConfig();
+ #ifdef VERSION_FUNKEYS
+-    std::string fullgamepath = (gamedir + "/Game Boy Color/");
++    std::string fullgamepath = (gamedir + "/GBC/");
+ #else
+     std::string fullgamepath = (gamedir + "/gbc/");
+ #endif
+diff -uprN a/gambatte_sdl/src/gambatte_sdl.cpp b/gambatte_sdl/src/gambatte_sdl.cpp
+--- a/gambatte_sdl/src/gambatte_sdl.cpp	2025-01-22 12:45:24.402243756 +0800
++++ b/gambatte_sdl/src/gambatte_sdl.cpp	2025-01-22 12:44:24.056478132 +0800
+@@ -1094,7 +1094,7 @@ bool GambatteSdl::handleEvents(BlitterWr
+ 					case SDLK_BACKSPACE: // R trigger
+ 					case SDLK_HOME: // Power button in Opendingux devices
+ 					case SDLK_END: // Power/Suspend button in RetroFW devices
+-					case SDLK_h: // Power/Menu button in Funkey-S devices
++					case SDLK_q: // Power/Menu button in Funkey-S devices
+ 						if((menuout == -1) && (menuin == -1)){
+ 							ffwdtoggle = 0;
+ 							main_menu_with_anim();
+diff -uprN a/gambatte_sdl/src/sdlblitter.cpp b/gambatte_sdl/src/sdlblitter.cpp
+--- a/gambatte_sdl/src/sdlblitter.cpp	2025-01-22 12:45:24.490240498 +0800
++++ b/gambatte_sdl/src/sdlblitter.cpp	2025-01-22 12:44:24.056478132 +0800
+@@ -205,7 +205,7 @@ void SdlBlitter::setBufferDimensions() {
+ 		selectedscaler == "FullScreen Smooth")
+ 	{
+ #ifdef VERSION_FUNKEYS
+-		SetVid(240, 240, 16);
++		SetVid(320, 240, 16);
+ #else
+ 		SetVid(320, 240, 16);
+ #endif
+@@ -290,8 +290,8 @@ void SdlBlitter::setScreenRes() {
+ 		selectedscaler == "FullScreen Smooth")
+ 	{
+ #ifdef VERSION_FUNKEYS
+-		if(screen->w != 240 || screen->h != 240) {
+-			SetVid(240, 240, 16);
++		if(screen->w != 320 || screen->h != 240) {
++			SetVid(320, 240, 16);
+ 		}
+ #else
+ 		if(screen->w != 320 || screen->h != 240) {
+@@ -535,8 +535,8 @@ void SdlBlitter::applyScalerToSurface(SD
+ 	else if (selectedscaler == "1.5x Smooth")
+ 	{
+ #if defined VERSION_FUNKEYS
+-		offset = (2 * (240 - 240) / 2) + ((240 - 216) / 2) * screen->pitch;
+-		scale15x_pseudobilinear((uint32_t*)((uint8_t *)screen->pixels + offset), (uint32_t*)sourcesurface->pixels, 240);
++		offset = (2 * (320 - 240) / 2) + ((240 - 216) / 2) * screen->pitch;
++		scale15x_pseudobilinear((uint32_t*)((uint8_t *)screen->pixels + offset), (uint32_t*)sourcesurface->pixels, 320);
+ #else
+ 		offset = (2 * (320 - 240) / 2) + ((240 - 216) / 2) * screen->pitch;
+ 		scale15x_pseudobilinear((uint32_t*)((uint8_t *)screen->pixels + offset), (uint32_t*)sourcesurface->pixels, 320);

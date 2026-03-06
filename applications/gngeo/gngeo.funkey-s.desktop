@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=GNGEO
+Name[ch]=NEOGEO模拟器
+Comment=Neo Geo Emulator
+Comment[ch]=NEO GEO街机模拟器
+Icon=gngeo
+Exec=gngeo %f
+Categories=emulators;
+SelectorDir=/mnt/gngeo
+SelectorFilter=gno,GNO

@@ -1,0 +1,229 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2025-01-22 13:13:48.089998001 +0800
++++ b/Makefile	2025-01-22 13:16:12.116552643 +0800
+@@ -7,7 +7,7 @@ OSTYPE	?= miyoo
+ ifeq ($(OSTYPE), oda320)
+ PRGNAME     = race-od
+ else
+-PRGNAME     = race
++PRGNAME     = ngp
+ endif
+ 
+ # define regarding OS, which compiler to use
+@@ -25,8 +25,8 @@ CCP = $(TOOLCHAIN)/bin/mipsel-gcw0-linux
+ LD  = $(TOOLCHAIN)/bin/mipsel-gcw0-linux-uclibc-g++
+ else
+ ifeq ($(OSTYPE), miyoo)
+-CHAINPREFIX		?=/opt/miyoo
+-CROSS_COMPILE	?= $(CHAINPREFIX)/usr/bin/arm-linux-
++CHAINPREFIX		?=/opt/FunKey-sdk-2.3.0
++CROSS_COMPILE	?= $(CHAINPREFIX)/usr/bin/arm-funkey-linux-gnueabihf-
+ endif
+ CC				= $(CROSS_COMPILE)gcc
+ CXX				= $(CROSS_COMPILE)g++
+@@ -61,7 +61,7 @@ endif
+ ifeq ($(OSTYPE), oda320)
+ CC_OPTS		= -Ofast -march=armv5te -mtune=arm926ej-s -msoft-float -DNOUNCRYPT $(F_OPTS)
+ else ifeq ($(OSTYPE), miyoo)
+-CC_OPTS		= -Ofast -march=armv5te -mtune=arm926ej-s -msoft-float -DNOUNCRYPT $(F_OPTS)
++CC_OPTS		= -Os -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -mfpu=neon -marm -DNOUNCRYPT $(F_OPTS)
+ else ifeq ($(OSTYPE), odgcw)
+ CC_OPTS		= -O2 -mips32 -mhard-float -G0 -DNOUNCRYPT $(F_OPTS)
+ else
+diff -uprN a/emu/input.cpp b/emu/input.cpp
+--- a/emu/input.cpp	2025-01-22 13:14:02.917437405 +0800
++++ b/emu/input.cpp	2025-01-22 13:11:01.196307914 +0800
+@@ -81,31 +81,31 @@ BOOL InitInput(HWND hwnd)
+ #endif
+ {
+ #ifdef TARGET_OD	// for Miyoo Modified
+-	m_sysInfo[NGP].InputKeys[KEY_UP]			= SDLK_UP;
+-	m_sysInfo[NGP].InputKeys[KEY_DOWN]		= SDLK_DOWN;
+-	m_sysInfo[NGP].InputKeys[KEY_LEFT]		= SDLK_LEFT;
+-	m_sysInfo[NGP].InputKeys[KEY_RIGHT]		= SDLK_RIGHT;
+-	m_sysInfo[NGP].InputKeys[KEY_BUTTON_A]	= SDLK_LALT;
+-	m_sysInfo[NGP].InputKeys[KEY_BUTTON_B]	= SDLK_LCTRL;
+-	m_sysInfo[NGP].InputKeys[KEY_SELECT]		= SDLK_ESCAPE;	// Option button
+-	m_sysInfo[NGP].InputKeys[KEY_START]		= SDLK_RETURN;	// Option button
+-	m_sysInfo[NGP].InputKeys[KEY_BUTTON_X]	= SDLK_LSHIFT;
+-	m_sysInfo[NGP].InputKeys[KEY_BUTTON_Y]	= SDLK_SPACE;
+-	m_sysInfo[NGP].InputKeys[KEY_BUTTON_R]	= SDLK_BACKSPACE;
+-	m_sysInfo[NGP].InputKeys[KEY_BUTTON_L]	= SDLK_TAB;
++	m_sysInfo[NGP].InputKeys[KEY_UP]			= SDLK_u;
++	m_sysInfo[NGP].InputKeys[KEY_DOWN]		= SDLK_d;
++	m_sysInfo[NGP].InputKeys[KEY_LEFT]		= SDLK_l;
++	m_sysInfo[NGP].InputKeys[KEY_RIGHT]		= SDLK_r;
++	m_sysInfo[NGP].InputKeys[KEY_BUTTON_A]	= SDLK_a;
++	m_sysInfo[NGP].InputKeys[KEY_BUTTON_B]	= SDLK_b;
++	m_sysInfo[NGP].InputKeys[KEY_SELECT]		= SDLK_k;	// Option button
++	m_sysInfo[NGP].InputKeys[KEY_START]		= SDLK_s;	// Option button
++	m_sysInfo[NGP].InputKeys[KEY_BUTTON_X]	= SDLK_x;
++	m_sysInfo[NGP].InputKeys[KEY_BUTTON_Y]	= SDLK_y;
++	m_sysInfo[NGP].InputKeys[KEY_BUTTON_R]	= SDLK_n;
++	m_sysInfo[NGP].InputKeys[KEY_BUTTON_L]	= SDLK_m;
+ 	
+-	m_sysInfo[NGPC].InputKeys[KEY_UP]			= SDLK_UP;
+-	m_sysInfo[NGPC].InputKeys[KEY_DOWN]		= SDLK_DOWN;
+-	m_sysInfo[NGPC].InputKeys[KEY_LEFT]		= SDLK_LEFT;
+-	m_sysInfo[NGPC].InputKeys[KEY_RIGHT]		= SDLK_RIGHT;
+-	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_A]	= SDLK_LALT;
+-	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_B]	= SDLK_LCTRL;
+-	m_sysInfo[NGPC].InputKeys[KEY_SELECT]		= SDLK_ESCAPE;	// Option button
+-	m_sysInfo[NGPC].InputKeys[KEY_START]		= SDLK_RETURN;	// Option button
+-	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_X]	= SDLK_LSHIFT;
+-	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_Y]	= SDLK_SPACE;
+-	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_R]	= SDLK_BACKSPACE;
+-	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_L]	= SDLK_TAB;
++	m_sysInfo[NGPC].InputKeys[KEY_UP]			= SDLK_u;
++	m_sysInfo[NGPC].InputKeys[KEY_DOWN]		= SDLK_d;
++	m_sysInfo[NGPC].InputKeys[KEY_LEFT]		= SDLK_l;
++	m_sysInfo[NGPC].InputKeys[KEY_RIGHT]		= SDLK_r;
++	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_A]	= SDLK_a;
++	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_B]	= SDLK_b;
++	m_sysInfo[NGPC].InputKeys[KEY_SELECT]		= SDLK_k;	// Option button
++	m_sysInfo[NGPC].InputKeys[KEY_START]		= SDLK_s;	// Option button
++	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_X]	= SDLK_x;
++	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_Y]	= SDLK_y;
++	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_R]	= SDLK_n;
++	m_sysInfo[NGPC].InputKeys[KEY_BUTTON_L]	= SDLK_m;
+ #else
+ #ifndef TARGET_PSP
+ #ifndef __GP32__
+@@ -264,7 +264,7 @@ void UpdateInputState()
+     {
+     }
+ 		
+-    if (DOWN(SDLK_ESCAPE) && DOWN(SDLK_RETURN) || DOWN(SDLK_RCTRL))
++    if (DOWN(SDLK_k) && DOWN(SDLK_s) || DOWN(SDLK_q))
+         m_bIsActive = FALSE;//Flavor exit emulation
+ 
+     si = &m_sysInfo[NGP];
+diff -uprN a/opendingux/menu.cpp b/opendingux/menu.cpp
+--- a/opendingux/menu.cpp	2025-01-22 13:13:54.481756341 +0800
++++ b/opendingux/menu.cpp	2025-01-22 13:11:01.272305041 +0800
+@@ -382,7 +382,7 @@ void screen_waitkeyarelease(void) {
+ 	while (1) {
+ 		SDL_PollEvent(&event);
+ 		keys = SDL_GetKeyState(NULL);
+-		if (keys[SDLK_LALT] != SDL_PRESSED) break;		//Miyoo A
++		if (keys[SDLK_a] != SDL_PRESSED) break;		//Miyoo A
+ 	}
+ }
+ 
+@@ -393,7 +393,7 @@ void screen_waitkeybrelease(void) {
+ 	while (1) {
+ 		SDL_PollEvent(&event);
+ 		keys = SDL_GetKeyState(NULL);
+-		if (keys[SDLK_LCTRL] != SDL_PRESSED) break;		//Miyoo B
++		if (keys[SDLK_b] != SDL_PRESSED) break;		//Miyoo B
+ 	}
+ }
+ 
+@@ -427,7 +427,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		mi = menu->m + menu->itemCur; // pointer to highlit menu option
+ 
+ 		// A - apply parameter or enter submenu
+-		if (keys[SDLK_LALT] == SDL_PRESSED) { 
++		if (keys[SDLK_a] == SDL_PRESSED) { 
+ 			if (!keya) {
+ 				keya = 1; 
+ 				screen_waitkeyarelease();
+@@ -437,7 +437,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keya=0;
+ 
+ 		// B - exit or back to previous menu
+-		if (keys[SDLK_LCTRL] == SDL_PRESSED) { 
++		if (keys[SDLK_b] == SDL_PRESSED) { 
+ 			if (!keyb) {
+ 				keyb = 1;
+ 				screen_waitkeybrelease();
+@@ -451,7 +451,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keyb=0;
+ 
+ 		// UP - arrow up
+-		if (keys[SDLK_UP] == SDL_PRESSED) { 
++		if (keys[SDLK_u] == SDL_PRESSED) { 
+ 			if (!keyup) {
+ 				keyup = 1; if(--menu->itemCur < 0) menu->itemCur = menu->itemNum - 1;
+ 			}
+@@ -462,7 +462,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keyup=0;
+ 
+ 		//DOWN - arrow down
+-		if (keys[SDLK_DOWN] == SDL_PRESSED) { 
++		if (keys[SDLK_d] == SDL_PRESSED) { 
+ 			if (!keydown) {
+ 				keydown = 1; if(++menu->itemCur == menu->itemNum) menu->itemCur = 0;
+ 			}
+@@ -473,7 +473,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keydown=0;
+ 
+ 		// LEFT - decrease parameter value
+-		if (keys[SDLK_LEFT] == SDL_PRESSED) { 
++		if (keys[SDLK_l] == SDL_PRESSED) { 
+ 			if (!keyleft) {
+ 				keyleft = 1; if(mi->itemPar != NULL && *mi->itemPar > 0) *mi->itemPar -= 1;
+ 				// big hack for key conf
+@@ -488,7 +488,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keyleft=0;
+ 
+ 		// RIGHT - increase parameter value
+-		if (keys[SDLK_RIGHT] == SDL_PRESSED) { 
++		if (keys[SDLK_r] == SDL_PRESSED) { 
+ 			if (!keyright) {
+ 				keyright = 1; if(mi->itemPar != NULL && *mi->itemPar < mi->itemParMaxValue) *mi->itemPar += 1;
+ 			}
+@@ -774,7 +774,7 @@ signed int load_file(char **wildcards, c
+ 			keys = SDL_GetKeyState(NULL);
+ 
+ 			// A - choose file or enter directory
+-			if (keys[SDLK_LALT] == SDL_PRESSED) { 
++			if (keys[SDLK_a] == SDL_PRESSED) { 
+ 				if (!keya) {
+ 					keya = 1; 
+ 					screen_waitkeyarelease();
+@@ -796,7 +796,7 @@ signed int load_file(char **wildcards, c
+ 			else keya=0;
+ 
+ 			// B - exit or back to previous menu
+-			if (keys[SDLK_LCTRL] == SDL_PRESSED) { 
++			if (keys[SDLK_b] == SDL_PRESSED) { 
+ 				if (!keyb) {
+ 					keyb = 1; 
+ 					screen_waitkeybrelease();
+@@ -807,7 +807,7 @@ signed int load_file(char **wildcards, c
+ 			else keyb=0;
+ 
+ 			// UP - arrow up
+-			if (keys[SDLK_UP] == SDL_PRESSED) { 
++			if (keys[SDLK_u] == SDL_PRESSED) { 
+ 				if (!keyup) {
+ 					keyup = 1; 
+ 					if(current_filedir_selection) {
+@@ -827,7 +827,7 @@ signed int load_file(char **wildcards, c
+ 			else { keyup=0; kepufl = 8; }
+ 
+ 			//DOWN - arrow down
+-			if (keys[SDLK_DOWN] == SDL_PRESSED) { 
++			if (keys[SDLK_d] == SDL_PRESSED) { 
+ 				if (!keydown) {
+ 					keydown = 1; 
+ 					if(current_filedir_selection < (num_filedir - 1)) {
+@@ -847,7 +847,7 @@ signed int load_file(char **wildcards, c
+ 			else { keydown=0;	kepdfl = 8; }
+ 
+ 			// R - arrow down from current screen
+-			if (keys[SDLK_BACKSPACE] == SDL_PRESSED) { 
++			if (keys[SDLK_n] == SDL_PRESSED) { 
+ 				if (!keyr) {
+ 					keyr = 1;
+ 					if ( (current_filedir_selection+FILE_LIST_ROWS) < (num_filedir-1)) {
+@@ -860,7 +860,7 @@ signed int load_file(char **wildcards, c
+ 			else keyr = 0;
+ 
+ 			// L - arrow up from current screen
+-			if (keys[SDLK_TAB] == SDL_PRESSED) { 
++			if (keys[SDLK_m] == SDL_PRESSED) { 
+ 				if (!keyl) {
+ 					keyl = 1;
+ 					if (current_filedir_selection> FILE_LIST_ROWS-1) {
