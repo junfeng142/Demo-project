@@ -66,6 +66,7 @@ jobs:
         tar xvf SDL2-2.30.10.tar.gz
         patch -p1 < $EXTRA_NAME_3.patch
         sudo mv SDL2/ opengl/ /opt
+        chmod +x $GITHUB_WORKSPACE/$DIY_SH && $GITHUB_WORKSPACE/$DIY_SH
 
     - name: Compile the firmware
       id: compile

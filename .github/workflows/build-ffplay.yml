@@ -51,7 +51,7 @@ jobs:
         mv configs/*.patch $PKG_NAME/
         chmod +x $DIY_SH
         cd $PKG_NAME
-        $GITHUB_WORKSPACE/$DIY_SH
+        patch -p1 < fit_for_ffplay_build.patch
 
     - name: Compile the firmware
       id: compile

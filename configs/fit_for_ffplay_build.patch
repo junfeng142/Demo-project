@@ -119,37 +119,21 @@ diff -uprN c/ffplay.c d/ffplay.c
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_SUBTITLE);
                  break;
 -            case SDLK_BACKSPACE: // GCW0: Right shoulder button.
-+            case SDLK_b: // GCW0: Right shoulder button.
++            case SDLK_LCTRL: // GCW0: Right shoulder button.
              case SDLK_t:
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_SUBTITLE);
                  break;
 -            case SDLK_LSHIFT: // GCW0: X button.
-+            case SDLK_y: // GCW0: X button.
++            case SDLK_LALT: // GCW0: X button.
              case SDLK_w:
                  toggle_audio_display(cur_stream);
                  break;
 -            case SDLK_PAGEUP:
-+            case SDLK_m:
++            case SDLK_TAB:
                  incr = 600.0;
                  goto do_seek;
 -            case SDLK_PAGEDOWN:
-+            case SDLK_n:
++            case SDLK_BACKSPACE:
                  incr = -600.0;
                  goto do_seek;
--            case SDLK_LEFT:
-+            case SDLK_l:
-                 incr = -10.0;
-                 goto do_seek;
--            case SDLK_RIGHT:
-+            case SDLK_r:
-                 incr = 10.0;
-                 goto do_seek;
--            case SDLK_UP:
-+            case SDLK_u:
-                 incr = 60.0;
-                 goto do_seek;
--            case SDLK_DOWN:
-+            case SDLK_d:
-                 incr = -60.0;
-             do_seek:
-                     if (seek_by_bytes) {
+             case SDLK_LEFT:
