@@ -41,14 +41,13 @@ jobs:
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH --depth 1 $PKG_NAME
+        git clone https://github.com/FunKey-Project/gmenu2x.git -b FunKey --depth 1 ${PKG_NAME}/$EXTRA_NAME_1
+        git clone https://github.com/libretro/RetroArch.git -b master --depth 1 ${PKG_NAME}/$EXTRA_NAME_2
+        mkdir -p $PKG_NAME/$EXTRA_NAME_3
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         cd && tar xvf FunKey-sdk-2.3.0.tar.gz
         sudo mv FunKey-sdk-2.3.0 /opt
-        cd $PKG_NAME
-        mkdir -p $EXTRA_NAME_3
-        git clone https://github.com/FunKey-Project/gmenu2x.git -b FunKey --depth 1 $EXTRA_NAME_1
-        git clone https://github.com/libretro/RetroArch.git -b master --depth 1 $EXTRA_NAME_2
 
     - name: Load custom configuration
       run: |

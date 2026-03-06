@@ -98,7 +98,7 @@ diff -uprN c/ffplay.c d/ffplay.c
                  break;
              case SDLK_p:
 -            case SDLK_SPACE:
-+            case SDLK_x:
++            case SDLK_LSHIFT:
                  toggle_pause(cur_stream);
                  break;
              case SDLK_s: // S: Step to next frame
@@ -106,11 +106,11 @@ diff -uprN c/ffplay.c d/ffplay.c
                  break;
              case SDLK_TAB: // GCW0: Left shoulder button.
 -            case SDLK_a:
-+            case SDLK_k:
++            case SDLK_RCTRL:
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_AUDIO);
                  break;
 -            case SDLK_LCTRL: // GCW0: A button.
-+            case SDLK_a: // GCW0: A button.
++            case SDLK_SPACE: // GCW0: A button.
              case SDLK_v:
                  stream_cycle_channel(cur_stream, AVMEDIA_TYPE_VIDEO);
                  break;
