@@ -86,19 +86,19 @@
 #endif
 
 #ifdef FUNKEYS
-    #define UP      22
-    #define DOWN    32
-    #define LEFT    38
-    #define RIGHT   19
-    #define A       30
-    #define B       48
-    #define X       45
-    #define Y       21
-    #define L1      50
-    #define R1      49
-    #define START   31
-    #define SELECT  37
-    #define MENU    16
+    #define UP      103
+    #define DOWN    108
+    #define LEFT    105
+    #define RIGHT   106
+    #define A       57
+    #define B       29
+    #define X       42
+    #define Y       56
+    #define L1      15
+    #define R1      14
+    #define START   28
+    #define SELECT  97
+    #define MENU    1
 #endif
 
 #ifdef PANDORA
