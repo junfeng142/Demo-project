@@ -49,7 +49,6 @@ jobs:
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
         mv configs/fit_for_kernel_build.patch $PKG_NAME/
-        chmod +x $DIY_SH
         cd $PKG_NAME && mkdir -p _opk
         patch -p1 < fit_for_kernel_build.patch
 
