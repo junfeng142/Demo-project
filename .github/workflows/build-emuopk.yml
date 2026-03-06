@@ -62,7 +62,7 @@ jobs:
         mkdir -p $PKG_NAME/$EXTRA_NAME_5/_opk && mv applications/$EXTRA_NAME_5/* $PKG_NAME/$EXTRA_NAME_5/_opk
         cd $PKG_NAME && mv _opk/fit_for_dosbox_build.patch ./
         patch -p1 < fit_for_dosbox_build.patch
-        cd ../$EXTRA_NAME_4 &&  mv _opk/fit_for_scummvm_build.patch ./
+        cd $EXTRA_NAME_4 &&  mv _opk/fit_for_scummvm_build.patch ./
         patch -p1 < fit_for_scummvm_build.patch
         cd ../$EXTRA_NAME_5 &&  mv _opk/fit_for_vbemu_build.patch ./
         patch -p1 < fit_for_vbemu_build.patch
