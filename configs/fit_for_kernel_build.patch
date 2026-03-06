@@ -1,6 +1,6 @@
 diff -uprN a/arch/arm/boot/dts/sun8i-v3s-funkey.dts b/arch/arm/boot/dts/sun8i-v3s-funkey.dts
 --- a/arch/arm/boot/dts/sun8i-v3s-funkey.dts	2025-04-28 10:31:06.000000000 +0800
-+++ b/arch/arm/boot/dts/sun8i-v3s-funkey.dts	2026-01-14 12:59:21.291802850 +0800
++++ b/arch/arm/boot/dts/sun8i-v3s-funkey.dts	2026-03-06 09:33:08.047609902 +0800
 @@ -41,7 +41,7 @@
   */
  
@@ -28,80 +28,80 @@ diff -uprN a/arch/arm/boot/dts/sun8i-v3s-funkey.dts b/arch/arm/boot/dts/sun8i-v3
 +          
 +            key_up {
 +                  label = "UP";
-+                  linux,code = <22>;
-+                  gpios = <&pio 4 14 GPIO_ACTIVE_LOW>;      //KEY_U-PE14
++                  linux,code = <103>;
++                  gpios = <&pio 4 14 GPIO_ACTIVE_LOW>;      //KEY_UP-PE14
 +            };
 +            
 +            key_down {
 +                  label = "DOWN";
-+                  linux,code = <32>;
-+                  gpios = <&pio 1 0 GPIO_ACTIVE_LOW>;      //KEY_D-PB0
++                  linux,code = <108>;
++                  gpios = <&pio 1 0 GPIO_ACTIVE_LOW>;      //KEY_DOWN-PB0
 +            };
 +            
 +            key_left {
 +                  label = "LEFT";
-+                  linux,code = <38>;
-+                  gpios = <&pio 1 1 GPIO_ACTIVE_LOW>;       //KEY_L-PB1
++                  linux,code = <105>;
++                  gpios = <&pio 1 1 GPIO_ACTIVE_LOW>;       //KEY_LEFT-PB1
 +            };
 +            
 +            key_right {
 +                  label = "RIGHT";
-+                  linux,code = <19>;
-+                  gpios = <&pio 4 13 GPIO_ACTIVE_LOW>;      //KEY_R-PE13
++                  linux,code = <106>;
++                  gpios = <&pio 4 13 GPIO_ACTIVE_LOW>;      //KEY_RIGHT-PE13
 +            };
 +            
 +            key_start {
 +                  label = "START";
-+                  linux,code = <31>;
-+                  gpios = <&pio 1 2 GPIO_ACTIVE_LOW>;       //KEY_S-PB2
++                  linux,code = <28>;
++                  gpios = <&pio 1 2 GPIO_ACTIVE_LOW>;       //KEY_ENTER-PB2
 +            };
 +            
 +            key_select {
 +                  label = "SELECT";
-+                  linux,code = <37>;
-+                  gpios = <&pio 1 3 GPIO_ACTIVE_LOW>;       //KEY_K-PB3
++                  linux,code = <97>;
++                  gpios = <&pio 1 3 GPIO_ACTIVE_LOW>;       //KEY_RIGHTCTRL-PB3
 +            };
 +            
 +            key_menu {
 +                  label = "MENU";
-+                  linux,code = <16>;
-+                  gpios = <&pio 4 21 GPIO_ACTIVE_LOW>;       //KEY_Q-PE21
-+            };
-+            
-+            key_b {
-+                  label = "B";
-+                  linux,code = <30>;
-+                  gpios = <&pio 4 18 GPIO_ACTIVE_LOW>;       //KEY_B-PE18
++                  linux,code = <1>;
++                  gpios = <&pio 4 21 GPIO_ACTIVE_LOW>;       //KEY_ESC-PE21
 +            };
 +            
 +            key_a {
 +                  label = "A";
-+                  linux,code = <48>;
-+                  gpios = <&pio 4 17 GPIO_ACTIVE_LOW>;       //KEY_A-PE17
++                  linux,code = <57>;
++                  gpios = <&pio 4 18 GPIO_ACTIVE_LOW>;       //KEY_SPACE-PE18
++            };
++            
++            key_b {
++                  label = "B";
++                  linux,code = <29>;
++                  gpios = <&pio 4 17 GPIO_ACTIVE_LOW>;       //KEY_LEFTCTRL-PE17
 +            };
 +            
 +            key_x {
 +                  label = "X";
-+                  linux,code = <45>;
-+                  gpios = <&pio 4 19 GPIO_ACTIVE_LOW>;       //KEY_X-PE19
++                  linux,code = <42>;
++                  gpios = <&pio 4 19 GPIO_ACTIVE_LOW>;       //KEY_LEFTSHIFT-PE19
 +            };
 +            
 +            key_y {
 +                  label = "Y";
-+                  linux,code = <21>;
-+                  gpios = <&pio 4 16 GPIO_ACTIVE_LOW>;       //KEY_Y-PE16
++                  linux,code = <56>;
++                  gpios = <&pio 4 16 GPIO_ACTIVE_LOW>;       //KEY_LEFTALT-PE16
 +            };
 +            
 +            key_l1 {
 +                  label = "L1";
-+                  linux,code = <50>;
-+                  gpios = <&pio 4 20 GPIO_ACTIVE_LOW>;       //KEY_M-PE20
++                  linux,code = <15>;
++                  gpios = <&pio 4 15 GPIO_ACTIVE_LOW>;       //KEY_TAB-PE15
 +            };
 +            
 +            key_r1 {
 +                  label = "R1";
-+                  linux,code = <49>;
-+                  gpios = <&pio 4 15 GPIO_ACTIVE_LOW>;       //KEY_N-PE15
++                  linux,code = <14>;
++                  gpios = <&pio 4 20 GPIO_ACTIVE_LOW>;       //KEY_BACKSPACE-PE20
 +            };
 +      };
 +};
