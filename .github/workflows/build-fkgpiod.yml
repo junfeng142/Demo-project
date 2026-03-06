@@ -53,7 +53,7 @@ jobs:
     - name: Load custom configuration
       run: |
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
-        mv configs/* ./ && mv tools/*.tar.gz EXTRA_NAME_3/
+        cp -r configs/* ./ && mv tools/*.tar.gz EXTRA_NAME_3/
         cd $PKG_NAME && patch -p1 < $PKG_NAME.patch
         cd ../$EXTRA_NAME_1 && patch -p1 < $EXTRA_NAME_1.patch
         cd ../$EXTRA_NAME_2 && patch -p1 < $EXTRA_NAME_2.patch
