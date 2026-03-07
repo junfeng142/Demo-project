@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Biniax2
+Name[ch]=解谜消除
+Comment=an open-source puzzle game
+Comment[ch]=一款开源解谜游戏
+Icon=biniax2
+Exec=biniax2
+Categories=games

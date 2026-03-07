@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Apricots
+Name[ch]=飞机
+Comment=Alternative aircraft flight game
+Comment[ch]=另类飞机飞行游戏
+Icon=apricots
+Exec=apricots
+Categories=games

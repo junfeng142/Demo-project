@@ -1,0 +1,35 @@
+diff -uprN a/Makefile.miyoo b/Makefile.miyoo
+--- a/Makefile.miyoo	2026-02-18 11:19:36.302593216 +0800
++++ b/Makefile.miyoo	2026-02-18 11:20:43.382592852 +0800
+@@ -14,8 +14,8 @@ PLATFORM = gcw
+ #PLATFORM ?= linux_x86
+ 
+ ### GCW Zero
+-CHAINPREFIX=/opt/miyoo
+-CROSS_COMPILE=$(CHAINPREFIX)/usr/bin/arm-linux-
++CHAINPREFIX=/opt/mmiyoo
++CROSS_COMPILE=$(CHAINPREFIX)/bin/arm-linux-gnueabihf-
+ 
+ CXX := $(CROSS_COMPILE)g++
+ STRIP := $(CROSS_COMPILE)strip
+@@ -30,7 +30,7 @@ SDL_LIBS := $(shell $(SYSROOT)/usr/bin/s
+ 
+ DEFAULT_CFLAGS = $(shell $(SDL_CONFIG) --cflags) 
+ 
+-CFLAGS = $(DEFAULT_CFLAGS) $(SDL_CFLAGS) -mtune=arm926ej-s -fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant -DAP_AUDIO_SDLMIXER
++CFLAGS = $(DEFAULT_CFLAGS) $(SDL_CFLAGS) -mtune=cortex-a7 -fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant -DAP_AUDIO_SDLMIXER
+ LDFLAGS =
+ LIB = -L$(SYSROOT)/usr/lib -lSDL_mixer -lSDL -lpthread
+ 
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 11:26:13.236319196 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++make -f Makefile.miyoo
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip apricots.dge -o ./_opk/apricots
++mv apricots/data ./_opk/
++mksquashfs ./_opk/* ../_opk/apricots_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Anarch
+Name[ch]=叛逆者
+Comment=First-person FPS Shooter Game
+Comment[ch]=像素类第一人称射击游戏
+Icon=anarch
+Exec=anarch
+Categories=games

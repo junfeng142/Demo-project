@@ -1,0 +1,31 @@
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 11:52:40.546321181 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++make
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip biniax2 -o ./_opk/biniax2
++mv data ./_opk/
++mksquashfs ./_opk/* ../_opk/biniax2_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/makefile b/makefile
+--- a/makefile	2026-02-20 13:33:09.221635815 +0800
++++ b/makefile	2026-02-20 13:42:02.841630819 +0800
+@@ -5,13 +5,13 @@
+ 
+ FLAGS=-W -WALL
+ 
+-DEVPREFIX=/opt/miyoo
+-CC=$(DEVPREFIX)/usr/bin/arm-linux-gcc
++DEVPREFIX=/opt/mmiyoo
++CC=$(DEVPREFIX)/bin/arm-linux-gnueabihf-gcc
+ 
+ FILES=src/biniax.c src/hof.c src/cfg.c src/gfx.c src/snd.c src/inp.c src/sys.c
+ INCLUDES=-I . -I src
+ LINKTO=-lSDL -lSDL_mixer -lSDL_image
+-AUTO=`sdl-config --libs --cflags`
++AUTO=`/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs --cflags`
+ TARGET=biniax2
+ 
+ biniax:
