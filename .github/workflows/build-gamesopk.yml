@@ -1,4 +1,4 @@
-name: GAM-OPK Build
+name: Game-OPK Build
 
 on:
   workflow_dispatch:

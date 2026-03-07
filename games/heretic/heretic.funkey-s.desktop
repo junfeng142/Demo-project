@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Heretic
+Name[ch]=黑客异端
+Comment=Dan Olson's Hacked Heretic
+Comment[ch]=《黑客异端》丹·奥尔森
+Icon=heretic
+Exec=heretic
+Categories=games

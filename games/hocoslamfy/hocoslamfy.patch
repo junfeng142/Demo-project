@@ -1,0 +1,25 @@
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 20:12:45.372243112 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++make TARGET=hocoslamfy
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip hocoslamfy -o ./_opk/hocoslamfy
++mv assets/data/ _opk/
++mksquashfs ./_opk/* ../_opk/hocoslamfy_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-02-16 20:22:09.501593802 +0800
++++ b/Makefile	2026-02-16 20:24:13.331593957 +0800
+@@ -9,8 +9,8 @@ SECTION = games
+ ALIASES = aliases.txt
+ 
+ ifeq ($(TARGET), hocoslamfy)
+-  CC        := arm-linux-gcc
+-  STRIP     := arm-linux-strip
++  CC        := /opt/mmiyoo/bin/arm-linux-gnueabihf-gcc
++  STRIP     := /opt/mmiyoo/bin/arm-linux-gnueabihf-strip
+   OBJS       = platform/opendingux.o
+   DEFS      := -DNO_SHAKE -DUSE_HOME -DMIYOO
+   FLAGS     :=

@@ -25,6 +25,18 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip cannonball -o ./_opk/cannonball
 +mksquashfs ./_opk/* ../_opk/cannonball_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 +cd ..
+diff -uprN a/main.c b/main.c
+--- a/main.c	2026-03-07 19:34:13.267210664 +0800
++++ b/main.c	2026-03-07 19:35:16.467211067 +0800
+@@ -59,7 +59,7 @@ static void process_events(void)
+         {
+             case SDL_KEYDOWN:
+                 // Handle key presses.
+-                if (event.key.keysym.sym == SDLK_q || event.key.keysym.sym == SDLK_3)
++                if (event.key.keysym.sym == SDLK_ESCAPE || event.key.keysym.sym == SDLK_3)
+                     cannonball_state = STATE_QUIT;
+                 else
+                     Input_handle_key_down(&event.key.keysym);
 diff -uprN a/frontend/config.c b/frontend/config.c
 --- a/frontend/config.c	2026-03-07 13:31:09.726328571 +0800
 +++ b/frontend/config.c	2026-03-07 13:36:25.526328966 +0800

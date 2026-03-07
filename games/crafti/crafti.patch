@@ -39,3 +39,65 @@ diff -uprN c/main.cpp d/main.cpp
  
      return 0;
  }
+diff -uprN c/pc/libndls.h d/pc/libndls.h
+--- c/pc/libndls.h	2025-02-04 13:10:56.192672407 +0800
++++ d/pc/libndls.h	2025-02-04 13:09:52.432672502 +0800
+@@ -92,26 +92,26 @@
+     #define KEY_NSPIRE_1 0
+     #endif
+ #else
+-    #define KEY_NSPIRE_3 SDLK_BACKSPACE
+-    #define KEY_NSPIRE_1 SDLK_TAB
++     #define KEY_NSPIRE_3 SDLK_BACKSPACE
++     #define KEY_NSPIRE_1 SDLK_TAB
+ #endif
+   
+-	#define KEY_NSPIRE_PERIOD SDLK_LSHIFT
++	#define KEY_NSPIRE_PERIOD SDLK_RETURN
+ 
+ #ifdef NOJOY
+     #define KEY_NSPIRE_UP SDLK_BACKSPACE
+     #define KEY_NSPIRE_DOWN SDLK_TAB
+ #else
+-    #define KEY_NSPIRE_UP 555
+-    #define KEY_NSPIRE_DOWN 556
++    #define KEY_NSPIRE_UP SDLK_UP
++    #define KEY_NSPIRE_DOWN SDLK_DOWN
+ #endif
+ 
+-    #define KEY_NSPIRE_LEFT SDLK_LEFT
+-    #define KEY_NSPIRE_RIGHT SDLK_RIGHT
++     #define KEY_NSPIRE_LEFT SDLK_LEFT
++     #define KEY_NSPIRE_RIGHT SDLK_RIGHT
+      
+-    #define KEY_NSPIRE_DOC SDLK_SPACE
++    #define KEY_NSPIRE_DOC SDLK_RCTRL
+     #define KEY_NSPIRE_5 SDLK_SPACE
+-    #define KEY_NSPIRE_CLICK SDLK_LCTRL
++    #define KEY_NSPIRE_CLICK SDLK_SPACE
+     
+ #ifdef NOJOY
+ 	#ifdef RG99
+@@ -120,16 +120,16 @@
+     #define KEY_NSPIRE_ESC SDLK_HOME
+     #endif
+ #else
+-    #define KEY_NSPIRE_ESC SDLK_ESCAPE
++     #define KEY_NSPIRE_ESC SDLK_ESCAPE
+ #endif
+ 
+-    #define KEY_NSPIRE_MENU SDLK_RETURN
++    #define KEY_NSPIRE_MENU SDLK_HOME
+ 
+-    #define KEY_NSPIRE_7 SDLK_LCTRL
+-    #define KEY_NSPIRE_9 SDLK_LALT
++    #define KEY_NSPIRE_7 SDLK_SPACE
++    #define KEY_NSPIRE_9 SDLK_LCTRL
+     
+-    #define KEY_NSPIRE_MINUS 0
+-    #define KEY_NSPIRE_PLUS 0
++    #define KEY_NSPIRE_MINUS SDLK_LSHIFT
++    #define KEY_NSPIRE_PLUS SDLK_LALT
+     #define KEY_NSPIRE_0 0
+     
+     #define KEY_NSPIRE_CTRL 0

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=HCL
+Name[ch]=水蛇神迷宫
+Comment=This version of Hydra Castle Labyrinth is based on the 3DS port
+Comment[ch]=这个版本的《水蛇神的迷宫城》是基于3DS移植版
+Icon=hcl
+Exec=hcl
+Categories=games

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Hexen
+Name[ch]=赫克森
+Comment=Dan Olson's excellent Hacked Hexen
+Comment[ch]=丹·奥尔森精妙改编的《赫克森》
+Icon=hexen
+Exec=hexen
+Categories=games

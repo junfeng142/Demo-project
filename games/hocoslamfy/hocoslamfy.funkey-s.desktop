@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Hocoslamfy
+Name[ch]=躲避障碍
+Comment=Avoid the bamboo while flying with your bee
+Comment[ch]=避开竹子和蜜蜂一起飞行的小游戏
+Icon=hocoslamfy
+Exec=hocoslamfy
+Categories=games
