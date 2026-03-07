@@ -1,7 +1,7 @@
 diff -uprN a/Makefile.pocketgo b/Makefile.pocketgo
---- a/Makefile.pocketgo	2026-02-18 10:50:04.142602830 +0800
-+++ b/Makefile.pocketgo	2026-02-18 10:55:30.002601062 +0800
-@@ -1,7 +1,7 @@
+--- a/Makefile.pocketgo	2026-03-07 14:19:14.186332178 +0800
++++ b/Makefile.pocketgo	2026-03-07 14:19:31.606332200 +0800
+@@ -1,14 +1,14 @@
  # Project: FleshChasmerOne
  
 -BIN_BASE = /opt/miyoo/bin/
@@ -11,6 +11,14 @@ diff -uprN a/Makefile.pocketgo b/Makefile.pocketgo
  SYSROOT = $(shell $(CPP) --print-sysroot)
  SRC = $(wildcard ./*.c)
  OBJS = $(subst ./,build/,$(SRC))
+ OBJ = $(OBJS:.c=.o)
+ 
+ 
+-LIBS = -lSDL_mixer -lSDLmain -lSDL -lmikmod -lasound -lmpg123 -lvorbisfile -lvorbis -logg
++LIBS = -lSDL_mixer -lSDLmain -lSDL -lasound -lvorbisfile -lvorbis -logg
+ INCS =  -I"$(SYSROOT)/usr/include/SDL" -I"./"
+ BIN  = FleshChasmer
+ FLAGS = $(INCS) -DPC -DPOCKETGO -fpermissive -fexpensive-optimizations -O3 -Wall -g
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
 +++ b/build_opk.sh	2026-03-07 14:08:38.336331383 +0800
