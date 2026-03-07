@@ -6,7 +6,6 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +
 +make TARGET=hocoslamfy
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip hocoslamfy -o ./_opk/hocoslamfy
-+mv assets/data/ _opk/
 +mksquashfs ./_opk/* ../_opk/hocoslamfy_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 +cd ..
 diff -uprN a/Makefile b/Makefile

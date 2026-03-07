@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Liero
+Name[ch]=Liero
+Comment=Earthworm action game
+Comment[ch]=蚯蚓动作游戏
+Icon=liero
+Exec=run.sh
+Categories=games

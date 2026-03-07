@@ -1,0 +1,47 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-02-21 13:04:12.469707682 +0800
++++ b/Makefile	2026-02-21 17:56:57.228752100 +0800
+@@ -1,9 +1,9 @@
+-CXX := arm-linux-g++
++CXX := /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
+ MACHINE := $(shell $(CXX) -dumpmachine)
+ SYSROOT := $(shell $(CXX) -print-sysroot)
+ CXXFLAGS := -ffunction-sections -ffast-math -fsingle-precision-constant
+ CXXFLAGS += $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
+-LIBS := -lSDL_mixer -lSDL   -lpthread -lm -lasound -lm -ldl -lpthread -lts -lpthread  -ltiff -lwebp -lmpg123 -lmad -lts -lmikmod -lvorbisfile -lvorbis -logg
++LIBS := -lSDL_mixer -lSDL   -lpthread -lm -lasound -lm -ldl -lvorbisfile -lvorbis -logg
+ 
+ OUTDIR		:= output/$(MACHINE)
+ DATADIR		:= data
+@@ -23,7 +23,7 @@ else
+ 	LDFLAGS += -s
+ endif
+ 
+-CXXFLAGS += -DHOME_DIR -DPLATFORM_GCW0
++CXXFLAGS += -DHOME_DIR -DPLATFORM_GCW0 -DFUNKEYS
+ 
+ BINDIR := $(OUTDIR)/bin
+ OBJDIR := $(OUTDIR)/obj
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 21:26:18.572219168 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++make
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip output/arm-linux-gnueabihf/bin/liero -o _opk/liero
++mv data/ _opk
++mksquashfs _opk/* ../_opk/liero_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/filesystem.cpp b/filesystem.cpp
+--- a/filesystem.cpp	2026-02-21 13:29:28.429723325 +0800
++++ b/filesystem.cpp	2026-02-21 19:17:19.807952021 +0800
+@@ -22,7 +22,7 @@ std::string getHome()
+ {
+ 	std::string configFolder;
+ #if defined(HOME_DIR)
+-	char *home = getenv("HOME");
++	char *home = "/mnt/FunKey";
+ 
+ 	if(home != NULL)
+ 	{

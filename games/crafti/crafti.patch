@@ -67,8 +67,8 @@ diff -uprN c/pc/libndls.h d/pc/libndls.h
  
 -    #define KEY_NSPIRE_LEFT SDLK_LEFT
 -    #define KEY_NSPIRE_RIGHT SDLK_RIGHT
-+    #define KEY_NSPIRE_LEFT 276
-+    #define KEY_NSPIRE_RIGHT 275
++    #define KEY_NSPIRE_LEFT    SDLK_LEFT
++    #define KEY_NSPIRE_RIGHT   SDLK_RIGHT
       
 -    #define KEY_NSPIRE_DOC SDLK_SPACE
 +    #define KEY_NSPIRE_DOC SDLK_RCTRL
