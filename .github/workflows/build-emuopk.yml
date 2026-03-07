@@ -10,7 +10,7 @@ env:
   EXTRA_NAME_1: fba
   EXTRA_NAME_2: gngeo
   EXTRA_NAME_3: pcsx
-  EXTRA_NAME_4: scummvm
+  EXTRA_NAME_4: jvm
   EXTRA_NAME_5: vbemu
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
@@ -45,7 +45,7 @@ jobs:
         git clone https://github.com/junfeng142/Demo-project.git -b fba --depth 1 ${PKG_NAME}/$EXTRA_NAME_1
         git clone https://github.com/junfeng142/Demo-project.git -b gngeo --depth 1 ${PKG_NAME}/$EXTRA_NAME_2
         git clone https://github.com/junfeng142/Demo-project.git -b pcsx-miyoo --depth 1 ${PKG_NAME}/$EXTRA_NAME_3
-        git clone https://github.com/scummvm/scummvm.git -b master --depth 1 ${PKG_NAME}/$EXTRA_NAME_4
+        git clone https://github.com/junfeng142/Demo-project.git -b jvm --depth 1 ${PKG_NAME}/$EXTRA_NAME_4
         git clone https://github.com/gameblabla/vbemu.git -b master --depth 1 ${PKG_NAME}/$EXTRA_NAME_5
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
@@ -62,9 +62,7 @@ jobs:
         mkdir -p $PKG_NAME/$EXTRA_NAME_5/_opk && mv applications/$EXTRA_NAME_5/* $PKG_NAME/$EXTRA_NAME_5/_opk
         cd $PKG_NAME && mv _opk/fit_for_dosbox_build.patch ./
         patch -p1 < fit_for_dosbox_build.patch
-        cd $EXTRA_NAME_4 &&  mv _opk/fit_for_scummvm_build.patch ./
-        patch -p1 < fit_for_scummvm_build.patch
-        cd ../$EXTRA_NAME_5 &&  mv _opk/fit_for_vbemu_build.patch ./
+        cd $EXTRA_NAME_5 &&  mv _opk/fit_for_vbemu_build.patch ./
         patch -p1 < fit_for_vbemu_build.patch
 
     - name: Compile the firmware
@@ -100,7 +98,7 @@ jobs:
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/bin/${EXTRA_NAME_1} -o ${PKG_NAME}/${EXTRA_NAME_1}/_opk/${EXTRA_NAME_1}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/${EXTRA_NAME_2} -o ${PKG_NAME}/${EXTRA_NAME_2}/_opk/${EXTRA_NAME_2}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_3}/${EXTRA_NAME_3} -o ${PKG_NAME}/${EXTRA_NAME_3}/_opk/${EXTRA_NAME_3}
-        /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_4}/${EXTRA_NAME_4} -o ${PKG_NAME}/${EXTRA_NAME_4}/_opk/${EXTRA_NAME_4}
+        cp ${PKG_NAME}/${EXTRA_NAME_4}/dist/microbackend.jar ${PKG_NAME}/${EXTRA_NAME_4}/_opk/dist/
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_5}/vb -o ${PKG_NAME}/${EXTRA_NAME_5}/_opk/vb
         tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         rm -rf $PKG_NAME/_opk/* && mv $PKG_NAME/${PKG_NAME}_funkey-s.opk $PKG_NAME/_opk/
@@ -109,7 +107,6 @@ jobs:
         tools/mksquashfs ${PKG_NAME}/${EXTRA_NAME_3}/_opk/* $PKG_NAME/_opk/${EXTRA_NAME_3}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         tools/mksquashfs ${PKG_NAME}/${EXTRA_NAME_4}/_opk/* $PKG_NAME/_opk/${EXTRA_NAME_4}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         tools/mksquashfs ${PKG_NAME}/${EXTRA_NAME_5}/_opk/* $PKG_NAME/_opk/${EXTRA_NAME_5}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-        mv $PKG_NAME/${EXTRA_NAME_4}/scummvm_miyoo.zip $PKG_NAME/_opk/
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT

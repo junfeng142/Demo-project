@@ -42,7 +42,7 @@ jobs:
         [[ -z "$repo_name" || "$repo_name" =~ ^# ]] && continue
         target_dir="${PKG_NAME}/${repo_name}"
         git clone -b "$branch" "$url" "$target_dir"
-        done < "$REPOS"
+        done < "/workdir/$REPOS"
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         cd && tar xvf FunKey-sdk-2.3.0.tar.gz
