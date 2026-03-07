@@ -50,7 +50,7 @@ diff -uprN c/pc/libndls.h d/pc/libndls.h
 -    #define KEY_NSPIRE_1 SDLK_TAB
 +    #define KEY_NSPIRE_3 8
 +    #define KEY_NSPIRE_1 9
- #endif
+ #endif   
    
 -	#define KEY_NSPIRE_PERIOD SDLK_LSHIFT
 +	#define KEY_NSPIRE_PERIOD SDLK_RETURN
