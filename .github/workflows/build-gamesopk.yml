@@ -44,29 +44,27 @@ jobs:
         target_dir="${PKG_NAME}/${repo_name}"
         git clone -b "$branch" "$url" "$target_dir"
         done < "$GITHUB_WORKSPACE/$REPOS"
-        cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
-        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
-        sudo mv FunKey-sdk-2.3.0 /opt
+        cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
+        cd && tar xvf toolchain.tar.gz
+        sudo mv mmiyoo /opt
+        sudo mv prebuilt /opt
 
     - name: Load custom configuration
       run: |
-        mkdir -p $PKG_NAME/_opk
-        for dir in $PKG_NAME/*/ ; do
-        dir_name="${dir%/}"
-        mkdir -p $PKG_NAME/$dir_name/_opk && mv games/$dir_name/* $PKG_NAME/$dir_name/_opk
-        done
         cd $PKG_NAME
         for dir in */ ; do
         dir_name="${dir%/}"
-        cd $dir_name && mv _opk/$PKG_NAME.patch ./
-        patch -p1 < $PKG_NAME.patch
+        mkdir -p $dir_name/_opk && mv $GITHUB_WORKSPACE/games/$dir_name/* $dir_name/_opk
+        cd $dir_name && mv _opk/$dir_name.patch ./
+        patch -p1 < $dir_name.patch
         cd ..
         done
 
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME && chmod +x **/*.sh
+        cd $PKG_NAME && mkdir -p _opk
+        chmod +x **/*.sh 
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
