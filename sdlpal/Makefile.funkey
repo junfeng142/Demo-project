@@ -1,15 +1,15 @@
 TARGET = sdlpal
 
-HOST = /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-
+HOST = /opt/mmiyoo/bin/arm-linux-gnueabihf-
 
 SOURCES = . ./adplug
 CFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.c))
 CPPFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.cpp))
 OFILES = $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 
-CFLAGS = -g -Wall -O2 `/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags` -DDINGOO -DPAL_CLASSIC
+CFLAGS = -g -Wall -O2 `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags` -DDINGOO -DPAL_CLASSIC
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = `/opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs`
+LDFLAGS = `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs`
 
 $(TARGET): $(OFILES)
 	$(HOST)g++ $(OFILES) -o $@ $(LDFLAGS)
