@@ -57,6 +57,7 @@ jobs:
         mkdir -p $dir_name/_opk && mv $GITHUB_WORKSPACE/games/$dir_name/* $dir_name/_opk
         cd $dir_name && mv _opk/$dir_name.patch ./
         patch -p1 < $dir_name.patch
+        chmod +x ./*.sh
         cd ..
         done
 
@@ -64,7 +65,7 @@ jobs:
       id: compile
       run: |
         cd $PKG_NAME && mkdir -p _opk
-        chmod +x **/*.sh 
+        chmod +x build.sh 
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
