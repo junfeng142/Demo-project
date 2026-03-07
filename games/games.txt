@@ -11,3 +11,4 @@ heretic|https://github.com/MiyanoOsu/hheretic-miyoo.git|main
 hexen|https://github.com/MiyanoOsu/hhexen-miyoo.git|main
 hocoslamfy|https://github.com/Apaczer/hocoslamfy.git|miyoo
 hcl|https://github.com/szymor/hydracastlelabyrinth.git|master
+just4qix|https://github.com/szymor/just4qix.git|master

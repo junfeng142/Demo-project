@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Just4Qix
+Name[ch]=填图游戏
+Comment=Fill a decent amount of your playing screen to get to the next stage and uncover a picture which is hidden behind it
+Comment[ch]=目标是将游戏屏幕填满一定比例，以进入下一关并揭开隐藏在背后的图片
+Icon=just4qix
+Exec=just4qix
+Categories=games
