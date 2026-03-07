@@ -1,0 +1,41 @@
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 13:44:58.426329607 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make -f Makefile.gcw0
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip crafti -o ./_opk/crafti
++mksquashfs ./_opk/* ../_opk/crafti_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN c/Makefile.gcw0 d/Makefile.gcw0
+--- c/Makefile.gcw0	2025-02-04 13:10:34.312672440 +0800
++++ d/Makefile.gcw0	2025-02-04 13:08:46.002672601 +0800
+@@ -1,11 +1,11 @@
+-CXX	= /opt/gcw0-toolchain/bin/mipsel-linux-g++
+-CXXFLAGS = -Ofast -mips32r2 -fno-rtti -fgcse-sm -fgcse-las -ffunction-sections -fdata-sections -DNDEBUG -Isrc -std=gnu++17  -Ingl -I. -Ipc
++CXX	= /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
++CXXFLAGS = -Ofast -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -fno-rtti -fgcse-sm -fgcse-las -ffunction-sections -fdata-sections -DNDEBUG -Isrc -std=gnu++17  -Ingl -I. -Ipc
+ 
+ #Including OPUS Libraries
+-LDFLAGS = -lc -lm -lstdc++ -lSDL -lSDL_mixer -Wl,--gc-sections -flto
++LDFLAGS = -lSDL_mixer -logg -lvorbisidec -lmikmod -lmpg123 -lc -lm -lstdc++ -lSDL -lasound -Wl,--as-needed -Wl,--gc-sections -flto -s
+ 
+ DEFINES = -Wall
+-OUTPUT = crafti.elf
++OUTPUT = crafti
+ 
+ OBJS += $(patsubst %.cpp, %.o, $(shell find . -name \*.cpp))
+ 
+diff -uprN c/main.cpp d/main.cpp
+--- c/main.cpp	2025-02-04 13:10:34.312672440 +0800
++++ d/main.cpp	2025-02-04 13:08:46.002672601 +0800
+@@ -95,6 +95,8 @@ int main(int argc, char *argv[])
+     terrainUninit();
+     
+     Close_Sound();
++
++    SDL_Quit();
+ 
+     return 0;
+ }

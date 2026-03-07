@@ -1,0 +1,24 @@
+diff -uprN a/Makefile.pocketgo b/Makefile.pocketgo
+--- a/Makefile.pocketgo	2026-02-18 10:50:04.142602830 +0800
++++ b/Makefile.pocketgo	2026-02-18 10:55:30.002601062 +0800
+@@ -1,7 +1,7 @@
+ # Project: FleshChasmerOne
+ 
+-BIN_BASE = /opt/miyoo/bin/
+-CPP = arm-linux-g++
++BIN_BASE = /opt/mmiyoo/
++CPP = /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
+ SYSROOT = $(shell $(CPP) --print-sysroot)
+ SRC = $(wildcard ./*.c)
+ OBJS = $(subst ./,build/,$(SRC))
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 14:08:38.336331383 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++make -f Makefile.pocketgo
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip FleshChasmer -o ./_opk/FleshChasmer
++mv data ./_opk/
++mksquashfs ./_opk/* ../_opk/FleshChasmer_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..

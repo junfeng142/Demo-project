@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=FinalSnake
+Name[ch]=贪吃蛇
+Comment=another implementation of a popular Snake game
+Comment[ch]=又一款流行的贪吃蛇游戏
+Icon=finalsnake
+Exec=run.sh
+Categories=games

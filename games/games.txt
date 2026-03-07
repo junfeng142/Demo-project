@@ -1,4 +1,9 @@
-abbaye|https://github.com/szymor/abbayedesmorts-gpl.git|v1
-anarch|https://github.com/szymor/anarch.git|master
-apricots|https://github.com/Emulators-Salvacam/apricots.git|master
-biniax2|https://github.com/Emulators-Salvacam/Biniax2.git|main
+#abbaye|https://github.com/szymor/abbayedesmorts-gpl.git|v1
+#anarch|https://github.com/szymor/anarch.git|master
+#apricots|https://github.com/Emulators-Salvacam/apricots.git|master
+#biniax2|https://github.com/Emulators-Salvacam/Biniax2.git|main
+cannonball|https://github.com/DrUm78/Cannonball-C.git|v0.3-funkey-s
+crafti|https://github.com/gameblabla/crafti.git|dreamcast_xbox_ps2_new_branch
+fever|https://github.com/szymor/HomingFever.git|master
+finalsnake|https://github.com/szymor/finalsnake.git|master
+FleshChasmer|https://github.com/szymor/FleshChasmer.git|master

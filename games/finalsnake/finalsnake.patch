@@ -1,0 +1,95 @@
+diff -uprN a/Makefile.miyoo b/Makefile.miyoo
+--- a/Makefile.miyoo	2026-02-20 11:38:06.161700445 +0800
++++ b/Makefile.miyoo	2026-02-20 11:42:52.421697764 +0800
+@@ -11,11 +11,11 @@ ifneq ($(.SHELLSTATUS),0)
+ COMMIT_HASH := $(COMMIT_HASH)-dirty
+ endif
+ 
+-GCC=arm-linux-gcc
++GCC=/opt/mmiyoo/bin/arm-linux-gnueabihf-gcc
+ SYSROOT=$(shell $(GCC) --print-sysroot)
+ PKGCONFIG=$(SYSROOT)/../../bin/pkg-config
+-CFLAGS = $(shell $(PKGCONFIG) --cflags $(PKGS)) -Ofast -march=armv5te -mtune=arm926ej-s -DMIYOO -DCOMMIT_HASH=$(COMMIT_HASH)
+-LDFLAGS = $(shell $(PKGCONFIG) --libs $(PKGS)) -lm -lpng -lz -ljpeg -lmikmod -lmpg123 -lvorbisfile -lvorbis -logg
++CFLAGS = $(shell $(PKGCONFIG) --cflags $(PKGS)) -Ofast -march=armv7-a -mtune=cortex-a7 -DMIYOO -DCOMMIT_HASH=$(COMMIT_HASH)
++LDFLAGS = $(shell $(PKGCONFIG) --libs $(PKGS)) -lm -lpng -lz -ljpeg -lvorbisfile -lvorbis -logg
+ 
+ all: $(TARGET)
+ 
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 14:02:13.326330901 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++make -f Makefile.miyoo
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip finalsnake -o ./_opk/finalsnake
++mv gfx sfx ./_opk/
++mksquashfs ./_opk/* ../_opk/finalsnake_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/src/main.c b/src/main.c
+--- a/src/main.c	2026-02-28 21:08:47.895580766 +0800
++++ b/src/main.c	2026-02-28 21:09:04.885580988 +0800
+@@ -4,6 +4,10 @@
+ #include <SDL_gfxPrimitives.h>
+ #include <stdlib.h>
+ #include <time.h>
++#include <sys/ioctl.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <linux/fb.h>
+ #include "main.h"
+ #include "game.h"
+ #include "gfx.h"
+@@ -148,6 +152,9 @@ void gs_menu_process(void)
+ 	int selection = 0;
+ 	SDL_Event event;
+ 	bool leave = false;
++
++	int fd = open("/dev/fb0", O_RDWR);
++
+ 	while (!leave)
+ 	{
+ 		SDL_FillRect(screen, NULL, SDL_MapRGB(screen->format, 0, 0, 0));
+@@ -194,7 +201,8 @@ void gs_menu_process(void)
+ #endif
+ 		stringRGBA(screen, (SCREEN_WIDTH - 8 * strlen(text)) / 2,
+ 			SCREEN_HEIGHT - 8 - 12, text, 255, 255, 255, 255);
+-
++
++        ioctl(fd, FBIO_WAITFORVSYNC, 0);
+ 		SDL_Flip(screen);
+ 
+ 		if (SDL_WaitEvent(&event))
+@@ -238,6 +246,7 @@ void gs_menu_process(void)
+ 			gamestate = GS_QUIT;
+ 		}
+ 	}
++	close(fd);
+ }
+ 
+ void gs_game_process(void)
+@@ -262,6 +272,7 @@ void gs_game_process(void)
+ 	SDL_Event event;
+ 	bool leave = false;
+ 	Uint32 prevtime = SDL_GetTicks();
++	int fd = open("/dev/fb0", O_RDWR);
+ 	while (!leave)
+ 	{
+ 		if (SDL_PollEvent(&event))
+@@ -328,6 +339,7 @@ void gs_game_process(void)
+ 			room_draw(&room);
+ 			//fps_draw();
+ 			pause_draw(paused);
++			ioctl(fd, FBIO_WAITFORVSYNC, 0);
+ 			SDL_Flip(screen);
+ 			if (room_check_gameover(&room))
+ 			{
+@@ -340,6 +352,7 @@ void gs_game_process(void)
+ 	}
+ 	room_dispose(&room);
+ 	obstacle_free_surfaces();
++	close(fd);
+ }
+ 
+ void gs_gameover_process(void)

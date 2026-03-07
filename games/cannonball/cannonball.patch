@@ -1,0 +1,80 @@
+diff -uprN a/Makefile.funkey b/Makefile.funkey
+--- a/Makefile.funkey	2026-03-07 13:26:25.586328215 +0800
++++ b/Makefile.funkey	2026-03-07 13:28:49.566328396 +0800
+@@ -1,9 +1,9 @@
+-CHAINPREFIX=/opt/FunKey-sdk
+-CROSS_COMPILE=$(CHAINPREFIX)/usr/bin/arm-funkey-linux-musleabihf-
++CHAINPREFIX=/opt/mmiyoo
++CROSS_COMPILE=$(CHAINPREFIX)/bin/arm-linux-gnueabihf-
+ CC = $(CROSS_COMPILE)gcc
+ CXX = $(CROSS_COMPILE)g++
+ STRIP = $(CROSS_COMPILE)strip
+-SYSROOT     := $(CHAINPREFIX)/usr/arm-funkey-linux-musleabihf/sysroot
++SYSROOT     := $(CHAINPREFIX)/arm-buildroot-linux-gnueabihf/sysroot
+ SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
+ SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
+ 
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-07 13:27:05.336328265 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make -f Makefile.funkey
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip cannonball -o ./_opk/cannonball
++mksquashfs ./_opk/* ../_opk/cannonball_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/frontend/config.c b/frontend/config.c
+--- a/frontend/config.c	2026-03-07 13:31:09.726328571 +0800
++++ b/frontend/config.c	2026-03-07 13:36:25.526328966 +0800
+@@ -125,18 +125,18 @@ void Config_init()
+ 		Config_controls.keyconfig[INGAME_INPUT_VIEWPOINT] = KEYBOARD_TAB;
+     #else
+ 		Config_controls.gear          = CONTROLS_GEAR_AUTO;
+-		Config_controls.keyconfig[INGAME_INPUT_UP]  = SDLK_u;
+-		Config_controls.keyconfig[INGAME_INPUT_DOWN]  = SDLK_d;
+-		Config_controls.keyconfig[INGAME_INPUT_LEFT]  = SDLK_l;
+-		Config_controls.keyconfig[INGAME_INPUT_RIGHT]  = SDLK_r;
+-		Config_controls.keyconfig[INGAME_INPUT_ACCEL]  = SDLK_b;
+-		Config_controls.keyconfig[INGAME_INPUT_BRAKE]  = SDLK_y;
++		Config_controls.keyconfig[INGAME_INPUT_UP]  = SDLK_UP;
++		Config_controls.keyconfig[INGAME_INPUT_DOWN]  = SDLK_DOWN;
++		Config_controls.keyconfig[INGAME_INPUT_LEFT]  = SDLK_LEFT;
++		Config_controls.keyconfig[INGAME_INPUT_RIGHT]  = SDLK_RIGHT;
++		Config_controls.keyconfig[INGAME_INPUT_ACCEL]  = SDLK_LCTRL;
++		Config_controls.keyconfig[INGAME_INPUT_BRAKE]  = SDLK_LALT;
+ 		Config_controls.keyconfig[INGAME_INPUT_GEAR1]  = 0;
+ 		Config_controls.keyconfig[INGAME_INPUT_GEAR2]  = 0;
+-		Config_controls.keyconfig[INGAME_INPUT_START]  = SDLK_s;
++		Config_controls.keyconfig[INGAME_INPUT_START]  = SDLK_RETURN;
+ 		Config_controls.keyconfig[INGAME_INPUT_COIN]  = 0;
+ 		Config_controls.keyconfig[INGAME_INPUT_MENU] = 0;
+-		Config_controls.keyconfig[INGAME_INPUT_VIEWPOINT] = SDLK_a;
++		Config_controls.keyconfig[INGAME_INPUT_VIEWPOINT] = SDLK_SPACE;
+     #endif
+ 
+     Config_controls.padconfig[0]  = 0;
+diff -uprN a/sdl/input.c b/sdl/input.c
+--- a/sdl/input.c	2026-03-07 13:31:44.176328614 +0800
++++ b/sdl/input.c	2026-03-07 13:37:17.806329031 +0800
+@@ -160,7 +160,7 @@ void Input_handle_key(const int key, con
+     // Function keys are not redefinable
+     switch (key)
+     {
+-        case SDLK_k:
++        case SDLK_RCTRL:
+             Input_keys[INPUT_PAUSE] = is_pressed;
+             break;
+ 
+diff -uprN a/sdl/rendersw.c b/sdl/rendersw.c
+--- a/sdl/rendersw.c	2026-03-07 13:31:44.176328614 +0800
++++ b/sdl/rendersw.c	2026-03-07 13:38:20.166329109 +0800
+@@ -281,7 +281,7 @@ void Show_Warning()
+ 						*/
+ 						case SDLK_HOME:
+ 						case SDLK_3:
+-						case SDLK_RCTRL:
++						case SDLK_ESCAPE:
+ 						case SDLK_q:
+ 							exit = 1;
+ 						break;
