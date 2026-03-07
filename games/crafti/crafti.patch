@@ -19,7 +19,7 @@ diff -uprN c/Makefile.gcw0 d/Makefile.gcw0
  
  #Including OPUS Libraries
 -LDFLAGS = -lc -lm -lstdc++ -lSDL -lSDL_mixer -Wl,--gc-sections -flto
-+LDFLAGS = -lSDL_mixer -logg -lvorbisidec -lmikmod -lmpg123 -lc -lm -lstdc++ -lSDL -lasound -Wl,--as-needed -Wl,--gc-sections -flto -s
++LDFLAGS = -lSDL_mixer -logg -lvorbisidec -lc -lm -lstdc++ -lSDL -lasound -Wl,--as-needed -Wl,--gc-sections -flto -s
  
  DEFINES = -Wall
 -OUTPUT = crafti.elf

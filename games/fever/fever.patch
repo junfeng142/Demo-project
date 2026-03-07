@@ -19,7 +19,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +#!/bin/bash
 +
 +make PLATFORM=bittboy
-+/opt/mmiyoo/bin/arm-linux-gnueabihf-strip fever -o ./_opk/fever
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip fever.elf -o ./_opk/fever
 +mv data ./_opk/
 +mv default/* ./_opk/
 +mksquashfs ./_opk/* ../_opk/fever_funkey-s.opk -all-root -no-xattrs -noappend -no-exports

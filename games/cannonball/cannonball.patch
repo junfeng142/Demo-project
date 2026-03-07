@@ -21,6 +21,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +#!/bin/bash
 +
 +make -f Makefile.funkey
++mv _opk/cannonball/ _opk/.cannonball/
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip cannonball -o ./_opk/cannonball
 +mksquashfs ./_opk/* ../_opk/cannonball_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 +cd ..
