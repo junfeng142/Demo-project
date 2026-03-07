@@ -115,6 +115,7 @@ PAL_KeyboardEventFilter(
          break;
 #endif
 
+      case SDLK_ESCAPE:
       case SDLK_q:
       {
         PAL_Shutdown();
@@ -162,20 +163,20 @@ PAL_KeyboardEventFilter(
          break;
 
 #if defined(DINGOO)
-      case SDLK_b:
+      case SDLK_LCTRL:
          g_InputState.dwKeyPress = kKeyMenu;
          break;
 
-      case SDLK_a:
+      case SDLK_SPACE:
          g_InputState.dwKeyPress = kKeySearch;
          break;
          
-      case SDLK_PAGEUP:
+      case SDLK_TAB:
       case SDLK_F5:
          g_InputState.dwKeyPress |= kKeyPgUp;
          break;
 
-      case SDLK_PAGEDOWN:
+      case SDLK_BACKSPACE:
       case SDLK_F6:
          g_InputState.dwKeyPress |= kKeyPgDn;
          break;
