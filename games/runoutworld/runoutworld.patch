@@ -38,3 +38,38 @@ diff -uprN a/src/main.cpp b/src/main.cpp
  	for (int i = 1; i < argc; ++i) {
  		bool opt = false;
  		if (strlen(argv[i]) >= 2) {
+diff -uprN a/src/sysImplementation.cpp b/src/sysImplementation.cpp
+--- a/src/sysImplementation.cpp	2026-02-21 09:25:17.439572145 +0800
++++ b/src/sysImplementation.cpp	2026-02-21 10:09:59.589599822 +0800
+@@ -21,12 +21,12 @@
+ #include "util.h"
+ 
+ #ifdef DINGUX
+-#define SDLK_f  304 //X fastmode
+-#define SDLK_p  32  //Y pause
+-#define SDLK_z  308 //A jump
+-#define SDLK_s 9 //L quicksave
+-#define SDLK_l 8 //R quickload
+-#define SDLK_SPACE 306 //B shoot, keep down in order to run
++#define SDLK_f 304 //X fastmode
++#define SDLK_p  308  //Y pause
++#define SDLK_z  32 //A jump
++//#define SDLK_s 109 //L quicksave
++//#define SDLK_l 110 //R quickload
++#define SDLK_SPACE 306 //B shoot, keep down in order to run
+ #endif
+ 
+ struct SDLStub : System {
+@@ -233,29 +233,29 @@ void SDLStub::processEvents() {
+ 			}
+ 			break;
+ 		case SDL_KEYDOWN:
+-			if (ev.key.keysym.sym == SDLK_ESCAPE) {input.quit = true;}
+-			else if (ev.key.keysym.sym == SDLK_s) {input.save = true;} 
+-			else if (ev.key.keysym.sym == SDLK_l) {input.load = true;}
++			if (ev.key.keysym.sym == SDLK_ESCAPE) {input.quit = true;} 
++			else if (ev.key.keysym.sym == SDLK_BACKSPACE) {input.save = true;} 
++			else if (ev.key.keysym.sym == SDLK_TAB) {input.load = true;}
+ 			else if (ev.key.keysym.sym == SDLK_f) {input.fastMode = true;} 
+ 			else if (ev.key.keysym.sym == SDLK_KP_PLUS) {input.stateSlot = 1;} 
+ 			else if (ev.key.keysym.sym == SDLK_KP_MINUS) {input.stateSlot = -1;}

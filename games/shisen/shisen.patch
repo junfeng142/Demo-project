@@ -1,0 +1,54 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-02-16 09:30:18.432199596 +0800
++++ b/Makefile	2026-02-16 09:31:56.712200106 +0800
+@@ -19,8 +19,8 @@ ifeq ($(PLATFORM), a320)
+ endif
+ 
+ ifeq ($(PLATFORM), bittboy)
+-	CC		:= arm-linux-gcc
+-	STRIP		:= arm-linux-strip
++	CC		:= arm-linux-gnueabihf-gcc
++	STRIP		:= arm-linux-gnueabihf-strip
+ 	SYSROOT		:= $(shell $(CC) --print-sysroot)
+ 	CFLAGS		:= $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
+ 	CFLAGS		+= -DPLATFORM_BITTBOY -DNO_SCALING
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 10:55:14.931311567 +0800
+@@ -0,0 +1,8 @@
++#!/bin/bash
++
++export PATH=$PATH:/opt/mmiyoo/bin
++make PLATFORM=bittboy
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip shisen.elf -o _opk/shisen
++mv data _opk/
++mksquashfs _opk/* ../_opk/shisen_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/src/input.h b/src/input.h
+--- a/src/input.h	2026-02-16 09:30:54.472199783 +0800
++++ b/src/input.h	2026-02-16 09:33:19.122200533 +0800
+@@ -12,15 +12,15 @@ extern int enableJoystick;
+ 
+ enum KeyNames
+ {
+-	KEY_BACK	= SDLK_ESCAPE,
+-	KEY_START	= SDLK_RETURN,
+-	KEY_LEFT	= SDLK_LEFT,
+-	KEY_RIGHT	= SDLK_RIGHT,
+-	KEY_UP		= SDLK_UP,
+-	KEY_DOWN	= SDLK_DOWN,
+-	KEY_OK		= SDLK_LCTRL,
+-	KEY_CANCEL	= SDLK_LALT,
+-	KEY_EXTRA	= SDLK_SPACE
++	KEY_BACK= SDLK_ESCAPE,
++	KEY_START= SDLK_RETURN,
++	KEY_LEFT= SDLK_LEFT,
++	KEY_RIGHT= SDLK_RIGHT,
++	KEY_UP	= SDLK_UP,
++	KEY_DOWN= SDLK_DOWN,
++	KEY_OK		= SDLK_SPACE,
++	KEY_CANCEL	= SDLK_LCTRL,
++	KEY_EXTRA	= SDLK_RCTRL
+ };
+ 
+ void input();

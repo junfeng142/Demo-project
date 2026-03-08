@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Shisen
+Name[ch]=四川石
+Comment=Shisen-Seki
+Comment[ch]=麻将类消除游戏
+Icon=shisen
+Exec=shisen
+Categories=games

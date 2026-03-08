@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Shifty
+Name[ch]=方块消除
+Comment=Shifty Pills is a tile-matching action puzzle game
+Comment[ch]=《Shifty Pills》是一款消除方块的动作益智游戏
+Icon=shifty
+Exec=shifty
+Categories=games

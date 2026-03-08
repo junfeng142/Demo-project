@@ -3,7 +3,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +++ b/build_opk.sh	2026-03-08 10:16:46.791324090 +0800
 @@ -0,0 +1,6 @@
 +#!/bin/bash
-+
++make -C source/bittboy clean
 +make -C source/bittboy PLATFORM=bittboy
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip source/bittboy/methane -o _opk/methane
 +mksquashfs _opk/* ../_opk/methane_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
