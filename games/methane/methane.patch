@@ -45,9 +45,9 @@ diff -uprN a/source/bittboy/doc.cpp b/source/bittboy/doc.cpp
  #else
  		// event loop
 diff -uprN a/source/bittboy/makefile b/source/bittboy/makefile
---- a/source/bittboy/makefile	2026-02-17 16:43:36.969185018 +0800
-+++ b/source/bittboy/makefile	2026-02-17 16:47:32.129183742 +0800
-@@ -1,8 +1,8 @@
+--- a/source/bittboy/makefile	2026-03-08 13:13:49.841266456 +0800
++++ b/source/bittboy/makefile	2026-03-08 13:14:57.731266088 +0800
+@@ -1,14 +1,14 @@
 -SDL_BASE = /opt/miyoo/arm-buildroot-linux-musleabi/sysroot/usr/bin/
 +SDL_BASE = /opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/
  LDFLAGS = `$(SDL_BASE)sdl-config --libs`
@@ -59,3 +59,11 @@ diff -uprN a/source/bittboy/makefile b/source/bittboy/makefile
  
  CXXFLAGS = `$(SDL_BASE)sdl-config --cflags` -O2 -Wall -fsigned-char
  
+ # Remove the following two lines to disable sound
+-METHANE_SND_FLAGS = -DMETHANE_MIKMOD `$(SDL_BASE)libmikmod-config --cflags`
+-METHANE_SND_LIBS = `$(SDL_BASE)libmikmod-config --libs`
++#METHANE_SND_FLAGS = -DMETHANE_MIKMOD `$(SDL_BASE)libmikmod-config --cflags`
++#METHANE_SND_LIBS = `$(SDL_BASE)libmikmod-config --libs`
+ all: message methane
+ 
+ # Methane brothers with sound

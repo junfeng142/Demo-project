@@ -1,49 +1,36 @@
 diff -uprN a/def.h b/def.h
---- a/def.h	2026-02-19 10:04:59.749492557 +0800
-+++ b/def.h	2026-02-19 10:24:45.329503378 +0800
-@@ -52,28 +52,28 @@
- #define CURSOR_ALPHA_STEP 4
- 
- #ifndef MYKEY_UP
--#define MYKEY_UP SDLK_UP
-+#define MYKEY_UP SDLK_u
- #endif
- #ifndef MYKEY_RIGHT
--#define MYKEY_RIGHT SDLK_RIGHT
-+#define MYKEY_RIGHT SDLK_r
- #endif
- #ifndef MYKEY_DOWN
--#define MYKEY_DOWN SDLK_DOWN
-+#define MYKEY_DOWN SDLK_d
- #endif
- #ifndef MYKEY_LEFT
--#define MYKEY_LEFT SDLK_LEFT
-+#define MYKEY_LEFT SDLK_l
+--- a/def.h	2026-03-08 13:18:40.721264878 +0800
++++ b/def.h	2026-03-08 13:20:35.511264255 +0800
+@@ -64,31 +64,31 @@
+ #define MYKEY_LEFT SDLK_LEFT
  #endif
  #ifndef MYKEY_LINEUP
 -#define MYKEY_LINEUP SDLK_r
-+#define MYKEY_LINEUP SDLK_x
++#define MYKEY_LINEUP SDLK_LSHIFT
  #endif
  #ifndef MYKEY_LINERIGHT
 -#define MYKEY_LINERIGHT SDLK_g
-+#define MYKEY_LINERIGHT SDLK_a
++#define MYKEY_LINERIGHT SDLK_SPACE
  #endif
  #ifndef MYKEY_LINEDOWN
 -#define MYKEY_LINEDOWN SDLK_f
-+#define MYKEY_LINEDOWN SDLK_b
++#define MYKEY_LINEDOWN SDLK_LCTRL
  #endif 
  #ifndef MYKEY_LINELEFT
 -#define MYKEY_LINELEFT SDLK_d
-+#define MYKEY_LINELEFT SDLK_y
++#define MYKEY_LINELEFT SDLK_LALT
  #endif
  #ifndef MYKEY_QUIT
- #define MYKEY_QUIT SDLK_q
-@@ -82,13 +82,13 @@
- #define MYKEY_START SDLK_s
+-#define MYKEY_QUIT SDLK_q
++#define MYKEY_QUIT SDLK_ESCAPE
+ #endif
+ #ifndef MYKEY_START
+-#define MYKEY_START SDLK_s
++#define MYKEY_START SDLK_RETURN
  #endif
  #ifndef MYKEY_MOD
 -#define MYKEY_MOD SDLK_l
-+#define MYKEY_MOD SDLK_m
++#define MYKEY_MOD SDLK_TAB
  #endif
  #ifndef MYKEY_UNDO
 -#define MYKEY_UNDO SDLK_u
@@ -63,8 +50,7 @@ diff -uprN a/def.h b/def.h
 +#define MYKEY_OPEN SDLK_o
  #endif
  #ifndef MYKEY_PARENT
--#define MYKEY_PARENT SDLK_BACKSPACE
-+#define MYKEY_PARENT SDLK_n
+ #define MYKEY_PARENT SDLK_BACKSPACE
  #endif
  #ifndef MYKEY_OPERATION
 -#define MYKEY_OPERATION SDLK_a
@@ -72,17 +58,20 @@ diff -uprN a/def.h b/def.h
  #endif
  #ifndef MYKEY_SELECT
 -#define MYKEY_SELECT SDLK_INSERT
-+#define MYKEY_SELECT SDLK_k
++#define MYKEY_SELECT SDLK_RCTRL
  #endif
  #ifndef MYKEY_TRANSFER
  #define MYKEY_TRANSFER SDLK_w
-diff -uprN a/make.sh b/make.sh
---- a/make.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/make.sh	2026-02-19 10:03:27.589491716 +0800
-@@ -0,0 +1,6 @@
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 12:55:11.491272523 +0800
+@@ -0,0 +1,9 @@
 +#!/bin/bash
 +
 +CMAKE=1
 +CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=/opt/mmiyoo/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
 +cmake $CMAKE_ARGS .
 +make
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip slitherlink -o _opk/slitherlink
++mv res _opk/
++mksquashfs _opk/* ../_opk/slitherlink_funkey-s.opk -all-root -no-xattrs -noappend -no-exports

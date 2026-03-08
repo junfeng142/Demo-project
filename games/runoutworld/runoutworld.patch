@@ -68,8 +68,8 @@ diff -uprN a/src/sysImplementation.cpp b/src/sysImplementation.cpp
 -			else if (ev.key.keysym.sym == SDLK_s) {input.save = true;} 
 -			else if (ev.key.keysym.sym == SDLK_l) {input.load = true;}
 +			if (ev.key.keysym.sym ==SDLK_ESCAPE) {input.quit = true;}
-+			else if (ev.key.keysym.sym == SDLK_BACKSPACE) {input.save = true;} 
-+			else if (ev.key.keysym.sym == SDLK_TAB) {input.load = true;}
++			else if (ev.key.keysym.sym == SDLK_TAB) {input.save = true;} 
++			else if (ev.key.keysym.sym == SDLK_BACKSPACE) {input.load = true;}
  			else if (ev.key.keysym.sym == SDLK_f) {input.fastMode = true;} 
  			else if (ev.key.keysym.sym == SDLK_KP_PLUS) {input.stateSlot = 1;} 
  			else if (ev.key.keysym.sym == SDLK_KP_MINUS) {input.stateSlot = -1;}
