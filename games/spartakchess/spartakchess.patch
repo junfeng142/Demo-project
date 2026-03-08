@@ -1,22 +1,64 @@
-diff -uprN a/build/bittboy/makefile b/build/bittboy/makefile
---- a/build/bittboy/makefile	2026-02-18 21:03:18.520118167 +0800
-+++ b/build/bittboy/makefile	2026-02-18 21:08:08.720115450 +0800
-@@ -1,5 +1,6 @@
--CXX       = arm-linux-g++
--BINBASE = /opt/miyoo/bin/
+diff -uprN a/build/bittboy/Makefile.funkey b/build/bittboy/Makefile.funkey
+--- a/build/bittboy/Makefile.funkey	1970-01-01 08:00:00.000000000 +0800
++++ b/build/bittboy/Makefile.funkey	2026-03-08 19:38:25.534030556 +0800
+@@ -0,0 +1,50 @@
 +CC       = /opt/mmiyoo/bin/arm-linux-gnueabihf-gcc
 +CXX       = /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
 +BINBASE = /opt/mmiyoo/bin/
- SYSROOT = $(shell $(CC) --print-sysroot)
- 
- PROJECT_NAME = spartak-chess
++SYSROOT = $(shell $(CC) --print-sysroot)
++
++PROJECT_NAME = spartak-chess
++
++SRC_PATH = ../..
++OBJ_BASE = Release
++DIST_PATH = $(OBJ_BASE)
++OBJ_PATH = $(OBJ_BASE)
++RES_PATH = res
++
++SRCFOLDERS = . stockfish ui platform
++
++STD_OPTS  = -O3 -Wall -c -fmessage-length=0 -DNDEBUG -DNO_PREFETCH -DNO_THREADS -DUSE_SDL -DSDL_USE_JOYSTICK -DSDL_KEYS_COMMON -D_MOBILE -DWITH_HOME_DIR -DBITTBOY $(shell $(BINBASE)pkg-config --cflags sdl)
++CPP_OPTS  = $(STD_OPTS) -fno-rtti -fno-threadsafe-statics
++C_OPTS    = $(STD_OPTS)
++LD_OPTS   = $(shell $(BINBASE)pkg-config --libs sdl) -lpng -lz
++
++CXXSRCS = $(foreach dir, $(SRCFOLDERS), $(wildcard $(SRC_PATH)/$(dir)/*.cpp))
++CSRCS = $(foreach dir, $(SRCFOLDERS), $(wildcard $(SRC_PATH)/$(dir)/*.c))
++
++CXX_OBJS = $(patsubst $(SRC_PATH)/%.cpp,$(OBJ_PATH)/%.o,$(CXXSRCS))
++CXX_DEPS = $(patsubst $(SRC_PATH)/%.cpp,$(OBJ_PATH)/%.d,$(CXXSRCS))
++C_OBJS = $(patsubst $(SRC_PATH)/%.c,$(OBJ_PATH)/%.o,$(CSRCS))
++C_DEPS = $(patsubst $(SRC_PATH)/%.c,$(OBJ_PATH)/%.d,$(CSRCS))
++
++BIN_TARGET = $(DIST_PATH)/$(PROJECT_NAME)
++
++build: mkdirs $(BIN_TARGET)
++
++mkdirs:
++	mkdir -p $(DIST_PATH)
++	mkdir -p $(foreach dir, $(SRCFOLDERS), $(OBJ_PATH)/$(dir))
++
++$(CXX_OBJS): $(OBJ_PATH)/%.o : $(SRC_PATH)/%.cpp
++	$(CXX) $(CPP_OPTS) -o $@ $<
++
++$(C_OBJS): $(OBJ_PATH)/%.o : $(SRC_PATH)/%.c
++	$(C) $(C_OPTS) -o $@ $<
++
++$(BIN_TARGET): $(CXX_OBJS) $(C_OBJS)
++	$(CXX) $(CXX_OBJS) $(C_OBJS) $(LD_OPTS) -o $(BIN_TARGET)
++
++clean:
++	rm -rf $(OBJ_BASE)
++	rm -rf $(DIST_PATH)
++
++.PHONY: mkdirs clean build
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
 +++ b/build_opk.sh	2026-03-08 18:41:06.514072207 +0800
 @@ -0,0 +1,6 @@
 +#!/bin/bash
 +
-+make -C build/bittboy
++make -C build/bittboy -f Makefile.funkey
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip build/bittboy/Release/spartak-chess -o _opk/spartak-chess
 +mv res _opk/
 +mksquashfs _opk/* ../_opk/spartakchess_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
