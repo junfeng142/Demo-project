@@ -11,7 +11,7 @@
 #hexen|https://github.com/MiyanoOsu/hhexen-miyoo.git|main
 #hocoslamfy|https://github.com/Apaczer/hocoslamfy.git|miyoo
 #hydracastlelabyrinth|https://github.com/szymor/hydracastlelabyrinth.git|master
-#liero|https://github.com/tiopex/liero.git|main
+liero|https://github.com/tiopex/liero.git|main
 #just4qix|https://github.com/szymor/just4qix.git|master
 #manicminer|https://github.com/Emulators-Salvacam/manicminer.git|master
 #meritous|https://github.com/andrigamerita/meritous.git|master

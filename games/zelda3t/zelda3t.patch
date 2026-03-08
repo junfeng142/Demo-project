@@ -26,81 +26,9 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +++ b/build_opk.sh	2026-03-08 19:25:18.024040094 +0800
 @@ -0,0 +1,7 @@
 +#!/bin/bash
-+mv _opk/main.cpp src/
++mv _opk/main.cpp Joueur.cpp Keyboard.cpp src/
 +make MIYOO=1
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip zelda3t -o _opk/zelda3t
 +unzip zelda_3t.zip
 +mv zelda_3t/data _opk/
 +mksquashfs _opk/* ../_opk/zelda3t_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-diff -uprN a/src/Joueur.cpp b/src/Joueur.cpp
---- a/src/Joueur.cpp	2026-02-21 10:44:26.549621150 +0800
-+++ b/src/Joueur.cpp	2026-02-21 10:53:50.809626973 +0800
-@@ -102,7 +102,11 @@ void Joueur::save() {
- 	system(("mkdir -p " + savePath).c_str());
-     ofstream f((savePath + "3t" + im.str() + ".dat").c_str(),ios::out | ios::binary);
- #else
--    ofstream f(("data/save/3t" + im.str() + ".dat").c_str(),ios::out | ios::binary);
-+    string pHome;
-+	pHome = getenv("HOME");
-+	string savePath(pHome + "/.zelda-3t/");
-+	system(("mkdir -p " + savePath).c_str());
-+    ofstream f((savePath + "3t" + im.str() + ".dat").c_str(),ios::out | ios::binary);
- #endif
- 
-     f.write((char *)&tps,sizeof(int));
-@@ -178,7 +182,10 @@ void Joueur::load() {
- 	string savePath(pHome + "/.zelda3T_US/save/");
- 	ifstream f((savePath + "3t" + im.str() + ".dat").c_str(),ios::in | ios::binary);
- #else
--    ifstream f(("data/save/3t" + im.str() + ".dat").c_str(),ios::in | ios::binary);
-+    string pHome;
-+	pHome = getenv("HOME");
-+	string savePath(pHome + "/.zelda-3t/");
-+	ifstream f((savePath + "3t" + im.str() + ".dat").c_str(),ios::in | ios::binary);
- #endif
-     if(!f.is_open()) return;
-     f.read((char *)&temps,sizeof(int));
-diff -uprN a/src/Keyboard.cpp b/src/Keyboard.cpp
---- a/src/Keyboard.cpp	2026-02-21 10:44:26.549621150 +0800
-+++ b/src/Keyboard.cpp	2026-02-21 10:51:26.459625483 +0800
-@@ -23,14 +23,14 @@
- 	#undef SDLK_x
- 	#undef SDLK_c
- 	#undef SDLK_m
--	#define SDLK_z	 	308 //A ATTACK
--	#define SDLK_SPACE 	308 //A TALK/READ
--	#define SDLK_LSHIFT 306 //B RUN
--	#define SDLK_c		306 //B PUSH/PULL
--	#define SDLK_LCTRL 	8 //R LOOK AROUND
--	#define SDLK_x	 	32 //Y USE ITEM
--	#define SDLK_p 		304 //X MAP
--	#define SDLK_m		9 //L ENCYCLOPEDIA
-+	#define SDLK_z	 	32 //A ATTACK
-+	#define SDLK_SPACE 	32 //A TALK/READ
-+	#define SDLK_LSHIFT 306     //B RUN
-+	#define SDLK_c		306     //B PUSH/PULL
-+	#define SDLK_LCTRL 	8    //R LOOK AROUND
-+	#define SDLK_x	 	304 //Y USE ITEM
-+	#define SDLK_p 		308 //X MAP
-+	#define SDLK_m		9    //L ENCYCLOPEDIA
- #endif
- 
- 
-@@ -49,7 +49,7 @@ SDL_Surface* screen, int m, bool e) :
- }
- 
- void Keyboard::saveP() {
--    ofstream f("data/save/system.dat",ios::out | ios::binary);
-+    ofstream f("/mnt/FunKey/.zelda-3t/system.dat",ios::out | ios::binary);
-     f.write((char *)&volume,sizeof(int));
-     f.write((char *)&volson,sizeof(int));
-     f.write((char *)&temps,sizeof(int));
-@@ -58,7 +58,7 @@ void Keyboard::saveP() {
- }
- 
- void Keyboard::loadP() {
--    ifstream f("data/save/system.dat",ios::in | ios::binary);
-+    ifstream f("/mnt/FunKey/.zelda-3t/system.dat",ios::in | ios::binary);
-     if(!f.is_open()) return;
-     f.read((char *)&volume,sizeof(int));
-     f.read((char *)&volson,sizeof(int));
