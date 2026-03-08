@@ -65,9 +65,9 @@ jobs:
       id: compile
       run: |
         cd $PKG_NAME && mkdir -p _opk
-        for dir in */ ; do
+        for dir in [!_]*/ ; do
         dir_name="${dir%/}"
-        [ -d $dir_name ] && cd "$dir_name"
+        cd "$dir_name"
         [ -e build_opk.sh ] && ./build_opk.sh
         done
         echo "status=success" >> $GITHUB_OUTPUT
