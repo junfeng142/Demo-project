@@ -7,7 +7,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make -f Makefile.bittboy
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip yatka -o _opk/yatka
 +mv music sfx skins _opk/
-+mksquashfs _opk/* ../_opk/xrick_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++mksquashfs _opk/* ../_opk/yatka_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 diff -uprN a/Makefile.bittboy b/Makefile.bittboy
 --- a/Makefile.bittboy	2026-02-16 13:08:31.896652598 +0800
 +++ b/Makefile.bittboy	2026-02-16 13:21:45.626656717 +0800

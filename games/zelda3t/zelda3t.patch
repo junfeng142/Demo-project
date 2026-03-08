@@ -26,7 +26,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +++ b/build_opk.sh	2026-03-08 19:25:18.024040094 +0800
 @@ -0,0 +1,7 @@
 +#!/bin/bash
-+
++mv _opk/main.cpp src/
 +make MIYOO=1
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip zelda3t -o _opk/zelda3t
 +unzip zelda_3t.zip
@@ -104,105 +104,3 @@ diff -uprN a/src/Keyboard.cpp b/src/Keyboard.cpp
      if(!f.is_open()) return;
      f.read((char *)&volume,sizeof(int));
      f.read((char *)&volson,sizeof(int));
-diff -uprN a/src/main.cpp b/src/main.cpp
---- a/src/main.cpp	2026-02-28 21:14:31.755585258 +0800
-+++ b/src/main.cpp	2026-02-28 21:14:17.465585072 +0800
-@@ -14,6 +14,10 @@
- #include <iostream>
- #include <cstdlib>
- #include <ctime>
-+#include <linux/fb.h>
-+#include <sys/ioctl.h>
-+#include <unistd.h>
-+#include <fcntl.h>
- 
- #include "Keyboard.h"
- #include "Generique.h"
-@@ -60,7 +64,7 @@ SDL_Surface* init(bool* etire) {
- }
- 
- int main(int argc, char** argv) {
--    if (argc && argv); //pour �viter un warning.....
-+    if (argc && argv); //pour �viter un warning.....
-     
-     std::srand(std::time(NULL));
-     
-@@ -90,9 +94,10 @@ int main(int argc, char** argv) {
-     gpJeu->setGenerique(gpGenerique);
-     gpGenerique->initLogo();
-     
--    //gpJeu->init(0); //� virer
-+    //gpJeu->init(0); //� virer
-     
-     bool gLoop = true;
-+    int fd = open("/dev/fb0", O_RDWR);
-     
-     Uint32 lastAnimTime = SDL_GetTicks();
-     
-@@ -106,7 +111,7 @@ int main(int argc, char** argv) {
-             case 1 : //disclamer
-             case 2 : //logo
-             case 3 : //titre
--            case 14 : //g�n�rique score
-+            case 14 : //g�n�rique score
-             case 17 : //menu d'aide 1
-             case 18 : //menu d'aide 2
-             case 24 : //menu d'aide 3
-@@ -122,32 +127,32 @@ int main(int argc, char** argv) {
-             case 7 : //charger partie
-                 gpGenerique->drawCharger(gpScreen2, gpKeyboard->getLigne(), 
-                     gpKeyboard->getLigneVal()); break;
--            case 8 : //g�n�rique intro
-+            case 8 : //g�n�rique intro
-                 gpGenerique->drawIntro(gpScreen2, gpKeyboard->getIntro()); break;
-             case 9 : //effacer partie
-                 gpGenerique->drawEffacerSave(gpScreen2, gpKeyboard->getLigne(), 
-                     gpKeyboard->getLigneVal()); break;
--            case 10 : //g�n�rique d�but chez link
-+            case 10 : //g�n�rique d�but chez link
-                 gpGenerique->drawDebut(gpScreen2); break;
--            case 11 : //g�n�rique fin
-+            case 11 : //g�n�rique fin
-                 gpGenerique->drawFin(gpScreen2); break;
-             case 12 : //carte
--            case 22 : //carte t�l�portation
-+            case 22 : //carte t�l�portation
-                 gpCarte->draw(gpScreen2); break;
--            case 13 : //encyclop�die des monstres
-+            case 13 : //encyclop�die des monstres
-                 gpEncyclopedie->draw(gpScreen2); break;
-             case 15 : //records
-             case 19 : //rang 100%
-             case 20 : //rang ultime
--            case 21 : //rang de rapidit�
-+            case 21 : //rang de rapidit�
-                 gpGenerique->drawRecord(gpScreen2, gpKeyboard->getLigneRecord(),
-                     gpKeyboard->getColonneRecord()); break;
-             case 16 : //effacer record
-                 gpGenerique->drawEffacer(gpScreen2, gpKeyboard->getLigneVal()); break;
--            case 23 : //encyclop�die des poissons
-+            case 23 : //encyclop�die des poissons
-                 gpPoissons->draw(gpScreen2); break;
--            case 26 : //g�n�rique vers pr�sent
--            case 27 : //g�n�rique vers pass�
-+            case 26 : //g�n�rique vers pr�sent
-+            case 27 : //g�n�rique vers pass�
-                 gpGenerique->drawToPresent(gpScreen2); break;
-             default : break;
-         }
-@@ -160,6 +165,7 @@ int main(int argc, char** argv) {
-             SDL_BlitSurface(gpScreen2, &src, gpScreen, &dst);
-         }
-         
-+        ioctl(fd, FBIO_WAITFORVSYNC, 0);
-         SDL_Flip(gpScreen);
-         
- 	// comentado por Shin-NiL, solucao proposta por hmn
-@@ -183,6 +189,7 @@ int main(int argc, char** argv) {
-     
-     SDL_ShowCursor(SDL_ENABLE);
-     SDL_Quit();
-+    close(fd);
-     exit(0);
-     
-     return 0;

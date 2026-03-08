@@ -3,7 +3,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +++ b/build_opk.sh	2026-03-08 19:02:20.954056772 +0800
 @@ -0,0 +1,6 @@
 +#!/bin/bash
-+
++mv _opk/sysevt.c src/
 +make
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip xrick.dge -o _opk/xrick
 +mv data.zip _opk/
