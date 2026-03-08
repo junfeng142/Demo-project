@@ -1,0 +1,40 @@
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 10:42:41.851315653 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip raw.elf -o _opk/raw
++mksquashfs _opk/* ../_opk/raw_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/makefile b/makefile
+--- a/makefile	2026-02-21 09:24:34.259571700 +0800
++++ b/makefile	2026-02-21 09:31:23.659575924 +0800
+@@ -1,10 +1,10 @@
+ 
+-SDL_CFLAGS = `sdl-config --cflags`
+-SDL_LIBS = `sdl-config --libs`
++SDL_CFLAGS = `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags`
++SDL_LIBS = `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs`
+ 
+-DEFINES = -DSYS_LITTLE_ENDIAN -DBYPASS_PROTECTION -DDINGUX -march=armv5te
++DEFINES = -DSYS_LITTLE_ENDIAN -DBYPASS_PROTECTION -DDINGUX -march=armv7-a
+ 
+-CXX = arm-linux-g++
++CXX = /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
+ CXXFLAGS:= -O2 -g -std=gnu++98 -fno-rtti -fno-exceptions -Wall -Wno-unknown-pragmas -Wshadow
+ CXXFLAGS+= -Wundef -Wwrite-strings -Wnon-virtual-dtor -Wno-multichar
+ CXXFLAGS+= $(SDL_CFLAGS) $(DEFINES)
+diff -uprN a/src/main.cpp b/src/main.cpp
+--- a/src/main.cpp	2026-02-21 09:50:52.809587988 +0800
++++ b/src/main.cpp	2026-02-21 09:59:19.499593217 +0800
+@@ -41,7 +41,7 @@ extern System *stub ;//= System_SDL_crea
+ #undef main
+ int main(int argc, char *argv[]) {
+ 	const char *dataPath = "data";
+-	const char *savePath = "data";
++	const char *savePath = "/mnt/FunKey/.raw";
+ 	for (int i = 1; i < argc; ++i) {
+ 		bool opt = false;
+ 		if (strlen(argv[i]) >= 2) {

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Tyrian
+Name[ch]=泰瑞安
+Comment=Open Tyrian
+Comment[ch]=开源版泰瑞安
+Icon=opentyrian
+Exec=opentyrian
+Categories=games

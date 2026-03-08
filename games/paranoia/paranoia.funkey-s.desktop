@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Paranoia
+Name[ch]=Paranoia
+Comment=RPG text adventure
+Comment[ch]=文字类RPG冒险游戏
+Icon=paranoia
+Exec=paranoia
+Categories=games

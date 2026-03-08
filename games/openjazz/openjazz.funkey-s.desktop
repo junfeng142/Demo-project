@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=OpenJazz
+Name[ch]=爵士兔
+Comment=Jazz Jackrabbit™ game engine reimplementation
+Comment[ch]=爵士兔™游戏引擎的重新实现
+Icon=openjazz
+Exec=openjazz
+Categories=games

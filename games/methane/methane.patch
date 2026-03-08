@@ -1,0 +1,61 @@
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 10:16:46.791324090 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make -C source/bittboy PLATFORM=bittboy
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip source/bittboy/methane -o _opk/methane
++mksquashfs _opk/* ../_opk/methane_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/source/bittboy/doc.cpp b/source/bittboy/doc.cpp
+--- a/source/bittboy/doc.cpp	2026-02-17 16:45:06.459184532 +0800
++++ b/source/bittboy/doc.cpp	2026-02-17 16:48:40.729183370 +0800
+@@ -136,25 +136,25 @@ hw_set_cpu (75);
+ 		SDL_PumpEvents();
+ 		Uint8 * key = SDL_GetKeyState (NULL);
+ 
+-		if (key[SDLK_RCTRL]) break;
+-		if (key[SDLK_ESCAPE])
++		if (key[SDLK_ESCAPE]) break;
++		if (key[SDLK_RCTRL])
+ 		{
+ 			Game.m_GameTarget.m_Game.TogglePuffBlow();
+ 		}
+ //		jptr1->key = key;
+ //		jptr2->key = key;
+ 
+-		if (key[SDLK_RIGHT]) {
++		if (key[SDLK_RIGHT]) { 
+ 			jptr1->right = 1;
+ 		}
+ 		else {
+ 			jptr1->right = 0;
+ 		}
+ 
+-		jptr1->left  = key[SDLK_LEFT] > 0;
+-		jptr1->up    = key[SDLK_LCTRL] > 0;
+-		jptr1->down  = key[SDLK_DOWN] > 0;
+-		jptr1->fire  = key[SDLK_SPACE] > 0;
++		jptr1->left  = key[SDLK_LEFT]> 0;
++		jptr1->up    = key[SDLK_UP] > 0;
++		jptr1->down  = key[SDLK_DOWN]> 0;
++		jptr1->fire  = key[SDLK_SPACE]> 0;
+ 		jptr1->key = 13;	// Fake key press (required for high score table)
+ #else
+ 		// event loop
+diff -uprN a/source/bittboy/makefile b/source/bittboy/makefile
+--- a/source/bittboy/makefile	2026-02-17 16:43:36.969185018 +0800
++++ b/source/bittboy/makefile	2026-02-17 16:47:32.129183742 +0800
+@@ -1,8 +1,8 @@
+-SDL_BASE = /opt/miyoo/arm-buildroot-linux-musleabi/sysroot/usr/bin/
++SDL_BASE = /opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/
+ LDFLAGS = `$(SDL_BASE)sdl-config --libs`
+ 
+-CXX = arm-linux-g++
+-STRIP = arm-linux-strip
++CXX = /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
++STRIP = /opt/mmiyoo/bin/arm-linux-gnueabihf-strip
+ 
+ CXXFLAGS = `$(SDL_BASE)sdl-config --cflags` -O2 -Wall -fsigned-char
+ 

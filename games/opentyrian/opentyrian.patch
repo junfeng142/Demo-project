@@ -1,0 +1,34 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-02-22 09:02:39.794288395 +0800
++++ b/Makefile	2026-02-22 09:11:09.534285629 +0800
+@@ -16,9 +16,9 @@ WITH_NETWORK := false
+ 
+ SHELL = /bin/sh
+ 
+-CC = arm-linux-gcc
++CC = /opt/mmiyoo/bin/arm-linux-gnueabihf-gcc
+ INSTALL ?= install
+-PKG_CONFIG ?= pkg-config
++PKG_CONFIG ?= /opt/mmiyoo/bin/pkg-config
+ 
+ INSTALL_PROGRAM ?= $(INSTALL)
+ INSTALL_DATA ?= ${INSTALL} -m 644
+@@ -59,7 +59,7 @@ endif
+ 
+ CPPFLAGS := -DNDEBUG
+ CFLAGS := -pedantic
+-CFLAGS += -MMD
++CFLAGS += -MMD -DFUNKEYS
+ CLFAGS += -Wall \
+           -Wextra \
+           -Wno-missing-field-initializers
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 10:32:17.091319043 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make -j $(nproc)
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip opentyrian -o _opk/opentyrian
++mksquashfs _opk/* ../_opk/opentyrian_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
