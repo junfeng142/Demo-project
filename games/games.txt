@@ -28,4 +28,4 @@ srb2|https://github.com/Emulators-Salvacam/srb2.git|master
 smw|https://github.com/andrigamerita/super-mario-war.git|master
 xrick|https://github.com/jamesofarrell/miyoo_xrick.git|master
 yatka|https://github.com/szymor/yatka.git|master
-zelda3t|https://github.com/MiyanoOsu/Zelda_3T.git|main
+#zelda3t|https://github.com/MiyanoOsu/Zelda_3T.git|main
