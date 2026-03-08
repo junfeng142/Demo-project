@@ -31,4 +31,4 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make -j $(nproc)
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip opentyrian -o _opk/opentyrian
 +mksquashfs _opk/* ../_opk/opentyrian_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++

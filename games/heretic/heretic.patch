@@ -8,4 +8,4 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make -j $(nproc)
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip hheretic-sdl -o ./_opk/heretic
 +mksquashfs ./_opk/* ../_opk/heretic_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++

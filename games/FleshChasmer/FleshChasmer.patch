@@ -45,4 +45,4 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip FleshChasmer -o ./_opk/FleshChasmer
 +mv data ./_opk/
 +mksquashfs ./_opk/* ../_opk/FleshChasmer_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++

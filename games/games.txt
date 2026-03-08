@@ -22,3 +22,4 @@ openjazz|https://github.com/Apaczer/openjazz.git|miyoo
 runoutworld|https://github.com/MiyanoOsu/re-aw-miyoo.git|main
 shifty|https://github.com/szymor/Shifty-Pills.git|master
 shisen|https://github.com/szymor/shisen-seki.git|master
+slitherlink|https://github.com/szymor/od-slitherlink.git|master

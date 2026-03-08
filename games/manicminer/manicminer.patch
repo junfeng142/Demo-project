@@ -29,7 +29,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make -f Makefile.miyoo
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip manicminer.dge -o _opk/manicminer
 +mksquashfs _opk/* ../_opk/manicminer_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/main.c b/main.c
 --- a/main.c	2026-02-18 09:48:56.252622730 +0800
 +++ b/main.c	2026-02-18 10:17:56.012613291 +0800

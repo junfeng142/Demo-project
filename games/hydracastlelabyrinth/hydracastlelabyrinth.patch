@@ -11,7 +11,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip hcl -o ./_opk/hcl
 +mv data/ _opk/
 +mksquashfs ./_opk/* ../_opk/hcl_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/src/sdl/input.c b/src/sdl/input.c
 --- a/src/sdl/input.c	2026-02-16 22:07:53.161601735 +0800
 +++ b/src/sdl/input.c	2026-02-16 22:37:59.251603993 +0800

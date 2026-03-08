@@ -7,7 +7,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +./make.sh miyoo
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip anarch -o ./_opk/anarch
 +mksquashfs ./_opk/* ../_opk/anarch_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/make.sh b/make.sh
 --- a/make.sh	2026-02-20 09:29:28.380281051 +0800
 +++ b/make.sh	2026-02-20 09:33:09.780278978 +0800

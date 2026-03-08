@@ -31,4 +31,4 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip meritous -o _opk/meritous
 +mv dat/ _opk/
 +mksquashfs _opk/* ../_opk/meritous_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++

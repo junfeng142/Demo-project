@@ -7,7 +7,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip raw.elf -o _opk/raw
 +mksquashfs _opk/* ../_opk/raw_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/makefile b/makefile
 --- a/makefile	2026-02-21 09:24:34.259571700 +0800
 +++ b/makefile	2026-02-21 09:31:23.659575924 +0800

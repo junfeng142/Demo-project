@@ -23,4 +23,4 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +mv data ./_opk/
 +mv default/* ./_opk/
 +mksquashfs ./_opk/* ../_opk/fever_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++

@@ -32,7 +32,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip output/arm-linux-gnueabihf/bin/liero -o _opk/liero
 +mv data/ _opk
 +mksquashfs _opk/* ../_opk/liero_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/filesystem.cpp b/filesystem.cpp
 --- a/filesystem.cpp	2026-02-21 13:29:28.429723325 +0800
 +++ b/filesystem.cpp	2026-02-21 19:17:19.807952021 +0800

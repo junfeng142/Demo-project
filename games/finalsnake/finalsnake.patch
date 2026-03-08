@@ -26,7 +26,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip finalsnake -o ./_opk/finalsnake
 +mv gfx sfx ./_opk/
 +mksquashfs ./_opk/* ../_opk/finalsnake_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/src/main.c b/src/main.c
 --- a/src/main.c	2026-02-28 21:08:47.895580766 +0800
 +++ b/src/main.c	2026-02-28 21:09:04.885580988 +0800

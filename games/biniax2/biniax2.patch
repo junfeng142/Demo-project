@@ -8,7 +8,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip biniax2 -o ./_opk/biniax2
 +mv data ./_opk/
 +mksquashfs ./_opk/* ../_opk/biniax2_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/makefile b/makefile
 --- a/makefile	2026-02-20 13:33:09.221635815 +0800
 +++ b/makefile	2026-02-20 13:42:02.841630819 +0800

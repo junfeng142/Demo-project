@@ -7,4 +7,4 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make -f Makefile.funkey
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip sdlpal -o ./_opk/sdlpal
 +mksquashfs ./_opk/* ../_opk/Paladin_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++

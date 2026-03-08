@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Slitherlink
+Name[ch]=数回
+Comment=Logic puzzle game from the maker of Sudoku
+Comment[ch]=由数独游戏制造商打造的逻辑谜题游戏
+Icon=slitherlink
+Exec=slitherlink
+Categories=games

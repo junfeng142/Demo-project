@@ -7,7 +7,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make -f Makefile.gcw0
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip crafti -o ./_opk/crafti
 +mksquashfs ./_opk/* ../_opk/crafti_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN c/Makefile.gcw0 d/Makefile.gcw0
 --- c/Makefile.gcw0	2025-02-04 13:10:34.312672440 +0800
 +++ d/Makefile.gcw0	2025-02-04 13:08:46.002672601 +0800

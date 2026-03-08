@@ -23,7 +23,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip shisen.elf -o _opk/shisen
 +mv data _opk/
 +mksquashfs _opk/* ../_opk/shisen_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+cd ..
++
 diff -uprN a/src/input.h b/src/input.h
 --- a/src/input.h	2026-02-16 09:30:54.472199783 +0800
 +++ b/src/input.h	2026-02-16 09:33:19.122200533 +0800
