@@ -40,9 +40,9 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH --depth 1 $PKG_NAME
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         while IFS='|' read -r repo_name url branch; do
-        [[ -z "$repo_name" || "$repo_name" =~ ^# ]] && continue
-        target_dir="${PKG_NAME}/${repo_name}"
-        git clone -b "$branch" "$url" "$target_dir"
+            [[ -z "$repo_name" || "$repo_name" =~ ^# ]] && continue
+            target_dir="${PKG_NAME}/${repo_name}"
+            git clone -b "$branch" "$url" "$target_dir"
         done < "$GITHUB_WORKSPACE/$REPOS"
         cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
         cd && tar xvf toolchain.tar.gz
@@ -53,12 +53,12 @@ jobs:
       run: |
         cd $PKG_NAME
         for dir in */ ; do
-        dir_name="${dir%/}"
-        mkdir -p $dir_name/_opk && mv $GITHUB_WORKSPACE/games/$dir_name/* $dir_name/_opk
-        cd $dir_name && mv _opk/$dir_name.patch ./
-        patch -p1 < $dir_name.patch
-        chmod +x ./*.sh
-        cd ..
+            dir_name="${dir%/}"
+            mkdir -p $dir_name/_opk && mv $GITHUB_WORKSPACE/games/$dir_name/* $dir_name/_opk
+            cd $dir_name && mv _opk/$dir_name.patch ./
+            patch -p1 < $dir_name.patch
+            chmod +x ./*.sh
+            cd ..
         done
 
     - name: Compile the firmware
@@ -75,6 +75,8 @@ jobs:
                 echo "$dir_name 中没有build_opk.sh"
             fi
         done
+        cd anarch
+        ./build_opk.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV

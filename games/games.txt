@@ -19,7 +19,7 @@ methane|https://github.com/szymor/methane-sdl.git|master
 #openjazz|https://github.com/Apaczer/openjazz.git|miyoo
 #opentyrian|https://github.com/MiyanoOsu/opentyrian-miyoo.git|main
 #paranoia|https://github.com/szymor/c-paranoia.git|master
-runoutworld|https://github.com/MiyanoOsu/re-aw-miyoo.git|main
+#runoutworld|https://github.com/MiyanoOsu/re-aw-miyoo.git|main
 #shifty|https://github.com/szymor/Shifty-Pills.git|master
 #shisen|https://github.com/szymor/shisen-seki.git|master
-slitherlink|https://github.com/szymor/od-slitherlink.git|master
+#slitherlink|https://github.com/szymor/od-slitherlink.git|master
