@@ -1,0 +1,167 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-02-21 11:37:07.199653764 +0800
++++ b/Makefile	2026-02-21 12:01:18.879668744 +0800
+@@ -1,17 +1,17 @@
+-CROSS_COMPILE := /opt/miyoo/bin/arm-linux-
++CROSS_COMPILE := /opt/mmiyoo/bin/arm-linux-gnueabihf-
+ CC = $(CROSS_COMPILE)gcc
+ CXX = $(CROSS_COMPILE)g++
+ LD = $(CROSS_COMPILE)g++
+ 
+ TARGET = zelda_nsq
+ 
+-SYSROOT = opt/miyoo/arm-miyoo-linux-uclibcgnueabi/sysroot
++SYSROOT = opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot
+ LIBDIR = $(SYSROOT)/usr/lib
+ INCLUDEDIR = $(SYSROOT)/usr/include
+ 
+-CXXFLAGS = -Isrc -o2 -flto -I$(INCLUDEDIR)/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DDINGUX=1 -march=armv5te -mtune=arm926ej-s 
++CXXFLAGS = -Isrc -o2 -I$(INCLUDEDIR)/SDL -D_GNU_SOURCE=1 -D_REENTRANT -DDINGUX=1 -march=armv7-a -mtune=cortex-a7
+ 
+-LDFLAGS = -L$(LIBDIR) -lSDL -lpthread -lSDL_mixer -lSDL_gfx -lSDL_image -flto
++LDFLAGS = -L$(LIBDIR) -lSDL -lpthread -lSDL_mixer -lSDL_gfx -lSDL_image
+ 
+ OBJS = src/game/content/projectiles/ProjSpear.o src/game/content/projectiles/ProjPierre.o src/game/content/projectiles/ProjGrappin.o src/game/content/projectiles/ProjFeuLong.o src/game/content/projectiles/ProjBouleMort.o src/game/content/projectiles/ProjBouleFeu.o src/game/content/projectiles/ProjBouleDemi.o src/game/content/projectiles/ProjBoomerang.o src/game/content/projectiles/ProjBigGlace.o src/game/content/projectiles/ProjBigFeu.o src/game/content/projectiles/ProjBaguetteGlace.o src/game/content/projectiles/ProjBaguetteFeu.o src/game/content/projectiles/ProjArrow.o src/game/content/projectiles/ProjArcMagique.o src/game/content/types/Portable.o src/game/content/types/Object.o src/game/content/types/Loopable.o src/game/content/types/Item.o src/game/content/types/Ennemi.o src/game/content/types/Effect.o src/game/content/types/Drawable.o src/game/content/types/Collisionable.o src/game/content/scene/Primes.o src/game/content/scene/MapInitializer.o src/game/content/scene/Map.o src/game/content/scene/Hud.o src/game/content/scene/Camera.o src/game/content/scene/AnimationInGame.o src/game/content/projectiles/ProjUltime.o src/game/content/objects/ObjBomb.o src/game/content/objects/Jarre.o src/game/content/objects/Interrupteur.o src/game/content/objects/Coffre.o src/game/content/objects/Cible.o src/game/content/objects/CaisseSomaria.o src/game/content/objects/Caisse.o src/game/content/link/Sword.o src/game/content/link/Status.o src/game/content/link/Shield.o src/game/content/link/Navi.o src/game/content/link/Link.o src/game/content/link/Inventory.o src/game/content/items/RubisVert.o src/game/content/items/RubisRouge.o src/game/content/objects/Tombe.o src/game/content/objects/TalkableArea.o src/game/content/objects/Switch.o src/game/content/objects/Stele.o src/game/content/objects/Statue.o src/game/content/objects/Sphere.o src/game/content/objects/Poule.o src/game/content/objects/Pnj.o src/game/content/objects/Pierre.o src/game/content/objects/PiegePics.o src/game/content/objects/PiegeMain.o src/game/content/objects/PiegeLong.o src/game/content/objects/PiegeFeu.o src/game/content/objects/Pancarte.o src/game/content/objects/Oeil.o src/game/menu/options/audio/AudioOptionsController.o src/game/menu/options/audio/AudioOptions.o src/game/menu/options/OptionsController.o src/game/menu/main/MainMenuController.o src/game/menu/main/MainMenu.o src/game/menu/MenuController.o src/game/logo/LogoController.o src/game/logo/Logo.o src/game/game/troc/Troc.o src/game/game/troc/GameTrocController.o src/game/game/transitionRooms/TransitionRoomsController.o src/game/game/transitionRooms/TransitionRooms.o src/game/game/transitionMaps/TransitionMapsController.o src/game/game/transitionMaps/TransitionMaps.o src/game/game/textes/TextController.o src/main.o src/game/title/TitleController.o src/game/title/Title.o src/game/opening/OpeningTextArea.o src/game/opening/OpeningController.o src/game/opening/Opening.o src/game/menu/records/normal/NormalRecordsController.o src/game/menu/records/normal/NormalRecords.o src/game/menu/records/global/GlobalRecordsController.o src/game/menu/records/global/GlobalRecords.o src/game/menu/records/expert/ExpertRecordsController.o src/game/menu/records/expert/ExpertRecords.o src/game/menu/records/RecordsController.o src/game/menu/options/global/GlobalOptionsController.o src/game/menu/options/global/GlobalOptions.o src/game/game/GameController.o src/game/ending/unlock/UnlockController.o src/game/ending/unlock/Unlock.o src/game/ending/story/StoryTextArea.o src/game/ending/story/StoryController.o src/game/ending/score/ScoreController.o src/game/ending/score/Score.o src/game/ending/final/FinalController.o src/game/ending/final/Final.o src/game/ending/credits/CreditsController.o src/game/ending/credits/Credits.o src/game/ending/EndingController.o src/game/content/types/Projectile.o src/game/content/types/Poussable.o src/game/game/textes/TextArea.o src/game/game/teleport/TeleportController.o src/game/game/teleport/Teleport.o src/game/game/scene/SceneController.o src/game/game/scene/Scene.o src/game/game/ocarina/OcarinaController.o src/game/game/ocarina/Ocarina.o src/game/game/menu/Menu.o src/game/game/menu/GameMenuController.o src/game/game/map/MapOverworld.o src/game/game/map/MapOcarina.o src/game/game/map/MapDonjon.o src/game/game/map/MapController.o src/game/game/help/HelpController.o src/game/game/help/Help.o src/game/content/effects/NaviMagic.o src/game/content/effects/FumeeViolette.o src/game/content/effects/FumeeBlanche.o src/game/content/effects/FlammeCirculaire.o src/game/content/effects/Flamme.o src/game/content/effects/Feuilles.o src/game/content/effects/Explosion.o src/game/content/effects/Debris.o src/game/algo/AStar.o src/game/Save.o src/game/MainController.o src/game/GlobalSave.o src/engine/window/WindowManager.o src/engine/window/Timer.o src/game/content/ennemis/Ennemi022.o src/game/content/ennemis/Ennemi018.o src/game/content/ennemis/Ennemi015.o src/game/content/ennemis/Ennemi014.o src/game/content/ennemis/Ennemi013.o src/game/content/ennemis/Ennemi012.o src/game/content/ennemis/Ennemi010.o src/game/content/ennemis/Ennemi009.o src/game/content/ennemis/Ennemi008.o src/game/content/ennemis/Ennemi007.o src/game/content/ennemis/Ennemi006.o src/game/content/ennemis/Ennemi005.o src/game/content/ennemis/Ennemi004.o src/game/content/ennemis/Ennemi001.o src/game/content/effects/Plouf.o src/engine/resources/WMusic.o src/engine/resources/WImage.o src/engine/resources/WFile.o src/engine/resources/ResourceManager.o src/engine/renderer/Surface.o src/engine/renderer/SimpleTransition.o src/engine/renderer/CircularTransition.o src/engine/audio/AudioManager.o src/engine/audio/AudioConfiguration.o src/config/TextHelper.o src/config/KeyBinder.o src/config/ConfigurationManager.o src/config/AudioHelper.o src/config/Action.o src/engine/window/Event.o src/engine/util/tree/Quadtree.o src/engine/util/tree/Node.o src/engine/util/time/Metronome.o src/engine/util/time/Chrono.o src/engine/util/physic/SlideManager.o src/engine/util/list/Listable.o src/engine/util/list/ListCell.o src/engine/util/list/List.o src/engine/util/geometry/BoundingBox.o src/engine/texts/TextManager.o src/engine/texts/TextConfiguration.o src/engine/texts/Text.o src/engine/resources/WSound.o src/engine/resources/WResource.o src/game/content/ennemis/Ennemi153.o src/game/content/ennemis/Ennemi152.o src/game/content/ennemis/Ennemi151.o src/game/content/ennemis/Ennemi150.o src/game/content/ennemis/Ennemi149.o src/game/content/ennemis/Ennemi148.o src/game/content/ennemis/Ennemi147.o src/game/content/ennemis/Ennemi146.o src/game/content/ennemis/Ennemi145.o src/game/content/ennemis/Ennemi144.o src/game/content/ennemis/Ennemi143.o src/game/content/ennemis/Ennemi142.o src/game/content/ennemis/Ennemi118.o src/game/content/ennemis/Ennemi114.o src/game/content/items/RubisBleu.o src/game/content/items/QuartCoeur.o src/game/content/items/PetiteCle.o src/game/content/items/PetitCoeur.o src/game/content/items/Medaillon.o src/game/content/items/MagiePetit.o src/game/content/items/MagieGrand.o src/game/content/items/GemmeForce.o src/game/content/items/Coeur.o src/game/content/items/Bomb.o src/game/content/items/Arrow.o src/game/content/helper/ProjectileHelper.o src/game/content/helper/MapHelper.o src/game/content/helper/ItemRandomizer.o src/game/content/helper/ItemHelper.o src/game/content/ennemis/Ennemi054.o src/game/content/ennemis/Ennemi053.o src/game/content/ennemis/Ennemi048.o src/game/content/ennemis/Ennemi047.o src/game/content/ennemis/Ennemi046.o src/game/content/ennemis/Ennemi045.o src/game/content/ennemis/Ennemi044.o src/game/content/ennemis/Ennemi042.o src/game/content/ennemis/Ennemi041.o src/game/content/ennemis/Ennemi037.o src/game/content/ennemis/Ennemi030.o src/game/content/ennemis/Ennemi029.o src/game/content/ennemis/Ennemi026.o src/game/content/ennemis/Ennemi024.o src/game/content/ennemis/Ennemi023.o src/game/content/ennemis/Ennemi113.o src/game/content/ennemis/Ennemi111.o src/game/content/ennemis/Ennemi110.o src/game/content/ennemis/Ennemi102.o src/game/content/ennemis/Ennemi095.o src/game/content/ennemis/Ennemi092.o src/game/content/ennemis/Ennemi091.o src/game/content/ennemis/Ennemi084.o src/game/content/ennemis/Ennemi076.o src/game/content/ennemis/Ennemi069.o src/game/content/ennemis/Ennemi068.o src/game/content/ennemis/Ennemi066.o src/game/content/ennemis/Ennemi062.o src/game/content/ennemis/Ennemi056.o src/game/content/ennemis/Ennemi055.o 
+ 
+@@ -26,12 +26,13 @@ CXXFLAGS += -fprofile-use=./ -fbranch-pr
+ endif
+ 
+ $(TARGET): $(OBJS)
+-        @mkdir -p bin/
+-        @echo  Release $@...
+-        $(LD) $(LDFLAGS) $(OBJS) -o bin/$@
++	@mkdir -p bin/
++	@echo  Release $@...
++	$(LD) $(LDFLAGS) $(OBJS) -o bin/$@
+ 
+ %o: %cpp
+-       @echo Compiling $<...
+-       @$(CXX) $(CXXFLAGS) -c $< -o $@
++	@echo Compiling $<...
++	@$(CXX) $(CXXFLAGS) -c $< -o $@
+ 
+-clean: rm -f bin $(OBJS)
+\ No newline at end of file
++clean: 
++	rm -f bin $(OBJS)
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 21:23:31.983954175 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++make
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/zelda_nsq -o _opk/zeldansq
++unzip _opk/data.zip -d _opk/
++rm _opk/data.zip
++mksquashfs _opk/* ../_opk/zeldansq_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+diff -uprN a/src/engine/window/Event.cpp b/src/engine/window/Event.cpp
+--- a/src/engine/window/Event.cpp	2026-02-21 11:55:07.139664908 +0800
++++ b/src/engine/window/Event.cpp	2026-02-21 12:00:15.959668094 +0800
+@@ -9,15 +9,15 @@
+ #undef SDLK_c
+ #undef SDLK_m
+ #undef SDLK_o
+-#define SDLK_z	 	308 //A ATTACK
+-#define SDLK_SPACE 	32 //A TALK/READ
+-#define SDLK_LSHIFT 	306 //B RUN
+-#define SDLK_c		306 //B PUSH/PULL
+-#define SDLK_LCTRL 	8 //R LOOK AROUND
+-#define SDLK_x	 	32 //Y USE ITEM
+-#define SDLK_p 		304 //X MAP
+-#define SDLK_m		9 //L ENCYCLOPEDIA
+-#define SDLK_o		32//Tranform
++#define SDLK_z	 	    32 //A ATTACK
++#define SDLK_SPACE 	304 //A TALK/READ
++#define SDLK_LSHIFT 306 //B RUN
++#define SDLK_c		    306 //B PUSH/PULL
++#define SDLK_LCTRL 8 //R LOOK AROUND
++#define SDLK_x	 	304 //Y USE ITEM
++#define SDLK_p 		308 //X MAP
++#define SDLK_m	9 //L ENCYCLOPEDIA
++#define SDLK_o		304//Tranform
+ 
+ Event::Event() {
+     for (int i = 0; i < NB_KEYS; i++) {
+@@ -35,10 +35,10 @@ void Event::update(Uint8* keys) {
+         current[i] = false;
+     }
+ 
+-    current[kUp] = keys[SDLK_UP];
+-    current[kDown] = keys[SDLK_DOWN];
+-    current[kLeft] = keys[SDLK_LEFT];
+-    current[kRight] = keys[SDLK_RIGHT];
++    current[kUp] = keys[SDLK_UP]; 
++    current[kDown] = keys[SDLK_DOWN]; 
++    current[kLeft] = keys[SDLK_LEFT]; 
++    current[kRight] = keys[SDLK_RIGHT]; 
+ 
+     current[kA] = keys[SDLK_a];
+     current[kB] = keys[SDLK_b];
+@@ -79,13 +79,13 @@ void Event::update(Uint8* keys) {
+     current[k9] = keys[SDLK_9] || keys[SDLK_KP9];
+ 
+     current[kComma] = keys[SDLK_COMMA];
+-    current[kEscape] = keys[SDLK_ESCAPE];
++    current[kEscape] = keys[SDLK_ESCAPE]; 
+     current[kTab] = keys[SDLK_TAB];
+     current[kShift] = keys[SDLK_CAPSLOCK] || keys[SDLK_LSHIFT] || keys[SDLK_RSHIFT];
+     current[kCtrl] = keys[SDLK_LCTRL] || keys[SDLK_RCTRL];
+     current[kAlt] = keys[SDLK_LALT] || keys[SDLK_RALT];
+     current[kSpace] = keys[SDLK_SPACE];
+-    current[kReturn] = keys[SDLK_RETURN] || keys[SDLK_KP_ENTER];
++    current[kReturn] = keys[SDLK_RETURN] || keys[SDLK_KP_ENTER]; 
+ 
+     current[QUIT] = false;
+     current[RESIZE] = current[kCtrl] && current[kReturn];
+diff -uprN a/src/game/GlobalSave.cpp b/src/game/GlobalSave.cpp
+--- a/src/game/GlobalSave.cpp	2026-02-21 12:13:53.529676531 +0800
++++ b/src/game/GlobalSave.cpp	2026-02-21 12:15:43.159677662 +0800
+@@ -30,7 +30,7 @@ void GlobalSave::init() {
+ }
+ 
+ void GlobalSave::load() {
+-    ifstream f("saves/records.dat", ios::in | ios::binary);
++    ifstream f("/mnt/FunKey/.zelda-nsq/records.dat", ios::in | ios::binary);
+     if(!f.is_open()) {
+         return;
+     }
+@@ -49,7 +49,7 @@ void GlobalSave::load() {
+ }
+ 
+ void GlobalSave::save() {
+-    ofstream f("saves/records.dat", ios::out | ios::binary);
++    ofstream f("/mnt/FunKey/.zelda-nsq/records.dat", ios::out | ios::binary);
+     f.write((char *)&scoreArc,sizeof(int));
+     f.write((char *)&bestNormalTime,sizeof(int));
+     f.write((char *)&normalFull,sizeof(bool));
+diff -uprN a/src/game/Save.cpp b/src/game/Save.cpp
+--- a/src/game/Save.cpp	2026-02-21 12:13:53.529676531 +0800
++++ b/src/game/Save.cpp	2026-02-21 12:16:04.719677884 +0800
+@@ -99,7 +99,7 @@ void Save::init() {
+ void Save::load() {
+     ostringstream im;
+     im << id;
+-    ifstream f(("saves/znq" + im.str() + ".dat").c_str(), ios::in | ios::binary);
++    ifstream f(("/mnt/FunKey/.zelda-nsq/znq" + im.str() + ".dat").c_str(), ios::in | ios::binary);
+     if(!f.is_open()) {
+         return;
+     }
+@@ -152,7 +152,7 @@ void Save::load() {
+ void Save::save(bool endGame) {
+     ostringstream im;
+     im << id;
+-    ofstream f(("saves/znq" + im.str() + ".dat").c_str(), ios::out | ios::binary);
++    ofstream f(("/mnt/FunKey/.zelda-nsq/znq" + im.str() + ".dat").c_str(), ios::out | ios::binary);
+     f.write((char *)&map,sizeof(int));
+     f.write((char *)&x,sizeof(int));
+     f.write((char *)&y,sizeof(int));
+@@ -203,7 +203,7 @@ void Save::save(bool endGame) {
+ void Save::erase() {
+     ostringstream im;
+     im << id;
+-    remove(("saves/znq" + im.str() + ".dat").c_str());
++    remove(("/mnt/FunKey/.zelda-nsq/znq" + im.str() + ".dat").c_str());
+     init();
+     loaded = false;
+ }

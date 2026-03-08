@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=ZeldaOLB
+Name[ch]=塞尔达OLB
+Comment=Zelda OLB
+Comment[ch]=塞尔达传说：时之笛
+Icon=zeldaolb
+Exec=zeldaolb
+Categories=games

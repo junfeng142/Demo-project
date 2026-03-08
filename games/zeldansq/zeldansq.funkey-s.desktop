@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=ZeldaNSQ
+Name[ch]=塞尔达NSQ
+Comment=Zelda Navi 's Quest
+Comment[ch]=塞尔达传说娜薇的冒险
+Icon=zeldansq
+Exec=zeldansq
+Categories=games
