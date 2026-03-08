@@ -1,0 +1,55 @@
+diff -uprN a/build/bittboy/makefile b/build/bittboy/makefile
+--- a/build/bittboy/makefile	2026-02-18 21:03:18.520118167 +0800
++++ b/build/bittboy/makefile	2026-02-18 21:08:08.720115450 +0800
+@@ -1,5 +1,6 @@
+-CXX       = arm-linux-g++
+-BINBASE = /opt/miyoo/bin/
++CC       = /opt/mmiyoo/bin/arm-linux-gnueabihf-gcc
++CXX       = /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
++BINBASE = /opt/mmiyoo/bin/
+ SYSROOT = $(shell $(CC) --print-sysroot)
+ 
+ PROJECT_NAME = spartak-chess
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 18:41:06.514072207 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make -C build/bittboy
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip build/bittboy/Release/spartak-chess -o _opk/spartak-chess
++mv res _opk/
++mksquashfs _opk/* ../_opk/spartakchess_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+diff -uprN a/platform/sdl_keys.cpp b/platform/sdl_keys.cpp
+--- a/platform/sdl_keys.cpp	2026-02-18 21:04:10.460117681 +0800
++++ b/platform/sdl_keys.cpp	2026-02-18 21:07:03.870116057 +0800
+@@ -35,20 +35,20 @@ void ProcessEvent(eGame* game, const SDL
+ 	case SDL_KEYDOWN:
+ 		switch(e.key.keysym.sym)
+ 		{
+-		case SDLK_LEFT:		game->Command('l');		break;
+-		case SDLK_RIGHT:	game->Command('r');		break;
+-		case SDLK_UP:		game->Command('u');		break;
+-		case SDLK_DOWN:		game->Command('d');		break;
++		case SDLK_LEFT:	game->Command('l');		break;
++		case SDLK_RIGHT: game->Command('r');		break;
++		case SDLK_UP:	game->Command('u');		break;
++		case SDLK_DOWN:	game->Command('d');		break;
+ #ifdef BITTBOY
+-		case SDLK_LALT:		game->Command('a');		break;
+-		case SDLK_LCTRL:	game->Command('b');		break;
++		case SDLK_SPACE:	game->Command('a');		break;
++		case SDLK_LCTRL: game->Command('b');		break;
+ #else
+ 		case SDLK_LCTRL:	game->Command('a');		break;
+ 		case SDLK_LALT:		game->Command('b');		break;
+ #endif
+-		case SDLK_TAB:		game->Command('n');		break;
+-		case SDLK_BACKSPACE:game->Command('g');		break;
+-		case SDLK_ESCAPE:	game->Command('f');		break;
++		case SDLK_TAB:		    game->Command('n');		break;
++		case SDLK_BACKSPACE:    game->Command('g');		break;
++		case SDLK_ESCAPE:	    game->Command('f');		break;
+ 		default: break;
+ 		}
+ 		break;

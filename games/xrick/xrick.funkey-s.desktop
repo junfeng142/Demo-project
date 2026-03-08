@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Rick
+Name[ch]=瑞克
+Comment=xRick port An action platformer.
+Comment[ch]=xRick port一款2D动作游戏。
+Icon=xrick
+Exec=xrick
+Categories=games

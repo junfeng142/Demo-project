@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=SonicRB2
+Name[ch]=索尼克2
+Comment=Sonic Robo Blast 2 game port
+Comment[ch]=《音速索尼克2》游戏移植版
+Icon=srb2
+Exec=srb2
+Categories=games

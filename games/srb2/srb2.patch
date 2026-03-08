@@ -1,0 +1,45 @@
+diff -uprN a/Makefile.miyoo b/Makefile.miyoo
+--- a/Makefile.miyoo	2026-02-18 20:21:41.960141541 +0800
++++ b/Makefile.miyoo	2026-02-18 20:24:03.920140212 +0800
+@@ -6,8 +6,8 @@
+ 
+ TARGET = srb2/srb2.dge
+ 
+-CHAINPREFIX=/opt/miyoo
+-CROSS_COMPILE=$(CHAINPREFIX)/usr/bin/arm-linux-
++CHAINPREFIX=/opt/mmiyoo
++CROSS_COMPILE=$(CHAINPREFIX)/bin/arm-linux-gnueabihf-
+ 
+ CC			:= $(CROSS_COMPILE)gcc
+ LD			:= $(CROSS_COMPILE)gcc
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 18:52:22.274064023 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make -f Makefile.miyoo
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip srb2/srb2.dge -o _opk/srb2
++mv srb2/drill.dta srb2/knux.plr srb2/music.dta srb2/rings.wpn srb2/soar.dta srb2/sonic.plr srb2/srb2.srb srb2/tails.plr srb2/zones.dta _opk/
++mksquashfs _opk/* ../_opk/srb2_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+diff -uprN a/src/Makefile b/src/Makefile
+--- a/src/Makefile	2026-02-18 20:31:52.260135827 +0800
++++ b/src/Makefile	2026-02-18 20:33:48.690134737 +0800
+@@ -36,7 +36,7 @@ SDL=1
+ NOVERSION=1
+ 
+ #PREFIX=$(CHAINPREFIX)/usr/bin/mipsel-linux
+-PREFIX=$(CHAINPREFIX)/usr/bin/arm-linux
++PREFIX=$(CHAINPREFIX)/bin/arm-linux-gnueabihf
+ 
+ CC ?= $(CROSS_COMPILE)gcc
+ LD ?= $(CROSS_COMPILE)gcc
+@@ -57,7 +57,7 @@ SDL_CONFIG=$(SYSROOT)/usr/bin/sdl-config
+ # -G0 -march=mips32 -mtune=mips32
+ 
+ CFLAGS+= -DGCW0 -DMIYOO_MODE -DNOASM -O2 -fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant \
+- -march=armv5te -mtune=arm926ej-s
++ -march=armv7-a -mtune=cortex-a7
+ LDFLAGS+= -Wl,--gc-sections
+ 
+ ifdef LINUX64

@@ -1,0 +1,24 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-02-19 10:35:17.599509149 +0800
++++ b/Makefile	2026-02-19 10:38:30.619510911 +0800
+@@ -7,8 +7,8 @@ ifdef HOST
+ 	TARGET = smw.exe
+ 	TARGET_LE = leveledit.exe
+ else
+-	CHAINPREFIX=/opt/miyoo
+-	CROSS_COMPILE=$(CHAINPREFIX)/bin/arm-miyoo-linux-uclibcgnueabi-
++	CHAINPREFIX=/opt/mmiyoo
++	CROSS_COMPILE=$(CHAINPREFIX)/bin/arm-linux-gnueabihf-
+ 	CC = $(CROSS_COMPILE)gcc
+ 	CXX = $(CROSS_COMPILE)g++
+ 	STRIP = $(CROSS_COMPILE)strip
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 18:59:03.284059166 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++make
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip smw -o _opk/smw
++mv data _opk/
++mksquashfs _opk/* ../_opk/smw_funkey-s.opk -all-root -no-xattrs -noappend -no-exports

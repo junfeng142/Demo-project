@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=SpartakChess
+Name[ch]=国际象棋
+Comment=spartak chess
+Comment[ch]=斯巴达克国际象棋
+Icon=spartak-chess
+Exec=spartak-chess
+Categories=games

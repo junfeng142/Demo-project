@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=YATKA
+Name[ch]=俄罗斯方块
+Comment=Yet Another Tetris Klone in Action
+Comment[ch]=又一款俄罗斯方块克隆游戏
+Icon=yatka
+Exec=run.sh
+Categories=games

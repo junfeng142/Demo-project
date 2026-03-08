@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=SMW
+Name[ch]=马里奥对决
+Comment=Super Mario War
+Comment[ch]=超级马里奥战争游戏
+Icon=smw
+Exec=smw
+Categories=games
