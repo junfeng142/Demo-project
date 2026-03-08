@@ -12,3 +12,37 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +${COMMAND}
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip anarch -o _opk/anarch
 +mksquashfs _opk/* ../_opk/anarch_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+diff -uprN a/main_sdl1.c b/main_sdl1.c
+--- a/main_sdl1.c	2026-02-20 09:34:25.220278272 +0800
++++ b/main_sdl1.c	2026-02-20 09:35:37.740277593 +0800
+@@ -228,18 +228,18 @@ int8_t SFG_keyPressed(uint8_t key)
+ 
+   switch (key)
+   {
+-    case SFG_KEY_UP: return k(UP); break;
+-    case SFG_KEY_RIGHT: return k(RIGHT); break;
+-    case SFG_KEY_DOWN: return k(DOWN); break;
+-    case SFG_KEY_LEFT: return k(LEFT); break;
+-    case SFG_KEY_A: return k(LALT); break;
+-    case SFG_KEY_B: return k(LCTRL); break;
+-    case SFG_KEY_C: return k(LSHIFT); break;
+-    case SFG_KEY_JUMP: return k(SPACE); break;
+-    case SFG_KEY_STRAFE_LEFT: return k(TAB); break;
+-    case SFG_KEY_STRAFE_RIGHT: return k(BACKSPACE); break;
+-    case SFG_KEY_MAP: return k(ESCAPE); break;
+-    case SFG_KEY_MENU: return k(RCTRL) || k(RETURN); break;
++    case SFG_KEY_UP: return k(UP); break; 
++    case SFG_KEY_RIGHT: return k(RIGHT); break; 
++    case SFG_KEY_DOWN: return k(DOWN); break; 
++    case SFG_KEY_LEFT: return k(LEFT); break; 
++    case SFG_KEY_A: return k(SPACE); break;
++    case SFG_KEY_B: return k(LCTRL); break; 
++    case SFG_KEY_C: return k(LSHIFT); break; 
++    case SFG_KEY_JUMP: return k(LALT); break;
++    case SFG_KEY_STRAFE_LEFT: return k(TAB); break; 
++    case SFG_KEY_STRAFE_RIGHT: return k(BACKSPACE); break; 
++    case SFG_KEY_MAP: return k(RCTRL); break;
++    case SFG_KEY_MENU: return k(ESCAPE) || k(s); break;
+     default: return 0; break;
+   }
+ 
