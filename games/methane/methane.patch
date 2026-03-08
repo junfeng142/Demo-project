@@ -8,6 +8,42 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip source/bittboy/methane -o _opk/methane
 +mksquashfs _opk/* ../_opk/methane_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 +
+diff -uprN a/source/bittboy/doc.cpp b/source/bittboy/doc.cpp
+--- a/source/bittboy/doc.cpp	2026-02-17 16:45:06.459184532 +0800
++++ b/source/bittboy/doc.cpp	2026-02-17 16:48:40.729183370 +0800
+@@ -136,25 +136,25 @@ hw_set_cpu (75);
+ 		SDL_PumpEvents();
+ 		Uint8 * key = SDL_GetKeyState (NULL);
+ 
+-		if (key[SDLK_RCTRL]) break;
+-		if (key[SDLK_ESCAPE])
++		if (key[SDLK_ESCAPE]) break;
++		if (key[SDLK_RCTRL])
+ 		{
+ 			Game.m_GameTarget.m_Game.TogglePuffBlow();
+ 		}
+ //		jptr1->key = key;
+ //		jptr2->key = key;
+ 
+-		if (key[SDLK_RIGHT]) {
++		if (key[SDLK_RIGHT]) { 
+ 			jptr1->right = 1;
+ 		}
+ 		else {
+ 			jptr1->right = 0;
+ 		}
+ 
+-		jptr1->left  = key[SDLK_LEFT] > 0;
+-		jptr1->up    = key[SDLK_LCTRL] > 0;
+-		jptr1->down  = key[SDLK_DOWN] > 0;
+-		jptr1->fire  = key[SDLK_SPACE] > 0;
++		jptr1->left  = key[SDLK_LEFT]> 0;
++		jptr1->up    = key[SDLK_LCTRL]> 0;
++		jptr1->down  = key[SDLK_DOWN]> 0;
++		jptr1->fire  = key[SDLK_SPACE]> 0;
+ 		jptr1->key = 13;	// Fake key press (required for high score table)
+ #else
+ 		// event loop
 diff -uprN a/source/bittboy/makefile b/source/bittboy/makefile
 --- a/source/bittboy/makefile	2026-03-08 13:13:49.841266456 +0800
 +++ b/source/bittboy/makefile	2026-03-08 13:14:57.731266088 +0800

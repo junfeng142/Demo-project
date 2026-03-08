@@ -1,22 +1,14 @@
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build_opk.sh	2026-02-20 09:32:00.070279631 +0800
-@@ -0,0 +1,3 @@
++++ b/build_opk.sh	2026-03-08 14:15:52.761246258 +0800
+@@ -0,0 +1,10 @@
 +#!/bin/bash
 +
-+./make.sh miyoo
-+/opt/mmiyoo/bin/arm-linux-gnueabihf-strip anarch -o ./_opk/anarch
-+mksquashfs ./_opk/* ../_opk/anarch_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-+
-diff -uprN a/make.sh b/make.sh
---- a/make.sh	2026-02-20 09:29:28.380281051 +0800
-+++ b/make.sh	2026-02-20 09:33:09.780278978 +0800
-@@ -120,7 +120,7 @@ elif [ $1 = "miyoo" ]; then
-   # - arm-linux-g++
-   # - SDL 1.2 (dev) package
- 
--  COMPILER="arm-linux-g++"
-+  COMPILER="/opt/mmiyoo/bin/arm-linux-gnueabihf-g++"
-   SYSROOT=`${COMPILER} --print-sysroot`
-   SDL_FLAGS=`${SYSROOT}/usr/bin/sdl-config --libs`
-   COMMAND="${COMPILER} ${C_FLAGS} main_sdl1.c ${SDL_FLAGS} -DMIYOO"
++export C_FLAGS="-std=c99 -Wall -Wextra -pedantic -O3 -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o anarch"
++export COMPILER="/opt/mmiyoo/bin/arm-linux-gnueabihf-g++"
++export SYSROOT=`${COMPILER} --print-sysroot`
++export SDL_FLAGS=`${SYSROOT}/usr/bin/sdl-config --libs`
++export COMMAND="${COMPILER} ${C_FLAGS} main_sdl1.c ${SDL_FLAGS} -DMIYOO"
++${COMMAND}
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip anarch -o _opk/anarch
++mksquashfs _opk/* ../_opk/anarch_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
