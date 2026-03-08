@@ -1,9 +1,9 @@
-diff -uprN a/build_opk.sh b/build_opk.sh
---- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build_opk.sh	2026-03-07 20:41:55.102233619 +0800
-@@ -0,0 +1,20 @@
-+#!/bin/bash
-+
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	2026-03-08 08:31:19.161358420 +0800
++++ b/build.sh	2026-03-08 08:30:34.591358661 +0800
+@@ -1,5 +1,14 @@
+ #!/bin/bash
+ 
 +export PATH=$PATH:/opt/mmiyoo/bin
 +export TARGETMACH=arm-linux
 +export BUILDMACH=i686-pc-linux-gnu
@@ -13,12 +13,17 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +export AS=${CROSS}-as
 +export CXX=${CROSS}-g++
 +
-+cd src
-+make clean
-+make
-+cp -f just4qix ..
-+cd ..
+ cd src
+ make clean
+ make
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 08:32:47.791357939 +0800
+@@ -0,0 +1,7 @@
++#!/bin/bash
++
++./build.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip just4qix -o _opk/just4qix
 +mv gfx/ sound/ _opk
-+mksquashfs _opk/* ../_opk/hcl_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++mksquashfs _opk/* ../_opk/just4qix_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 +cd ..
