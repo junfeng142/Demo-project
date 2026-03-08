@@ -69,7 +69,6 @@ jobs:
         dir_name="${dir%/}"
         cd "$dir_name"
         [ -e build_opk.sh ] && ./build_opk.sh
-        cd ..
         done
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
