@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=ManicMiner
+Name[ch]=矿工威利
+Comment=Guide Miner Willy through each level
+Comment[ch]=引导矿工威利通过每一关
+Icon=manicminer
+Exec=manicminer
+Categories=games

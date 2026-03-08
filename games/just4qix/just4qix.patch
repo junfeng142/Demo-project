@@ -27,3 +27,11 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +mv gfx/ sound/ _opk
 +mksquashfs _opk/* ../_opk/just4qix_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 +cd ..
+diff -uprN a/src/Makefile b/src/Makefile
+--- a/src/Makefile	2026-02-16 09:55:51.116592607 +0800
++++ b/src/Makefile	2026-02-16 09:59:09.666593637 +0800
+@@ -1,4 +1,3 @@
+-CC=gcc
+ CFLAGS=-O3 -ffast-math
+ LIBS=-lSDL -lSDL_mixer -s -lm
+ 

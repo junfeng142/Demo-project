@@ -1,0 +1,56 @@
+diff -uprN a/Makefile.miyoo b/Makefile.miyoo
+--- a/Makefile.miyoo	2026-02-18 09:48:00.692623031 +0800
++++ b/Makefile.miyoo	2026-02-18 09:50:54.492622088 +0800
+@@ -2,11 +2,11 @@
+ PRGNAME     = manicminer
+ 
+ 
+-TOOLCHAIN = /opt/miyoo/usr
++TOOLCHAIN = /opt/mmiyoo
+ EXESUFFIX = .dge
+-CC = $(TOOLCHAIN)/bin/arm-linux-gcc
+-CCP = $(TOOLCHAIN)/bin/arm-linux-g++
+-LD = $(TOOLCHAIN)/bin/arm-linux-g++
++CC = $(TOOLCHAIN)/bin/arm-linux-gnueabihf-gcc
++CCP = $(TOOLCHAIN)/bin/arm-linux-gnueabihf-g++
++LD = $(TOOLCHAIN)/bin/arm-linux-gnueabihf-g++
+ 
+ # add SDL dependencies
+ SDL_LIB     = $(TOOLCHAIN)/lib
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-03-08 08:58:23.971349604 +0800
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++make -C modplay clean
++make -C modplay -f Makefile.miyoo
++make clean
++make -f Makefile.miyoo
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip manicminer.dge -o _opk/manicminer
++mksquashfs _opk/* ../_opk/manicminer_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++cd ..
+diff -uprN a/modplay/Makefile.miyoo b/modplay/Makefile.miyoo
+--- a/modplay/Makefile.miyoo	2026-02-18 09:59:06.122619421 +0800
++++ b/modplay/Makefile.miyoo	2026-02-18 10:00:35.222618938 +0800
+@@ -2,15 +2,15 @@
+ CFLAGS=-std=c99 -O2 -Os -W -Wall -Wno-long-long -ansi -pedantic
+ CFLAGS+=-Wno-unused-parameter
+ 
+-TOOLCHAIN = /opt/miyoo/usr
++TOOLCHAIN = /opt/mmiyoo
+ EXESUFFIX = .dge
+-CC = $(TOOLCHAIN)/bin/arm-linux-gcc
+-CCP = $(TOOLCHAIN)/bin/arm-linux-g++
+-LD = $(TOOLCHAIN)/bin/arm-linux-g++
++CC = $(TOOLCHAIN)/bin/arm-linux-gnueabihf-gcc
++CCP = $(TOOLCHAIN)/bin/arm-linux-gnueabihf-g++
++LD = $(TOOLCHAIN)/bin/arm-linux-gnueabihf-g++
+ 
+ 
+ F_OPTS 		= -fomit-frame-pointer -ffunction-sections -ffast-math -fsingle-precision-constant 
+-CC_OPTS		= -O2 -mtune=arm926ej-s -D_OPENDINGUX_ $(F_OPTS)
++CC_OPTS		= -O2 -mtune=cortex-a7 -D_OPENDINGUX_ $(F_OPTS)
+ CFLAGS+=$(CC_OPTS)
+ 
+ LIBS=
