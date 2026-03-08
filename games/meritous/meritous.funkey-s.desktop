@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Meritous
+Name[ch]=地牢探险
+Comment=An action-adventure dungeon crawl game
+Comment[ch]=一款地牢探索类动作冒险游戏
+Icon=meritous
+Exec=meritous
+Categories=games
