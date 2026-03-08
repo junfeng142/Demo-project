@@ -1,5 +1,5 @@
-#abbaye|https://github.com/szymor/abbayedesmorts-gpl.git|v1
-anarch|https://github.com/szymor/anarch.git|master
+abbaye|https://github.com/szymor/abbayedesmorts-gpl.git|v1
+banarch|https://github.com/szymor/anarch.git|master
 #apricots|https://github.com/Emulators-Salvacam/apricots.git|master
 #biniax2|https://github.com/Emulators-Salvacam/Biniax2.git|main
 #cannonball|https://github.com/DrUm78/Cannonball-C.git|v0.3-funkey-s
@@ -12,5 +12,5 @@ crafti|https://github.com/gameblabla/crafti.git|dreamcast_xbox_ps2_new_branch
 #hocoslamfy|https://github.com/Apaczer/hocoslamfy.git|miyoo
 #hydracastlelabyrinth|https://github.com/szymor/hydracastlelabyrinth.git|master
 #liero|https://github.com/tiopex/liero.git|main
-just4qix|https://github.com/szymor/just4qix.git|master
+#just4qix|https://github.com/szymor/just4qix.git|master
 manicminer|https://github.com/Emulators-Salvacam/manicminer.git|master

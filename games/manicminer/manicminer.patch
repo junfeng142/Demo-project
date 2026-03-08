@@ -30,6 +30,93 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip manicminer.dge -o _opk/manicminer
 +mksquashfs _opk/* ../_opk/manicminer_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 +cd ..
+diff -uprN a/main.c b/main.c
+--- a/main.c	2026-02-18 09:48:56.252622730 +0800
++++ b/main.c	2026-02-18 10:17:56.012613291 +0800
+@@ -699,25 +699,25 @@ int main(int argc, char *argv[]) {
+ 				while(SDL_PollEvent(&event)) {
+ 					switch (event.type)	{
+ 						case SDL_KEYDOWN:
+-							if (event.key.keysym.sym == SDLK_LEFT) KeyTable[key_q] = 1;
+-							if (event.key.keysym.sym == SDLK_RIGHT) KeyTable[key_w] = 1;
+-							if (event.key.keysym.sym == SDLK_LCTRL) KeyTable[key_z] = 1;
+-							if (event.key.keysym.sym == SDLK_LALT) KeyTable[key_z] = 1;
++							if (event.key.keysym.sym == SDLK_LEFT)      KeyTable[key_q] = 1;
++							if (event.key.keysym.sym == SDLK_RIGHT)     KeyTable[key_w] = 1;
++							if (event.key.keysym.sym == SDLK_LCTRL)     KeyTable[key_z] = 1;
++							if (event.key.keysym.sym == SDLK_LALT)      KeyTable[key_z] = 1;
+ 							break;
+ 						case SDL_KEYUP:
+-							if (event.key.keysym.sym == SDLK_LEFT) KeyTable[key_q] = 0;
+-							if (event.key.keysym.sym == SDLK_RIGHT) KeyTable[key_w] = 0;
+-							if (event.key.keysym.sym == SDLK_LCTRL) KeyTable[key_z] = 0;
+-							if (event.key.keysym.sym == SDLK_LALT) KeyTable[key_z] = 0;
++							if (event.key.keysym.sym == SDLK_LEFT)      KeyTable[key_q] = 0;
++							if (event.key.keysym.sym == SDLK_RIGHT)     KeyTable[key_w] = 0;
++							if (event.key.keysym.sym == SDLK_SPACE) KeyTable[key_z] = 0;
++							if (event.key.keysym.sym == SDLK_LCTRL) KeyTable[key_z] = 0;
+ 
+-							if (event.key.keysym.sym == SDLK_SPACE) KeyTable[key_esc] = 1;
+-							if (event.key.keysym.sym == SDLK_LSHIFT) KeyTable[key_f4] = 1;
++							if (event.key.keysym.sym == SDLK_LSHIFT) KeyTable[key_esc] = 1;
++							if (event.key.keysym.sym == SDLK_LALT) KeyTable[key_f4] = 1;
+ 
+-							if (event.key.keysym.sym == SDLK_BACKSPACE) KeyTable[key_a] = 1;
+-							if (event.key.keysym.sym == SDLK_TAB) KeyTable[key_f2] = 1;
++							if (event.key.keysym.sym == SDLK_BACKSPACE)     KeyTable[key_a] = 1;
++							if (event.key.keysym.sym == SDLK_TAB)           KeyTable[key_f2] = 1;
+ 
+-							if (event.key.keysym.sym == SDLK_RETURN) KeyTable[key_return] = 1;
+-							if (event.key.keysym.sym == SDLK_ESCAPE) KeyTable[key_f1] = 1;
++							if (event.key.keysym.sym == SDLK_RETURN)    KeyTable[key_return] = 1;
++							if (event.key.keysym.sym == SDLK_RCTRL)     KeyTable[key_f1] = 1;
+ 							break;
+ 						case SDL_QUIT:
+ 							MODE = GF_QUIT;
+@@ -725,30 +725,30 @@ int main(int argc, char *argv[]) {
+ 					}
+ 				} // while(SDL_PollEvent(&event)
+ #endif
+-				if (keys[SDLK_LEFT] == SDL_PRESSED) {KeyTable[key_q] = 1; }
+-				if (keys[SDLK_RIGHT] == SDL_PRESSED) {KeyTable[key_w] = 1; }
+-				if ((keys[SDLK_LCTRL] == SDL_PRESSED) || (keys[SDLK_LALT] == SDL_PRESSED)) { KeyTable[key_z] = 1; }
++				if (keys[SDLK_l] == SDL_PRESSED) {KeyTable[key_q] = 1; }
++				if (keys[SDLK_r] == SDL_PRESSED) {KeyTable[key_w] = 1; }
++				if ((keys[SDLK_a] == SDL_PRESSED) || (keys[SDLK_b] == SDL_PRESSED)) { KeyTable[key_z] = 1; }
+ 
+ 				#ifdef MIYOO_MODE
+-				if (keys[SDLK_LSHIFT] == SDL_PRESSED) { KeyTable[key_esc] = 1; }
+-				if (keys[SDLK_SPACE] == SDL_PRESSED) { KeyTable[key_f4] = 1; }
++				if (keys[SDLK_y] == SDL_PRESSED) { KeyTable[key_esc] = 1; }
++				if (keys[SDLK_x] == SDL_PRESSED) { KeyTable[key_f4] = 1; }
+ 				#else
+-				if (keys[SDLK_SPACE] == SDL_PRESSED) { KeyTable[key_esc] = 1; }
+-				if (keys[SDLK_LSHIFT] == SDL_PRESSED) { KeyTable[key_f4] = 1; }
++				if (keys[SDLK_x] == SDL_PRESSED) { KeyTable[key_esc] = 1; }
++				if (keys[SDLK_y] == SDL_PRESSED) { KeyTable[key_f4] = 1; }
+ 				#endif
+ 
+ 				#ifdef MIYOO_MODE
+-				if (keys[SDLK_BACKSPACE] == SDL_PRESSED || keys[SDLK_SPACE] == SDL_PRESSED) { KeyTable[key_a] = 1; }
++				if (keys[SDLK_n] == SDL_PRESSED || keys[SDLK_m] == SDL_PRESSED) { KeyTable[key_a] = 1; }
+ 				#else
+-				if (keys[SDLK_BACKSPACE] == SDL_PRESSED) { KeyTable[key_a] = 1; }
++				if (keys[SDLK_n] == SDL_PRESSED) { KeyTable[key_a] = 1; }
+ 				#endif
+-				if (keys[SDLK_TAB] == SDL_PRESSED) { KeyTable[key_f2] = 1; }
++				if (keys[SDLK_m] == SDL_PRESSED) { KeyTable[key_f2] = 1; }
+ 
+-				if ((keys[SDLK_ESCAPE] == SDL_PRESSED) && (keys[SDLK_RETURN] == SDL_PRESSED)) { 
++				if (((keys[SDLK_k] == SDL_PRESSED) && (keys[SDLK_s] == SDL_PRESSED)) || (keys[SDLK_q] == SDL_PRESSED)) { 
+ 					m_Flag=GF_MAINUI;
+ 				}
+-				else if (keys[SDLK_RETURN] == SDL_PRESSED) { KeyTable[key_return] = 1; }
+-				else if (keys[SDLK_ESCAPE] == SDL_PRESSED) { KeyTable[key_f1] = 1; }
++				else if (keys[SDLK_s] == SDL_PRESSED) { KeyTable[key_return] = 1; }
++				else if (keys[SDLK_k] == SDL_PRESSED) { KeyTable[key_f1] = 1; }
+ 				if (event.type == SDL_QUIT) { MODE = GF_QUIT; }
+ 				break;
+ 		}
 diff -uprN a/modplay/Makefile.miyoo b/modplay/Makefile.miyoo
 --- a/modplay/Makefile.miyoo	2026-02-18 09:59:06.122619421 +0800
 +++ b/modplay/Makefile.miyoo	2026-02-18 10:00:35.222618938 +0800
@@ -54,3 +141,78 @@ diff -uprN a/modplay/Makefile.miyoo b/modplay/Makefile.miyoo
  CFLAGS+=$(CC_OPTS)
  
  LIBS=
+diff -uprN a/opendingux/menu.c b/opendingux/menu.c
+--- a/opendingux/menu.c	2026-02-18 09:49:35.132622519 +0800
++++ b/opendingux/menu.c	2026-02-18 10:12:12.962615152 +0800
+@@ -318,9 +318,9 @@ void screen_waitkeyarelease(void) {
+ 		SDL_PollEvent(&event);
+ 		keys = SDL_GetKeyState(NULL);
+ 		#ifdef MIYOO_MODE
+-		if (keys[SDLK_LALT] != SDL_PRESSED) break;
++		if (keys[SDLK_SPACE] != SDL_PRESSED) break;
+ 		#else
+-		if (keys[SDLK_LCTRL] != SDL_PRESSED) break;
++		if (keys[SDLK_SPACE] != SDL_PRESSED) break;
+ 		#endif
+ 	}
+ }
+@@ -347,9 +347,9 @@ void screen_showmainmenu(MENU *menu) {
+ 
+ 		// A - apply parameter or enter submenu
+ 		#ifdef MIYOO_MODE
+-		if (keys[SDLK_LALT] == SDL_PRESSED) { 
++		if (keys[SDLK_SPACE] == SDL_PRESSED) { 
+ 		#else
+-		if (keys[SDLK_LCTRL] == SDL_PRESSED) { 
++		if (keys[SDLK_SPACE] == SDL_PRESSED) { 
+ 		#endif
+ 			if (!keya) {
+ 				keya = 1; 
+@@ -361,9 +361,9 @@ void screen_showmainmenu(MENU *menu) {
+ 
+ 		// B - exit or back to previous menu
+ 		#ifdef MIYOO_MODE
+-		if (keys[SDLK_LCTRL] == SDL_PRESSED) { 
++		if (keys[SDLK_LCTRL] ==  SDL_PRESSED) { 
+ 		#else
+-		if (keys[SDLK_LALT] == SDL_PRESSED) { 
++		if (keys[SDLK_LCTRL] == SDL_PRESSED) { 
+ 		#endif
+ 			if (!keyb) {
+ 				keyb = 1; if (menu != &mnuMainMenu) gameMenu = false;
+@@ -372,7 +372,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keyb=0;
+ 
+ 		// UP - arrow up
+-		if (keys[SDLK_UP] == SDL_PRESSED) { 
++		if (keys[SDLK_UP] == SDL_PRESSED) {
+ 			if (!keyup) {
+ 				keyup = 1; if(--menu->itemCur < 0) menu->itemCur = menu->itemNum - 1;
+ 			}
+@@ -383,7 +383,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keyup=0;
+ 
+ 		//DOWN - arrow down
+-		if (keys[SDLK_DOWN] == SDL_PRESSED) { 
++		if (keys[SDLK_DOWN] == SDL_PRESSED) {
+ 			if (!keydown) {
+ 				keydown = 1; if(++menu->itemCur == menu->itemNum) menu->itemCur = 0;
+ 			}
+@@ -394,7 +394,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keydown=0;
+ 
+ 		// LEFT - decrease parameter value
+-		if (keys[SDLK_LEFT] == SDL_PRESSED) { 
++		if (keys[SDLK_LEFT] == SDL_PRESSED) {
+ 			if (!keyleft) {
+ 				keyleft = 1; if(mi->itemPar != NULL && *mi->itemPar > 0) *mi->itemPar -= 1;
+ 			}
+@@ -405,7 +405,7 @@ void screen_showmainmenu(MENU *menu) {
+ 		else keyleft=0;
+ 
+ 		// RIGHT - increase parameter value
+-		if (keys[SDLK_RIGHT] == SDL_PRESSED) { 
++		if (keys[SDLK_RIGHT] == SDL_PRESSED) {
+ 			if (!keyright) {
+ 				keyright = 1; if(mi->itemPar != NULL && *mi->itemPar < mi->itemParMaxValue) *mi->itemPar += 1;
+ 			}

@@ -27,3 +27,78 @@ diff -uprN a/makefile b/makefile
  else ifeq ($(PLATFORM),pandora)
      NAME   = abbaye-pandora
      CC     = $(PREFIX)gcc
+diff -uprN a/src/main.c b/src/main.c
+--- a/src/main.c	2026-02-17 15:38:26.544300177 +0800
++++ b/src/main.c	2026-02-17 15:44:43.214302131 +0800
+@@ -1267,42 +1267,42 @@ void tecladoj (struct protagonista *jean
+ 				if ((jean->pulsa[0] == 0) && (jean->salto == 0) && (jean->agachado == 0))
+ 					jean->salto = 1;
+ 			}
+-			if (evento.key.keysym.sym == SDLK_DOWN) {
++			if (evento.key.keysym.sym == SDLK_DOWN) { 
+ 				if ((jean->pulsa[1] == 0) && (jean->salto == 0)) {
+ 					jean->pulsa[1] = 1;
+ 					jean->agachado = 1;
+ 				}
+ 			}
+-			if (evento.key.keysym.sym == SDLK_LEFT) {
++			if (evento.key.keysym.sym == SDLK_LEFT) { 
+ 				if (jean->pulsa[2] == 0) {
+ 					jean->pulsa[2] = 1;
+ 					jean->pulsa[3] = 0;
+ 				}
+ 			}
+-			if (evento.key.keysym.sym == SDLK_RIGHT) {
++			if (evento.key.keysym.sym == SDLK_RIGHT) { 
+ 				if (jean->pulsa[3] == 0) {
+ 					jean->pulsa[3] = 1;
+ 					jean->pulsa[2] = 0;
+ 				}
+ 			}
+-			if (evento.key.keysym.sym == SDLK_f)
++			if (evento.key.keysym.sym == SDLK_m)
+ 				*tecla = 6;
+ 			if (evento.key.keysym.sym == KEY_GRAPHICS)
+ 				*tecla = 9;
+-	   	if (evento.key.keysym.sym == SDLK_RCTRL)
++	   	if (evento.key.keysym.sym == SDLK_ESCAPE)
+       		exit(0);
+ 		}
+ 
+ 		if (evento.type == SDL_KEYUP) {
+ 			if (evento.key.keysym.sym == KEY_JUMP)
+ 					jean->pulsa[0] = 0;
+-			if (evento.key.keysym.sym == SDLK_DOWN) {
++			if (evento.key.keysym.sym == SDLK_DOWN) { 
+ 					jean->pulsa[1] = 0;
+ 					jean->agachado = 0;
+ 			}
+-			if (evento.key.keysym.sym == SDLK_LEFT)
++			if (evento.key.keysym.sym == SDLK_LEFT) 
+ 					jean->pulsa[2] = 0;
+-			if (evento.key.keysym.sym == SDLK_RIGHT)
++			if (evento.key.keysym.sym == SDLK_RIGHT) 
+ 					jean->pulsa[3] = 0;
+ 		}
+ #endif
+@@ -1369,9 +1369,9 @@ void teclado (int *tecla, int fase) {
+       		if (fase == 1)
+ 						*tecla = 7;
+ 			}
+-	   	if (evento.key.keysym.sym == SDLK_RCTRL)
++	   	if (evento.key.keysym.sym == SDLK_ESCAPE)
+       		exit(0);
+-			if (evento.key.keysym.sym == SDLK_f)
++			if (evento.key.keysym.sym == SDLK_m)
+ 				*tecla = 6;
+ 			if (evento.key.keysym.sym == KEY_GRAPHICS)
+ 				*tecla = 9;
+@@ -1405,7 +1405,7 @@ void tecladop (int *teclap) {
+ #ifndef JOYSTICK_SUPPORT
+ 		if (evento.type == SDL_KEYDOWN) {
+ 			if ((evento.key.keysym.sym == KEY_START) ||
+-					(evento.key.keysym.sym == SDLK_LEFT) || (evento.key.keysym.sym == SDLK_RIGHT))
++					(evento.key.keysym.sym == SDLK_LEFT) || (evento.key.keysym.sym == SDLK_RIGHT)) 
+ 				*teclap = 1;
+ 		}
+ #endif

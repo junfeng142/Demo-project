@@ -90,3 +90,15 @@ diff -uprN a/pc/libndls.h b/pc/libndls.h
      #define KEY_NSPIRE_0 0
      
      #define KEY_NSPIRE_CTRL 0
+diff -uprN a/pc/task.cpp b/pc/task.cpp
+--- a/pc/task.cpp	2026-03-08 09:19:49.221342631 +0800
++++ b/pc/task.cpp	2026-03-08 09:22:34.961341732 +0800
+@@ -41,7 +41,7 @@ bool Task::keyPressed(int key)
+ 	SDL_PollEvent(&event);
+ 	
+ 	#ifndef NOJOY
+-	if (key == 555 || key == 556 || key == SDLK_LEFT || key==SDLK_RIGHT)
++	if (key == 555 || key == 556)
+ 	{
+ 		if (joy_cord[0].x < -8000 && key == SDLK_LEFT)
+ 		{
