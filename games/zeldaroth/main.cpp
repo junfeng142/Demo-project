@@ -85,8 +85,6 @@ int main(int argc, char** argv) {
     //gpJeu->init(5);
 
     bool gLoop = true;
-    int fd = open("/dev/fb0", O_RDWR);
-
     Uint32 lastAnimTime = SDL_GetTicks();
     int fd = open("/dev/fb0", O_RDWR);
     while (gLoop) {

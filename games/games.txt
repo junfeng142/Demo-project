@@ -29,7 +29,7 @@
 #xrick|https://github.com/jamesofarrell/miyoo_xrick.git|master
 #yatka|https://github.com/szymor/yatka.git|master
 #zelda3t|https://github.com/MiyanoOsu/Zelda_3T.git|main
-zeldansq|https://github.com/MiyanoOsu/Zelda_NSQ.git|main
+#zeldansq|https://github.com/MiyanoOsu/Zelda_NSQ.git|main
 #zeldaolb|https://github.com/MiyanoOsu/Zelda_OLB.git|main
 zeldaroth|https://github.com/andrigamerita/zelda_roth.git|master
-zeldapicross|https://github.com/Emulators-Salvacam/zeldapicross.git|master
+#zeldapicross|https://github.com/Emulators-Salvacam/zeldapicross.git|master

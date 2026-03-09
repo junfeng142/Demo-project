@@ -27,4 +27,4 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +make -f Makefile.miyoo
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip Zelda-Picross.dge -o _opk/picross
 +mv data _opk/
-+mksquashfs _opk/* ../_opk/picross_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
++mksquashfs _opk/* ../_opk/zeldapicross_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
