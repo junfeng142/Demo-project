@@ -7,7 +7,7 @@ env:
   REPO_URL: https://github.com/junfeng142/Demo-project.git
   REPO_BRANCH: sdlpal
   PKG_NAME: sdlpal
-  REPOS: config/emus.txt
+  REPOS: configs/emus.txt
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
