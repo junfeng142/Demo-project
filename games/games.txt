@@ -10,6 +10,7 @@
 #heretic|https://github.com/MiyanoOsu/hheretic-miyoo.git|main
 #hexen|https://github.com/MiyanoOsu/hhexen-miyoo.git|main
 #hocoslamfy|https://github.com/Apaczer/hocoslamfy.git|miyoo
+hotaredux|https://github.com/MiyanoOsu/hota_redux.git|main
 #hydracastlelabyrinth|https://github.com/szymor/hydracastlelabyrinth.git|master
 #liero|https://github.com/tiopex/liero.git|main
 #just4qix|https://github.com/szymor/just4qix.git|master
@@ -19,6 +20,7 @@
 #openjazz|https://github.com/Apaczer/openjazz.git|miyoo
 #opentyrian|https://github.com/MiyanoOsu/opentyrian-miyoo.git|main
 #paranoia|https://github.com/szymor/c-paranoia.git|master
+profanation|https://github.com/Emulators-Salvacam/profanation.git|master
 #runoutworld|https://github.com/MiyanoOsu/re-aw-miyoo.git|main
 #shifty|https://github.com/szymor/Shifty-Pills.git|master
 #shisen|https://github.com/szymor/shisen-seki.git|master
@@ -31,5 +33,5 @@
 #zelda3t|https://github.com/MiyanoOsu/Zelda_3T.git|main
 #zeldansq|https://github.com/MiyanoOsu/Zelda_NSQ.git|main
 #zeldaolb|https://github.com/MiyanoOsu/Zelda_OLB.git|main
-zeldaroth|https://github.com/andrigamerita/zelda_roth.git|master
+#zeldaroth|https://github.com/andrigamerita/zelda_roth.git|master
 #zeldapicross|https://github.com/Emulators-Salvacam/zeldapicross.git|master
