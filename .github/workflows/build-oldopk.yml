@@ -44,19 +44,18 @@ jobs:
             target_dir="${PKG_NAME}/${repo_name}"
             git clone -b "$branch" "$url" "$target_dir"
         done < "$GITHUB_WORKSPACE/$REPOS"
-        cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
-        cd && tar xvf toolchain.tar.gz
-        sudo mv mmiyoo /opt
-        sudo mv prebuilt /opt
+        cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
+        cd && tar xvf FunKey-sdk-2.3.0.tar.gz
+        sudo mv FunKey-sdk-2.3.0 /opt
 
     - name: Load custom configuration
       run: |
+        tar -zxvf $GITHUB_WORKSPACE/tools/oldopk.tar.gz -C $PKG_NAME
         cd $PKG_NAME
         for dir in */ ; do
             dir_name="${dir%/}"
-            mkdir -p $dir_name/_opk && mv $GITHUB_WORKSPACE/games/$dir_name/* $dir_name/_opk
-            cd $dir_name && mv _opk/$dir_name.patch ./
-            patch -p1 < $dir_name.patch
+            mkdir -p $dir_name/_opk
+            cd $dir_name && patch -p1 < $dir_name.patch
             chmod +x ./*.sh
             cd ..
         done
