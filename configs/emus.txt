@@ -4,6 +4,6 @@ gpsp|https://github.com/Apaczer/gpsp.git|1.2.3
 ngp|https://github.com/Apaczer/race-od.git|v3
 oswan|https://github.com/gameblabla/oswan.git|rs90
 picodrive|https://github.com/irixxxx/picodrive.git|v2.02
-#pocketsnes|https://github.com/m45t3r/PocketSNES.git|miyoo
+pocketsnes|https://github.com/m45t3r/PocketSNES.git|miyoo
 snes9x4d|https://github.com/m45t3r/snes9x4d.git|v2020.10.24
 vba|https://github.com/gameblabla/vba-next-portable.git|master
