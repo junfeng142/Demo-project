@@ -1,8 +1,9 @@
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build_opk.sh	2026-03-09 18:16:08.047205779 +0800
++++ b/build_opk.sh	2026-03-09 19:15:12.557210212 +0800
 @@ -0,0 +1,6 @@
 +#!/bin/bash
++
 +mv _opk/main.c _opk/ && mv _opk/Makefile ./
 +make
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip hota -o _opk/hota
