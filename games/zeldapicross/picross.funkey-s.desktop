@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Picross
+Name[ch]=塞尔达解谜
+Comment=Zelda Picross
+Comment[ch]=塞尔达方块解谜
+Icon=picross
+Exec=picross
+Categories=games
