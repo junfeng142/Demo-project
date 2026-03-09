@@ -19,21 +19,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +++ b/build_opk.sh	2026-03-09 18:16:08.047205779 +0800
 @@ -0,0 +1,6 @@
 +#!/bin/bash
-+
++mv _opk/main.c _opk/
 +make
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip hota -o _opk/hota
 +mksquashfs _opk/* ../_opk/hota_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-diff -uprN a/src/main.c b/src/main.c
---- a/src/main.c	2026-03-09 18:32:13.787206987 +0800
-+++ b/src/main.c	2026-03-09 18:33:40.927207096 +0800
-@@ -51,8 +51,8 @@
- 
- static char *VERSION = "1.2.4";
- 
--static char *QUICKSAVE_FILENAME = "quicksave";
--static char *RECORDED_KEYS_FILENAME = "recorded-keys";
-+static char *QUICKSAVE_FILENAME = "/mnt/FunKey/.hota/quicksave";
-+static char *RECORDED_KEYS_FILENAME = "/mnt/FunKey/.hota/recorded-keys";
- 
- typedef struct anm_file_s
- {
