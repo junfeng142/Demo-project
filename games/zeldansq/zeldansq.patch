@@ -1,8 +1,9 @@
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build_opk.sh	2026-03-08 21:23:31.983954175 +0800
-@@ -0,0 +1,7 @@
++++ b/build_opk.sh	2026-03-09 09:54:50.301970138 +0800
+@@ -0,0 +1,6 @@
 +#!/bin/bash
++
 +mv _opk/Event.cpp src/engine/window/ && mv _opk/GlobalSave.cpp  _opk/Save.cpp src/game/
 +mv _opk/Makefile ./ && make
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/zelda_nsq -o _opk/zeldansq
