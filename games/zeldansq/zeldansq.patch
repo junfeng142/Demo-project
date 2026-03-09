@@ -6,7 +6,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +mv _opk/Event.cpp src/engine/window/
 +mv _opk/GlobalSave.cpp src/game/
 +mv _opk/Save.cpp src/game/
-+
++mv _opk/Makefile ./
 +make
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/zelda_nsq -o _opk/zeldansq
 +mksquashfs _opk/* ../_opk/zeldansq_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
