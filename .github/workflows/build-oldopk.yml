@@ -1,4 +1,4 @@
-name: Game-OPK Build
+name: Old-OPK Build
 
 on:
   workflow_dispatch:
@@ -7,7 +7,7 @@ env:
   REPO_URL: https://github.com/junfeng142/Demo-project.git
   REPO_BRANCH: sdlpal
   PKG_NAME: sdlpal
-  REPOS: games/games.txt
+  REPOS: config/emus.txt
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai

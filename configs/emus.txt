@@ -1,0 +1,2 @@
+fceux|https://github.com/Apaczer/fceux-for-miyoo.git|2.6.6.m2
+
