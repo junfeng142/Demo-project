@@ -1,2 +1,5 @@
 fceux|https://github.com/Apaczer/fceux-for-miyoo.git|2.6.6.m2
 gambatte|https://github.com/bardeci/gambatte-dms.git|20231203
+gpsp|https://github.com/Apaczer/gpsp.git|1.2.3
+ngp|https://github.com/Apaczer/race-od.git|v3
+oswan|https://github.com/gameblabla/oswan.git|rs90

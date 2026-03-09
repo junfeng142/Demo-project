@@ -7,5 +7,5 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +mv _opk/tmagame.cpp src/ma-sdl/ && mv _opk/Makefile.miyoo ./
 +make -f Makefile.miyoo
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip profanation/profanation.dge -o _opk/profanation
-+mv profanation/data _opk/
++mv profanation/Data _opk/
 +mksquashfs _opk/* ../_opk/profanation_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
