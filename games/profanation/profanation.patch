@@ -17,46 +17,8 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +++ b/build_opk.sh	2026-03-09 14:03:05.661889325 +0800
 @@ -0,0 +1,7 @@
 +#!/bin/bash
-+
++mv _opk/tmagame.cpp src/ma-sdl/
 +make -f Makefile.miyoo
 +/opt/mmiyoo/bin/arm-linux-gnueabihf-strip profanation/profanation.dge -o _opk/profanation
 +mv profanation/data _opk/
 +mksquashfs _opk/* ../_opk/profanation_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
-diff -uprN a/src/ma-sdl/tmagame.cpp b/src/ma-sdl/tmagame.cpp
---- a/src/ma-sdl/tmagame.cpp	2026-03-09 14:01:53.031889719 +0800
-+++ b/src/ma-sdl/tmagame.cpp	2026-03-09 14:04:56.421888724 +0800
-@@ -4,9 +4,13 @@
- #include "ma_classes.h"
- #include <ctype.h>
- #include <string.h>
-+#include <linux/fb.h>
-+#include <sys/ioctl.h>
-+#include <unistd.h>
-+#include <fcntl.h>
- 
- // **************************************
--// Definici�n de m�todos de clase TMAGame
-+// Definici�n de m�todos de clase TMAGame
- // **************************************
- //
- REGISTER_CLASS_ID(TMAGame);
-@@ -135,7 +139,10 @@ void TMAGame::FlipScreen(void)
-     */
-     // SDL_SoftStretch(ScreenSurf, NULL, ScreenSurface, NULL);
-     // SDL_Flip(ScreenSurface);
-+    int fd = open("/dev/fb0", O_RDWR);
-+    ioctl(fd, FBIO_WAITFORVSYNC, 0);
-     SDL_Flip(ScreenSurf);
-+    close(fd);
- }
-     
- bool TMAGame::setGraphicsMode(int width,int height,int colordepth,bool fullscreen)
-@@ -317,7 +324,7 @@ bool TMAGame::setScene(PMAScene esc,cons
- }
- 
- // ***************************************
--// Definici�n de m�todos de clase TMAScene
-+// Definici�n de m�todos de clase TMAScene
- // ***************************************
- //
- REGISTER_CLASS_ID(TMAScene);
