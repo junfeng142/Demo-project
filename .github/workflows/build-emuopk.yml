@@ -45,8 +45,8 @@ jobs:
         git clone https://github.com/junfeng142/Demo-project.git -b fba --depth 1 ${PKG_NAME}/$EXTRA_NAME_1
         git clone https://github.com/junfeng142/Demo-project.git -b gngeo --depth 1 ${PKG_NAME}/$EXTRA_NAME_2
         git clone https://github.com/junfeng142/Demo-project.git -b pcsx-miyoo --depth 1 ${PKG_NAME}/$EXTRA_NAME_3
-        git clone https://github.com/junfeng142/Demo-project.git -b jvm --depth 1 ${PKG_NAME}/$EXTRA_NAME_4
         git clone https://github.com/gameblabla/vbemu.git -b master --depth 1 ${PKG_NAME}/$EXTRA_NAME_5
+        mkdir -p ${PKG_NAME}/$EXTRA_NAME_4
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         cd && tar xvf FunKey-sdk-2.3.0.tar.gz
@@ -78,8 +78,7 @@ jobs:
         make -j1 V=s
         cd ../$EXTRA_NAME_3
         make -j1 V=s
-        cd ../$EXTRA_NAME_4 && chmod +x ./build.sh
-        ./build.sh
+        cd ../$EXTRA_NAME_4 && rm _opk/microbackend.jar
         cd ../$EXTRA_NAME_5
         make -f Makefile.funkey
         echo "status=success" >> $GITHUB_OUTPUT
@@ -98,7 +97,6 @@ jobs:
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/bin/${EXTRA_NAME_1} -o ${PKG_NAME}/${EXTRA_NAME_1}/_opk/${EXTRA_NAME_1}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_2}/${EXTRA_NAME_2} -o ${PKG_NAME}/${EXTRA_NAME_2}/_opk/${EXTRA_NAME_2}
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_3}/${EXTRA_NAME_3} -o ${PKG_NAME}/${EXTRA_NAME_3}/_opk/${EXTRA_NAME_3}
-        cp ${PKG_NAME}/${EXTRA_NAME_4}/dist/microbackend.jar ${PKG_NAME}/${EXTRA_NAME_4}/_opk/dist/
         /opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_5}/vb -o ${PKG_NAME}/${EXTRA_NAME_5}/_opk/vb
         tools/mksquashfs $PKG_NAME/_opk/* $PKG_NAME/${PKG_NAME}_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
         rm -rf $PKG_NAME/_opk/* && mv $PKG_NAME/${PKG_NAME}_funkey-s.opk $PKG_NAME/_opk/
