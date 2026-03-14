@@ -586,3 +586,30 @@ diff -uprN a/src/selector.cpp b/src/selector.cpp
  				}
  			}
  
+diff -uprN a/src/surface.cpp b/src/surface.cpp
+--- a/src/surface.cpp	2026-03-06 10:44:59.087569541 +0800
++++ b/src/surface.cpp	2026-03-06 10:43:28.047570393 +0800
+@@ -29,6 +29,16 @@
+ #include <cassert>
+ #include <iomanip>
+ #include <utility>
++#include <sys/ioctl.h>
++#include <fcntl.h>
++#include <unistd.h>
++#include <linux/fb.h>
++
++void wait_for_HW() {
++	int fd0 = open("/dev/fb0", O_RDWR);
++	ioctl(fd0, FBIO_WAITFORVSYNC, 0);
++	close(fd0);
++}
+ 
+ using namespace std;
+ 
+@@ -356,5 +366,6 @@ unique_ptr<OutputSurface> OutputSurface:
+ }
+ 
+ void OutputSurface::flip() {
++    wait_for_HW();
+ 	SDL_Flip(raw);
+ }
