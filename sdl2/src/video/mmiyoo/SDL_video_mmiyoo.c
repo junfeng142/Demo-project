@@ -535,7 +535,7 @@ static int draw_drastic_menu_main(void)
     CUST_MENU_SUB *p = NULL;
     char buf[MAX_PATH << 1] = {0};
 
-#if defined(TRIMUI) || defined(S)
+#if defined(TRIMUI) || defined(FUNKEYS)
     div = 2;
 #endif
 
@@ -545,7 +545,7 @@ static int draw_drastic_menu_main(void)
         w = LINE_H / div;
         h = nds.enable_752x560 ? (115 / div) : (100 / div);
 
-#if defined(TRIMUI) || defined(S)
+#if defined(TRIMUI) || defined(FUNKEYS)
         x = 30 / div;
 #endif
 
@@ -3631,18 +3631,27 @@ int GFX_Copy(const void *pixels, SDL_Rect srcrect, SDL_Rect dstrect, int pitch, 
         );
     }
     else if ((srcrect.w == FB_W) && (srcrect.h == FB_H)) {
-        int x = 0;
-        int y = 0;
-        uint32_t v = 0;
-        uint16_t *dst = (uint16_t *)gfx.hw.mem;
-        uint32_t *src = (uint32_t *)pixels;
+        uint16_t *dst = (uint16_t *)gfx.hw.mem + (((FB_H - 192) >> 1) * FB_W);
+        uint16_t *src = (uint16_t *)pixels;
 
-        for (y = 0; y < srcrect.h; y++) {
-            for (x = 0; x < srcrect.w; x++) {
-                v = *src++;
-                *dst++ = ((v & 0xf80000) >> 8) | ((v & 0xfc00) >> 5) | ((v & 0xf8) >> 3);
-            }
-        }
+        asm volatile (
+            "1:  add %1, #64            ;"
+            "    vldmia %0!, {q0-q7}    ;"
+            "    vldmia %0!, {q8-q15}   ;"
+            "    vstmia %1!, {q0-q7}    ;"
+            "    vstmia %1!, {q8-q15}   ;"
+            "    vldmia %0!, {q0-q7}    ;"
+            "    vldmia %0!, {q8-q15}   ;"
+            "    vstmia %1!, {q0-q7}    ;"
+            "    vstmia %1!, {q8-q15}   ;"
+            "    add %1, #64            ;"
+            "    subs %2, #1            ;"
+            "    bne 1b                 ;"
+            :
+            : "r"(src), "r"(dst), "r"(192)
+            : "r8", "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15", "memory", "cc"
+        );
+        
     }
     else {
         int x = 0;
