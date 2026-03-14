@@ -535,7 +535,7 @@ static int draw_drastic_menu_main(void)
     CUST_MENU_SUB *p = NULL;
     char buf[MAX_PATH << 1] = {0};
 
-#if defined(TRIMUI) || defined(FUNKEYS)
+#if defined(TRIMUI) || defined(S)
     div = 2;
 #endif
 
@@ -545,7 +545,7 @@ static int draw_drastic_menu_main(void)
         w = LINE_H / div;
         h = nds.enable_752x560 ? (115 / div) : (100 / div);
 
-#if defined(TRIMUI) || defined(FUNKEYS)
+#if defined(TRIMUI) || defined(S)
         x = 30 / div;
 #endif
 
