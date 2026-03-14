@@ -906,7 +906,7 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_render_mmiyoo.c b/SDL2-2.30.10/sr
 diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c
 --- a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c	1970-01-01 08:00:00.000000000 +0800
 +++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c	2025-02-03 08:59:11.028731161 +0800
-@@ -0,0 +1,393 @@
+@@ -0,0 +1,397 @@
 +/*
 +  Customized version for Miyoo-Mini handheld.
 +  Only tested under Miyoo-Mini stock OS (original firmware) with Parasyte compatible layer.
@@ -967,6 +967,8 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c b/SDL2-2.30.10/src
 +#include "SDL_video_mmiyoo.h"
 +#include "SDL_event_mmiyoo.h"
 +
++#define FBIO_SET_SDL2_MODE  _IOWR(0x100, 0, unsigned long)
++
 +GFX gfx = {0};
 +MMIYOO_VideoInfo vid={0};
 +
@@ -1004,9 +1006,10 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c b/SDL2-2.30.10/src
 +        printf(PREFIX"Failed to open fb0\n");
 +        return -1;
 +    }
-+
++    ioctl(gfx.fb_dev, FBIO_SET_SDL2_MODE, 1);
 +    gfx.hw.mem = mmap(NULL, FB_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, gfx.fb_dev, 0);
 +    if (gfx.hw.mem == (void *)-1) {
++        ioctl(gfx.fb_dev, FBIO_SET_SDL2_MODE, 0);
 +        close(gfx.fb_dev);
 +        printf(PREFIX"Failed to mmap fb0\n");
 +        return -1;
@@ -1018,6 +1021,7 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c b/SDL2-2.30.10/src
 +int fb_quit(void)
 +{
 +    munmap(gfx.hw.mem, FB_SIZE);
++    ioctl(gfx.fb_dev, FBIO_SET_SDL2_MODE, 0);
 +    close(gfx.fb_dev);
 +    gfx.fb_dev = -1;
 +    return 0;
