@@ -2680,7 +2680,6 @@ int fb_quit(void)
 #endif
 
 #ifdef FUNKEYS
-#define FBIO_SET_SDL2_MODE  _IOWR(0x100, 0, unsigned long)
 int fb_init(void)
 {
     gfx.fb_dev = open("/dev/fb0", O_RDWR);
@@ -2688,11 +2687,9 @@ int fb_init(void)
         printf(PREFIX"Failed to open fb0\n");
         return -1;
     }
-    ioctl(gfx.fb_dev, FBIO_SET_SDL2_MODE, 1);
 
     gfx.hw.mem = mmap(NULL, FB_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, gfx.fb_dev, 0);
     if (gfx.hw.mem == (void *)-1) {
-        ioctl(gfx.fb_dev, FBIO_SET_SDL2_MODE, 0);
         close(gfx.fb_dev);
         printf(PREFIX"Failed to mmap fb0\n");
         return -1;
@@ -2704,7 +2701,6 @@ int fb_init(void)
 int fb_quit(void)
 {
     munmap(gfx.hw.mem, FB_SIZE);
-    ioctl(gfx.fb_dev, FBIO_SET_SDL2_MODE, 0);
     close(gfx.fb_dev);
     gfx.fb_dev = -1;
     return 0;
