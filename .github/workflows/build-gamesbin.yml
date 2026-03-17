@@ -55,7 +55,8 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME && patch -p1 < $PKG_NAME.patch
+        cd $PKG_NAME 
+        patch -p1 < $PKG_NAME.patch
         chmod +x ./*.sh
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
