@@ -34,6 +34,7 @@ jobs:
       working-directory: /workdir
       run: |
         df -hT $PWD
+        mkdir -p $PKG_NAME
         cd && wget https://github.com/steward-fu/website/releases/download/miyoo/src_jinyong.7z
         cd && 7za x src_jinyong.7z
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
