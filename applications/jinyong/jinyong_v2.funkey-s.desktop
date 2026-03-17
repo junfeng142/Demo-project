@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=jinyong_v2
+Name[ch]=金庸群侠v2
+Comment=The Legend of Jin Yong's Heroes
+Comment[ch]=金庸群侠传v2移植版
+Icon=jinyong_v2
+Exec=/mnt/Games/jinyong_v2/run.sh
+Categories=games
