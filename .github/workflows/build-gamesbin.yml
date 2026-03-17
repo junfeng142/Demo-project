@@ -47,15 +47,16 @@ jobs:
     - name: Load custom configuration
       run: |
         cd $PKG_NAME && mkdir -p _opk
+        mv $GITHUB_WORKSPACE/applications/$PKG_NAME/$PKG_NAME.patch ./
         mv $GITHUB_WORKSPACE/applications/$PKG_NAME/* ./_opk
         cd && wget https://www.lua.org/ftp/lua-5.1.5.tar.gz
         cd && tar xvf lua-5.1.5.tar.gz
-        patch -p1 < _opk/jinyong.patch
 
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME && chmod +x ./*.sh
+        cd $PKG_NAME && patch -p1 < $PKG_NAME.patch
+        chmod +x ./*.sh
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
