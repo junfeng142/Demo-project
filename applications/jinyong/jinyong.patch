@@ -39,8 +39,8 @@ diff -uprN a/lua-5.1.5/build.sh b/lua-5.1.5/build.sh
 +export CXX=${CROSS}-g++
 +
 +make linux
-+/opt/mmiyoo/bin/arm-linux-gnueabihf-strip liblua.so -o ../_opk/libs/liblua.so
-+sudo mv liblua.so /opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/lib
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip src/liblua.so -o ../_opk/libs/liblua.so
++sudo mv src/liblua.so /opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/lib
 diff -uprN a/lua-5.1.5/src/Makefile b/lua-5.1.5/src/Makefile
 --- a/lua-5.1.5/src/Makefile	2026-03-16 21:40:28.695541606 +0800
 +++ b/lua-5.1.5/src/Makefile	2026-03-17 15:29:18.832103104 +0800
@@ -98,7 +98,7 @@ diff -uprN a/src/Makefile b/src/Makefile
  
  SYSROOT     := $(shell $(CC) --print-sysroot)
  SDL_CFLAGS  := $(shell $(SYSROOT)/usr/bin/sdl-config --cflags)
-+SDL_CFLAGS	+= -I"$GITHUB_WORKSPACE/$PKG_NAME/lua-5.1.5/src/"
++SDL_CFLAGS	+= -I"../lua-5.1.5/src/"
  SDL_LIBS    := $(shell $(SYSROOT)/usr/bin/sdl-config --libs)
  
  CFLAGS = ${BASEFLAGS} $(SDL_CFLAGS)
