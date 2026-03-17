@@ -48,10 +48,9 @@ jobs:
       run: |
         cd $PKG_NAME && mkdir -p _opk
         mv $GITHUB_WORKSPACE/applications/$PKG_NAME/* ./_opk
-        mv _opk/$PKG_NAME.patch ./
         cd && wget https://www.lua.org/ftp/lua-5.1.5.tar.gz
         cd && tar xvf lua-5.1.5.tar.gz
-        patch -p1 < $PKG_NAME/$PKG_NAME.patch
+        patch -p1 < _opk/jinyong.patch
 
     - name: Compile the firmware
       id: compile
