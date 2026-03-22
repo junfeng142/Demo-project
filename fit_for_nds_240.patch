@@ -70,7 +70,7 @@ diff -uprN a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c b/sdl2/src/video/mmiyoo/SD
 -            : "r"(src), "r"(dst), "r"(192)
 -            : "r8", "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15", "memory", "cc"
 -        );
--
+-        
 -    }
 -    else {
 +        for (y = 0; y < srcrect.h; y++) {
