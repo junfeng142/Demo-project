@@ -140,6 +140,18 @@ diff -uprN a/buildopts.h.cmakein b/buildopts.h.cmakein
  #define GMENU2X_CARD_ROOT "@CARD_ROOT@"
  
  #endif /* GMENU2X_BUILDOPTS_H */
+diff -uprN a/src/contextmenu.cpp b/src/contextmenu.cpp
+--- a/src/contextmenu.cpp	2026-03-18 21:06:46.320823991 +0800
++++ b/src/contextmenu.cpp	2026-03-22 20:45:56.594926463 +0800
+@@ -82,7 +82,7 @@ ContextMenu::ContextMenu(GMenu2X &gmenu2
+ 	for (auto option : options) {
+ 		w = std::max(w, font.getTextWidth(option->text));
+ 	}
+-	w += 23;
++	w += 80;
+ 	const int h = (font.getLineSpacing() + 2) * options.size() + 8;
+ 	box = {
+ 		static_cast<Sint16>((gmenu2x.width() - w) / 2),
 diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
 --- a/src/funkeymenu.cpp	2026-03-18 21:06:46.320823991 +0800
 +++ b/src/funkeymenu.cpp	2026-03-22 12:47:58.502231249 +0800
