@@ -1,6 +1,6 @@
 diff -uprN "a/Chinese (CN)" "b/Chinese (CN)"
 --- "a/Chinese (CN)"	1970-01-01 08:00:00.000000000 +0800
-+++ "b/Chinese (CN)"	2026-03-06 10:41:09.787571687 +0800
++++ "b/Chinese (CN)"	2026-03-18 21:08:38.090825011 +0800
 @@ -0,0 +1,116 @@
 +Launch an application=启动应用程序
 +Configure GMenu2X's options=配置GMenu2X的选项
@@ -120,17 +120,17 @@ diff -uprN "a/Chinese (CN)" "b/Chinese (CN)"
 +START: Show options menu=START: 显示选项菜单
 diff -uprN a/build.sh b/build.sh
 --- a/build.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build.sh	2026-03-06 10:41:09.787571687 +0800
++++ b/build.sh	2026-03-21 20:37:22.932707837 +0800
 @@ -0,0 +1,6 @@
 +#!/bin/bash
 +
 +CMAKE=1
-+CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
++CMAKE_ARGS="-DSCREEN_WIDTH=240 -DSCREEN_HEIGHT=240 -DSCREEN_DEPTH=16 -DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
 +cmake $CMAKE_ARGS .
 +make
 diff -uprN a/buildopts.h.cmakein b/buildopts.h.cmakein
---- a/buildopts.h.cmakein	2026-03-06 10:43:57.137570121 +0800
-+++ b/buildopts.h.cmakein	2026-03-06 10:41:09.787571687 +0800
+--- a/buildopts.h.cmakein	2026-03-18 21:07:44.380824521 +0800
++++ b/buildopts.h.cmakein	2026-03-21 20:36:57.912707677 +0800
 @@ -1,7 +1,7 @@
  #ifndef GMENU2X_BUILDOPTS_H
  #define GMENU2X_BUILDOPTS_H
@@ -141,15 +141,15 @@ diff -uprN a/buildopts.h.cmakein b/buildopts.h.cmakein
  
  #endif /* GMENU2X_BUILDOPTS_H */
 diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
---- a/src/funkeymenu.cpp	2026-03-06 10:58:54.297561721 +0800
-+++ b/src/funkeymenu.cpp	2026-03-06 10:43:28.047570393 +0800
+--- a/src/funkeymenu.cpp	2026-03-18 21:06:46.320823991 +0800
++++ b/src/funkeymenu.cpp	2026-03-22 12:47:58.502231249 +0800
 @@ -1,4 +1,5 @@
  #include "funkeymenu.h"
 +#include "gmenu2x.h"
  #include <iostream>
  
  /// -------------- DEFINES --------------
-@@ -20,7 +21,7 @@
+@@ -20,27 +21,27 @@
  #define MENU_ERROR_PRINTF(...)
  #endif //MENU_ERROR
  
@@ -158,7 +158,12 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  #define SCREEN_VERTICAL_SIZE        240 //RES_HW_SCREEN_VERTICAL
  
  #define SCROLL_SPEED_PX             30
-@@ -32,15 +33,15 @@
+ #define FPS_MENU                    60
+ #define ARROWS_PADDING              8
+ 
+-#define MENU_ZONE_WIDTH             SCREEN_HORIZONTAL_SIZE
++#define MENU_ZONE_WIDTH             240
+ #define MENU_ZONE_HEIGHT            SCREEN_VERTICAL_SIZE
  #define MENU_BG_SQURE_WIDTH         180
  #define MENU_BG_SQUREE_HEIGHT       140
  
@@ -174,9 +179,9 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
 -#define MENU_PNG_BG_PATH            "/usr/games/menu_resources/zone_bg.png"
 -#define MENU_PNG_ARROW_TOP_PATH     "/usr/games/menu_resources/arrow_top.png"
 -#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/games/menu_resources/arrow_bottom.png"
-+#define MENU_PNG_BG_PATH            "/usr/share/gmenu2x/skins/320x240/Default/imgs/zone_bg.png"
-+#define MENU_PNG_ARROW_TOP_PATH     "/usr/share/gmenu2x/skins/320x240/Default/imgs/arrow_top.png"
-+#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/share/gmenu2x/skins/320x240/Default/imgs/arrow_bottom.png"
++#define MENU_PNG_BG_PATH            "/usr/share/gmenu2x/skins/240x240/Default/imgs/zone_bg.png"
++#define MENU_PNG_ARROW_TOP_PATH     "/usr/share/gmenu2x/skins/240x240/Default/imgs/arrow_top.png"
++#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/share/gmenu2x/skins/240x240/Default/imgs/arrow_bottom.png"
  
  #define GRAY_MAIN_R                 85
  #define GRAY_MAIN_G                 85
@@ -286,10 +291,14 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  	/// Init Powerdown Menu
  	add_menu_zone(MENU_TYPE_POWERDOWN);
  }
-@@ -486,6 +491,13 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -484,8 +489,15 @@ void FunkeyMenu::menu_screen_refresh(int
+ 
+ 	/// --------- Setup Blit Window ----------
  	SDL_Rect menu_blit_window;
- 	menu_blit_window.x = 0;
- 	menu_blit_window.w = SCREEN_HORIZONTAL_SIZE;
+-	menu_blit_window.x = 0;
+-	menu_blit_window.w = SCREEN_HORIZONTAL_SIZE;
++	menu_blit_window.x = (SCREEN_HORIZONTAL_SIZE - MENU_ZONE_WIDTH)/2;
++	menu_blit_window.w = MENU_ZONE_WIDTH;
 +	std::string mount_str = gmenu2x_ptr->tr["MOUNT"];
 +	std::string eject_str = gmenu2x_ptr->tr["EJECT"];
 +	std::string progress_str = gmenu2x_ptr->tr["In progress..."];
@@ -300,7 +309,29 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  
  	/// --------- Blit prev menu Zone going away ----------
  	menu_blit_window.y = scroll;
-@@ -534,19 +546,19 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -496,6 +508,7 @@ void FunkeyMenu::menu_screen_refresh(int
+ 
+ 	/// --------- Blit new menu Zone going in (only during animations) ----------
+ 	if(scroll>0){
++	    menu_blit_window.x = (MENU_ZONE_WIDTH - SCREEN_HORIZONTAL_SIZE)/2;
+ 		menu_blit_window.y = SCREEN_VERTICAL_SIZE-scroll;
+ 		menu_blit_window.h = SCREEN_VERTICAL_SIZE;
+ 		if(SDL_BlitSurface(menu_zone_surfaces[menuItem], NULL, draw_screen, &menu_blit_window)){
+@@ -522,31 +535,31 @@ void FunkeyMenu::menu_screen_refresh(int
+ 
+ 		switch(idx_menus[menuItem]){
+ 		case MENU_TYPE_VOLUME:
+-			draw_progress_bar(draw_screen, x_volume_bar, y_volume_bar,
++			draw_progress_bar(draw_screen, (MENU_ZONE_WIDTH - width_progress_bar)/2, y_volume_bar,
+ 					width_progress_bar, height_progress_bar, volume_percentage, 100/STEP_CHANGE_VOLUME);
+ 			break;
+ 
+ 		case MENU_TYPE_BRIGHTNESS:
+-			draw_progress_bar(draw_screen, x_volume_bar, y_volume_bar,
++			draw_progress_bar(draw_screen, (MENU_ZONE_WIDTH - width_progress_bar)/2, y_volume_bar,
+ 					width_progress_bar, height_progress_bar, brightness_percentage, 100/STEP_CHANGE_BRIGHTNESS);
+ 			break;
+ 
  		case MENU_TYPE_SAVE:
  			/// ---- Write slot -----
  			sprintf(text_tmp, "IN SLOT   < %d >", savestate_slot+1);
@@ -325,7 +356,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  				}
  				else{
  					/// ---- Write current Save state ----
-@@ -560,19 +572,19 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -560,19 +573,19 @@ void FunkeyMenu::menu_screen_refresh(int
  		case MENU_TYPE_LOAD:
  			/// ---- Write slot -----
  			sprintf(text_tmp, "FROM SLOT   < %d >", savestate_slot+1);
@@ -350,7 +381,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  				}
  				else{
  					/// ---- Write current Load state ----
-@@ -585,7 +597,7 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -585,7 +598,7 @@ void FunkeyMenu::menu_screen_refresh(int
  
  		case MENU_TYPE_ASPECT_RATIO:
  			sprintf(text_tmp, "<   %s   >", aspect_ratio_name[aspect_ratio]);
@@ -359,7 +390,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  			text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
  			text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + padding_y_from_center_menu_zone;
  			SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
-@@ -593,22 +605,22 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -593,22 +606,22 @@ void FunkeyMenu::menu_screen_refresh(int
  
  		case MENU_TYPE_USB:
  			/// ---- Write slot -----
@@ -388,7 +419,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  				text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
  				text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
  				SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
-@@ -620,15 +632,15 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -620,15 +633,15 @@ void FunkeyMenu::menu_screen_refresh(int
  
  		case MENU_TYPE_LAUNCHER:
  			if(menu_action){
@@ -408,7 +439,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  				text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
  				text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
  				SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
-@@ -638,16 +650,16 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -638,16 +651,16 @@ void FunkeyMenu::menu_screen_refresh(int
  		case MENU_TYPE_EXIT:
  		case MENU_TYPE_POWERDOWN:
  			if(menu_action){
@@ -429,7 +460,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  					text_pos.x = (draw_screen->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
  					text_pos.y = draw_screen->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2 + 2*padding_y_from_center_menu_zone;
  					SDL_BlitSurface(text_surface, NULL, draw_screen, &text_pos);
-@@ -684,8 +696,8 @@ void FunkeyMenu::menu_screen_refresh(int
+@@ -684,8 +697,8 @@ void FunkeyMenu::menu_screen_refresh(int
  	if(SDL_BlitSurface(draw_screen, NULL, hw_screen, NULL)){
  		MENU_ERROR_PRINTF("ERROR Could not bit draw_screen to hw_screen: %s\n", SDL_GetError());
  	}
@@ -440,7 +471,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  }
  
  
-@@ -740,6 +752,7 @@ int FunkeyMenu::launch( )
+@@ -740,6 +753,7 @@ int FunkeyMenu::launch( )
  					switch (event.key.keysym.sym)
  					{
  					case SDLK_b:
@@ -448,7 +479,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  						if(menu_confirmation){
  							/// ------ Reset menu confirmation ------
  							menu_confirmation = 0;
-@@ -827,6 +840,8 @@ int FunkeyMenu::launch( )
+@@ -827,6 +841,8 @@ int FunkeyMenu::launch( )
  							/// ----- Shell cmd ----
  							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
  							system(shell_cmd);
@@ -457,7 +488,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  
  							/// ------ Refresh screen ------
  							screen_refresh = 1;
-@@ -883,6 +898,8 @@ int FunkeyMenu::launch( )
+@@ -883,6 +899,8 @@ int FunkeyMenu::launch( )
  							/// ----- Shell cmd ----
  							sprintf(shell_cmd, "%s %d", SHELL_CMD_VOLUME_SET, volume_percentage);
  							system(shell_cmd);
@@ -466,7 +497,7 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  
  							/// ------ Refresh screen ------
  							screen_refresh = 1;
-@@ -928,6 +945,7 @@ int FunkeyMenu::launch( )
+@@ -928,6 +946,7 @@ int FunkeyMenu::launch( )
  						break;
  
  					case SDLK_a:
@@ -475,8 +506,8 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  						if(idx_menus[menuItem] == MENU_TYPE_SAVE){
  							if(menu_confirmation){
 diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
---- a/src/gmenu2x.cpp	2026-03-06 10:58:54.347561721 +0800
-+++ b/src/gmenu2x.cpp	2026-03-06 10:43:28.047570393 +0800
+--- a/src/gmenu2x.cpp	2026-03-18 21:06:46.320823991 +0800
++++ b/src/gmenu2x.cpp	2026-03-19 10:09:27.839235238 +0800
 @@ -76,7 +76,7 @@
  #define DEFAULT_FONT_SIZE 12
  
@@ -563,8 +594,8 @@ diff -uprN a/src/gmenu2x.cpp b/src/gmenu2x.cpp
  		if (lang == "English") lang = "";
  		if (lang != tr.lang()) {
 diff -uprN a/src/menu.cpp b/src/menu.cpp
---- a/src/menu.cpp	2026-03-06 10:44:59.137569540 +0800
-+++ b/src/menu.cpp	2026-03-06 10:43:28.047570393 +0800
+--- a/src/menu.cpp	2026-03-18 21:06:46.320823991 +0800
++++ b/src/menu.cpp	2026-03-18 21:08:38.090825011 +0800
 @@ -171,7 +171,7 @@ void Menu::updateSectionTextSurfaces() {
  	const auto &font = *gmenu2x.font;
  	section_text_surfaces.resize(sections.size());
@@ -575,8 +606,8 @@ diff -uprN a/src/menu.cpp b/src/menu.cpp
  
  void Menu::calcSectionRange(int &leftSection, int &rightSection) {
 diff -uprN a/src/selector.cpp b/src/selector.cpp
---- a/src/selector.cpp	2026-03-06 10:44:59.137569540 +0800
-+++ b/src/selector.cpp	2026-03-06 10:43:28.047570393 +0800
+--- a/src/selector.cpp	2026-03-18 21:06:46.320823991 +0800
++++ b/src/selector.cpp	2026-03-18 21:08:38.090825011 +0800
 @@ -117,7 +117,7 @@ int Selector::exec(int startSelection) {
  				string path = screendir + trimExtension(fl[selected]) + ".png";
  				auto screenshot = OffscreenSurface::loadImage(path, false);
