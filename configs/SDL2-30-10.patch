@@ -905,7 +905,7 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_render_mmiyoo.c b/SDL2-2.30.10/sr
 +
 diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c
 --- a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c	2026-03-22 19:39:06.524889861 +0800
++++ b/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c	2026-03-22 20:18:16.434911310 +0800
 @@ -0,0 +1,361 @@
 +/*
 +  Customized version for Miyoo-Mini handheld.
@@ -1079,8 +1079,8 @@ diff -uprN a/SDL2-2.30.10/src/video/mmiyoo/SDL_video_mmiyoo.c b/SDL2-2.30.10/src
 +        uint16_t *src = (uint16_t *)pixels;
 +        uint16_t *src_line, *dst_line;
 +        // 计算缩放比例和居中偏移
-+        float scale_w = FB_W / srcrect.w;
-+        float scale_h = FB_H / srcrect.h;
++        float scale_w = (float)FB_W / srcrect.w;
++        float scale_h = (float)FB_H / srcrect.h;
 +        float scale = (scale_w < scale_h) ? scale_w : scale_h;  // 取较小的比例，保持完整图像
 +        
 +        int dst_width = (int)(srcrect.w * scale);
