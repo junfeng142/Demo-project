@@ -65,7 +65,7 @@ jobs:
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME
+        cd $PKG_NAME && patch -p1 < fit_for_nds_240.patch
         make cfg MOD=funkeys
         make MOD=funkeys
         cd $EXTRA_NAME_2 && chmod +x ./build.sh
