@@ -140,3 +140,20 @@ diff -uprN a/src/jymain.c b/src/jymain.c
  
  SDL_Surface* g_Surface=NULL;    // 游戏使用的视频表面
  SDL_Surface* g_RealSurface=NULL;    // 游戏使用的视频表面
+diff -uprN a/src/sdlfun.c b/src/sdlfun.c
+--- a/src/sdlfun.c	2026-03-23 09:28:12.055966709 +0800
++++ b/src/sdlfun.c	2026-03-23 09:28:46.325967022 +0800
+@@ -177,11 +177,11 @@ int InitGame(void)
+ 
+   if(g_FullScreen == 0)
+   {
+-    g_RealSurface = SDL_SetVideoMode(320, 240, 16, SDL_HWSURFACE);
++    g_RealSurface = SDL_SetVideoMode(240, 240, 16, SDL_HWSURFACE);
+   }
+   else
+   {
+-    g_RealSurface = SDL_SetVideoMode(320, 240, g_ScreenBpp, SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
++    g_RealSurface = SDL_SetVideoMode(240, 240, g_ScreenBpp, SDL_HWSURFACE | SDL_DOUBLEBUF | SDL_FULLSCREEN);
+   }
+ 
+   if(g_RealSurface == NULL) {

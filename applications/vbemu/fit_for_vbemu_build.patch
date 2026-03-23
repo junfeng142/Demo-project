@@ -12,26 +12,29 @@ diff -uprN a/Makefile.funkey b/Makefile.funkey
  #### Configuration
  
 diff -uprN a/shell/input/sdl/input_emu.c b/shell/input/sdl/input_emu.c
---- a/shell/input/sdl/input_emu.c	2026-03-06 16:23:22.977379447 +0800
-+++ b/shell/input/sdl/input_emu.c	2026-03-06 16:26:58.317377431 +0800
+--- a/shell/input/sdl/input_emu.c	2025-12-18 21:10:36.136387931 +0800
++++ b/shell/input/sdl/input_emu.c	2025-12-18 21:11:52.486387216 +0800
 @@ -45,7 +45,7 @@ uint16_t Read_Input(void)
  			case SDL_KEYUP:
  				switch(event.key.keysym.sym)
  				{
 -					case SDLK_HOME:
-+					case SDLK_ESCAPE:
++					case SDLK_q:
  						emulator_state = 1;
  					break;
  					default:
-@@ -64,7 +64,7 @@ uint16_t Read_Input(void)
+@@ -63,9 +63,9 @@ uint16_t Read_Input(void)
+ 		}
  	}
  	
- #ifdef GKD350_BUG_INPUT
--	if (keys[SDLK_RETURN] && keys[SDLK_ESCAPE]) emulator_state = 1;
-+	if (keys[SDLK_RCTRL] && keys[SDLK_RETURN]) emulator_state = 1;
- #endif
+-#ifdef GKD350_BUG_INPUT
++//#ifdef GKD350_BUG_INPUT
+ 	if (keys[SDLK_RETURN] && keys[SDLK_ESCAPE]) emulator_state = 1;
+-#endif
++//#endif
  	
  	// UP
+ 	if (keys[option.config_buttons[0] ] == SDL_PRESSED
 diff -uprN a/shell/menu/menu.c b/shell/menu/menu.c
 --- a/shell/menu/menu.c	2026-03-06 16:28:56.697376323 +0800
 +++ b/shell/menu/menu.c	2026-03-06 16:38:43.817370826 +0800
