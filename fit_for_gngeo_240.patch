@@ -1,0 +1,113 @@
+diff -uprN a/src/event.c b/src/event.c
+--- a/src/event.c	2026-03-23 20:48:58.385031753 +0800
++++ b/src/event.c	2026-03-23 20:57:48.075030965 +0800
+@@ -111,6 +111,8 @@ void set_abxylr(uint32_t v, uint32_t dow
+ int handle_event(void)
+ {
+   SDL_Event event = {0};
++  uint8_t* keys;
++  keys = SDL_GetKeyState(NULL);
+ 
+   while(SDL_PollEvent(&event)) {
+     switch(event.type) {
+@@ -141,7 +143,7 @@ int handle_event(void)
+       case SDLK_LALT:
+         set_abxylr(conf.y_btn, event.type == SDL_KEYDOWN ? 1 : 0);
+         break;
+-      case SDLK_RCTRL:
++      case SDLK_ESCAPE:
+         if(event.type == SDL_KEYDOWN) {
+           //memory.intern_coin &= ~(1 << 0);
+           memory.intern_coin = 0x07&0x06;
+@@ -169,12 +171,15 @@ int handle_event(void)
+       case SDLK_BACKSPACE:
+         set_abxylr(conf.r_btn, event.type == SDL_KEYDOWN ? 1 : 0);
+         break;
+-      case SDLK_ESCAPE:
+-        return 1;
+       }
+       break;
+     }
+   }
+-  return 0;
++  
++  if (keys[SDLK_RETURN] && keys[SDLK_ESCAPE]) {
++    return 1;
++  } else {
++    return 0;
++  }
+ }
+ 
+diff -uprN a/src/screen.c b/src/screen.c
+--- a/src/screen.c	2026-03-23 08:52:34.345947197 +0800
++++ b/src/screen.c	2026-03-24 14:46:09.616708254 +0800
+@@ -40,23 +40,46 @@ static SDL_Rect right_border = {16 + 312
+ RGB2YUV rgb2yuv[65536];
+ 
+ SDL_Surface *screen;
+-SDL_Surface *buffer, *sprbuf, *fps_buf, *scan, *fontbuf;
++SDL_Surface *buffer, *fontbuf;
+ SDL_Rect visible_area;
+-int yscreenpadding;
+-uint8_t interpolation;
+-uint8_t nblitter;
+-uint8_t neffect;
+-uint8_t scale;
+-uint8_t fullscreen;
+-
++int game_width = 320;
++int game_height = 224;
++int real_width = 240;
++int real_height = 240;
+ 
+ int effect_none_init(void);
+ 
+ void screen_flip(void)
+ {
++  float scale_w, scale_h, scaled;
++  int scaled_w, scaled_h, offset_x, offset_y;
++  
++  scale_w = (float)real_width / game_width;
++  scale_h = (float)real_height / game_height;
++  scaled = (scale_w < scale_h) ? scale_w : scale_h;
++  scaled_w = (int)(game_width * scaled);
++  scaled_h = (int)(game_height * scaled);
++  offset_x = (real_width - scaled_w) / 2;
++  offset_y = (real_height - scaled_h) / 2;
++
+   SDL_FillRect(buffer, &left_border, 0);
+   SDL_FillRect(buffer, &right_border, 0);
+-  SDL_BlitSurface(buffer, &visible_area, screen, &drt);
++  //  SDL_BlitSurface(buffer, &visible_area, screen, &drt);
++  SDL_Rect game_rect;
++  game_rect.x = 16;
++  game_rect.y = 16;
++  game_rect.w = game_width;
++  game_rect.h = game_height;
++
++  // 2. 缩放后的目标区域
++  SDL_Rect dst_rect;
++  dst_rect.x = offset_x;
++  dst_rect.y = offset_y;
++  dst_rect.w = scaled_w;
++  dst_rect.h = scaled_h;
++  
++  SDL_SoftStretch(buffer, &game_rect, screen, &dst_rect);
++  
+   SDL_Flip(screen);
+ }
+ 
+@@ -67,10 +90,10 @@ void sdl_init(void)
+ 
+   visible_area.x = 16;
+   visible_area.y = 16;
+-  visible_area.w = 320;
+-  visible_area.h = 224;
++  visible_area.w = game_width;
++  visible_area.h = game_height;
+ 
+-  screen = SDL_SetVideoMode(320, 240, 16, SDL_SWSURFACE | SDL_DOUBLEBUF);
++  screen = SDL_SetVideoMode(real_width, real_height, 16, SDL_SWSURFACE | SDL_DOUBLEBUF);
+   SDL_ShowCursor(SDL_DISABLE);
+ 
+   buffer = SDL_CreateRGBSurface(SDL_SWSURFACE, 352, 256, 16, 0xf800, 0x7e0, 0x1f, 0);
