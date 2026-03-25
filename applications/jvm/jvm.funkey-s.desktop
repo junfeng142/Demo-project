@@ -1,8 +1,8 @@
 [Desktop Entry]
 Name=JVM
-Name[ch]=JVM
-Comment=Java 2 Micro Edition
-Comment[ch]=手机java模拟器240x320
+Name[ch]=java模拟器
+Comment=Java 2 Micro Edition 240x320
+Comment[ch]=手机java模拟器竖屏版
 Icon=jvm
 Exec=run.sh -jar %f
 SelectorDir=/mnt/JAVA
