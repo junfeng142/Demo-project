@@ -50,7 +50,7 @@ jobs:
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/steward-fu/website/releases/download/miyoo-mini-plus/src_midpath-rc1.tar.gz
         tar xvf src_midpath-rc1.tar.gz
-        mv midpath/* $GITHUB_WORKSPACE/$PKG_NAME/EXTRA_NAME_4/
+        mv midpath/* $GITHUB_WORKSPACE/$PKG_NAME/$EXTRA_NAME_4/
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         tar xvf FunKey-sdk-2.3.0.tar.gz
         sudo mv FunKey-sdk-2.3.0 /opt
