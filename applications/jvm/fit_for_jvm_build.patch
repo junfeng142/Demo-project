@@ -4,12 +4,12 @@ diff -uprN a/build.sh b/build.sh
 @@ -0,0 +1,13 @@
 +#!/bin/bash
 +
-+make -C midpath/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo
++make -C phoneme_advanced_mr2/cdc/build/linux-arm-miyoo
 +rm _opk/microbackend.jar
 +rm -rf _opk/jvm/*
 +rm -rf _opk/dist/*
 +sed -i '148i #include "tbl.cc.h"' phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/jcs/tbl.cc
-+make -C midpath/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo
++make -C phoneme_advanced_mr2/cdc/build/linux-arm-miyoo
 +cd midpath && chmod +x ./*.sh
 +./build.sh
 +cd ..
