@@ -13,5 +13,5 @@ diff -uprN a/build.sh b/build.sh
 +cd midpath && chmod +x ./*.sh
 +./build.sh
 +cd ..
-+mv dist/* _opk/dist
++mv midpath/dist/* _opk/dist
 +mv phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/bin phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/lib _opk/jvm
