@@ -1,26 +1,17 @@
 diff -uprN a/build.sh b/build.sh
 --- a/build.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build.sh	2026-03-25 10:19:05.771550010 +0800
-@@ -0,0 +1,11 @@
++++ b/build.sh	2026-03-25 10:49:42.061574001 +0800
+@@ -0,0 +1,13 @@
 +#!/bin/bash
 +
++make -C midpath/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo
 +rm _opk/microbackend.jar
 +rm -rf _opk/jvm/*
 +rm -rf _opk/dist/*
++sed -i '148i #include "tbl.cc.h"' phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/jcs/tbl.cc
 +make -C midpath/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo
 +cd midpath && chmod +x ./*.sh
 +./build.sh
 +cd ..
 +mv dist/* _opk/dist
 +mv phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/bin phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/lib _opk/jvm
-diff -uprN a/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/jcs/tbl.cc b/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/jcs/tbl.cc
---- a/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/jcs/tbl.cc	2026-03-25 10:09:20.361542361 +0800
-+++ b/phoneme_advanced_mr2/cdc/build/linux-arm-miyoo/jcs/tbl.cc	2026-03-25 10:22:30.951552690 +0800
-@@ -73,6 +73,7 @@
- #include "rule.h"
- #include "symbol.h"
- #include "wordlist.h"
-+#include "tbl.cc.h"
- 
- /* Get rid of build failure when using new versions of gcc */
- #if defined(__GNUC__) && (3 <= __GNUC__)
