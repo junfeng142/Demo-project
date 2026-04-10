@@ -1464,15 +1464,10 @@ diff -uprN a/build.sh b/build.sh
 @@ -0,0 +1,14 @@
 +#!/bin/bash
 +
-+#export PKG_CONFIG_PATH=/opt/SDL2/lib/pkgconfig:$PKG_CONFIG_PATH
-+#CMAKE_ARGS="-BRetroFE/Build -DVERSION_MAJOR=0 -DVERSION_MINOR=0 -DVERSION_BUILD=0 \
-+#            -DCMAKE_CXX_FLAGS=-I/opt/SDL2/include \
-+#            -DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
-+#cmake $CMAKE_ARGS -DCMAKE_EXE_LINKER_FLAGS="-L/opt/SDL2/lib -L/opt/opengl/lib" RetroFE/Source
-+
++export PKG_CONFIG_PATH=/opt/SDL2/lib/pkgconfig:$PKG_CONFIG_PATH
 +CMAKE_ARGS="-BRetroFE/Build -DVERSION_MAJOR=0 -DVERSION_MINOR=0 -DVERSION_BUILD=0 \
++            -DCMAKE_CXX_FLAGS=-I/opt/SDL2/include \
 +            -DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
-+
-+cmake $CMAKE_ARGS RetroFE/Source
++cmake $CMAKE_ARGS -DCMAKE_EXE_LINKER_FLAGS="-L/opt/SDL2/lib -L/opt/opengl/lib" RetroFE/Source
 +
 +make -C RetroFE/Build
