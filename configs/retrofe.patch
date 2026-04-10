@@ -1460,14 +1460,19 @@ diff -uprN a/RetroFE/Source/Menu/MenuMode.cpp b/RetroFE/Source/Menu/MenuMode.cpp
  								MENU_DEBUG_PRINTF("Saving in slot %d\n", savestate_slot);
 diff -uprN a/build.sh b/build.sh
 --- a/build.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build.sh	2026-04-06 18:16:32.445548411 +0800
-@@ -0,0 +1,9 @@
++++ b/build.sh	2026-04-10 12:24:26.561741920 +0800
+@@ -0,0 +1,14 @@
 +#!/bin/bash
 +
-+export PKG_CONFIG_PATH=/opt/SDL2/lib/pkgconfig:$PKG_CONFIG_PATH
++#export PKG_CONFIG_PATH=/opt/SDL2/lib/pkgconfig:$PKG_CONFIG_PATH
++#CMAKE_ARGS="-BRetroFE/Build -DVERSION_MAJOR=0 -DVERSION_MINOR=0 -DVERSION_BUILD=0 \
++#            -DCMAKE_CXX_FLAGS=-I/opt/SDL2/include \
++#            -DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
++#cmake $CMAKE_ARGS -DCMAKE_EXE_LINKER_FLAGS="-L/opt/SDL2/lib -L/opt/opengl/lib" RetroFE/Source
++
 +CMAKE_ARGS="-BRetroFE/Build -DVERSION_MAJOR=0 -DVERSION_MINOR=0 -DVERSION_BUILD=0 \
-+            -DCMAKE_CXX_FLAGS=-I/opt/SDL2/include \
 +            -DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
-+cmake $CMAKE_ARGS -DCMAKE_EXE_LINKER_FLAGS="-L/opt/SDL2/lib -L/opt/opengl/lib" RetroFE/Source
++
++cmake $CMAKE_ARGS RetroFE/Source
 +
 +make -C RetroFE/Build
