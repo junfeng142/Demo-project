@@ -49,6 +49,7 @@ jobs:
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         cd && tar xvf FunKey-sdk-2.3.0.tar.gz
         sudo mv FunKey-sdk-2.3.0 /opt
+        sudo mv tools/RetroFE/libSDL_mixer.so /opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/lib/
 
     - name: Load custom configuration
       run: |
