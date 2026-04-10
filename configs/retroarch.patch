@@ -20,7 +20,7 @@ diff -uprN a/gfx/drivers/sdl_rs90_gfx.c b/gfx/drivers/sdl_rs90_gfx.c
 diff -uprN a/menu/drivers/rgui.c b/menu/drivers/rgui.c
 --- a/menu/drivers/rgui.c	2026-03-21 21:02:32.882717476 +0800
 +++ b/menu/drivers/rgui.c	2026-03-21 21:02:24.282717421 +0800
-@@ -97,7 +97,7 @@
+@@ -95,7 +95,7 @@
  /* Other Dingux devices (RG350 etc.) use a
   * fixed framebuffer size of 320x240 */
  #define RGUI_DINGUX_ASPECT_RATIO RGUI_ASPECT_RATIO_4_3
