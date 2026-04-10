@@ -1,0 +1,2000 @@
+diff -uprN a/RetroFE/Source/Graphics/Component/ReloadableScrollingText.cpp b/RetroFE/Source/Graphics/Component/ReloadableScrollingText.cpp
+--- a/RetroFE/Source/Graphics/Component/ReloadableScrollingText.cpp	2026-04-08 10:07:10.027558988 +0800
++++ b/RetroFE/Source/Graphics/Component/ReloadableScrollingText.cpp	2026-04-08 20:17:15.962075203 +0800
+@@ -27,7 +27,6 @@
+ #include <iostream>
+ #include <algorithm>
+ 
+-
+ ReloadableScrollingText::ReloadableScrollingText(Configuration &config, bool systemMode, 
+     bool layoutMode, bool menuMode, 
+     std::string type, std::string textFormat, std::string singlePrefix, 
+@@ -49,10 +48,8 @@ ReloadableScrollingText::ReloadableScrol
+     , pluralPrefix_(pluralPrefix)
+     , pluralPostfix_(pluralPostfix)
+     , alignment_(alignment)
+-    //, scaleX_(scaleX)
+-    //, scaleY_(scaleY)
+-	, scaleX_(1.0f)	//TODO
+-	, scaleY_(1.0f)	//TODO
++    , scaleX_(scaleX)
++    , scaleY_(scaleY)
+     , direction_(direction)
+     , scrollingSpeed_(scrollingSpeed)
+     , startPosition_(startPosition)
+@@ -67,928 +64,505 @@ ReloadableScrollingText::ReloadableScrol
+     , scrollForward_(true)
+     , needScrolling_(true)
+     , needRender_(false)
+-
++    , renderedText_(NULL)
++    , renderedWidth_(0)
++    , renderedHeight_(0)
+ {
+-    text_.clear( );
++    text_.clear();
+ }
+ 
+ 
+-ReloadableScrollingText::~ReloadableScrollingText( )
++ReloadableScrollingText::~ReloadableScrollingText()
+ {
++    if (renderedText_) {
++        SDL_FreeSurface(renderedText_);
++        renderedText_ = NULL;
++    }
+ }
+ 
+ 
+ void ReloadableScrollingText::update(float dt)
+ {
+-
+     // Scrolling process
+-    if(needScrolling_){
+-        if (waitEndTime_ > 0)
+-	{
+-	    waitEndTime_ -= dt;
+-	}
+-	else if (waitStartTime_ > 0)
+-	{
+-	    waitStartTime_ -= dt;
+-	}
+-	else
+-	{
+-	  if (direction_ == "horizontal")
+-	  {
+-	      //currentPosition_ += scrollingSpeed_ * dt * scaleX_;
+-	    currentPosition_ += (scrollForward_?1.0f:-1.0f) * scrollingSpeed_ * dt * scaleX_;
+-
+-	    // Sanity check
+-	    if(currentPosition_ < -startPosition_ * scaleX_){
+-	        currentPosition_ = -startPosition_ * scaleX_;
+-	    }
+-	  }
+-	  else if (direction_ == "vertical")
+-	  {
+-	      currentPosition_ += scrollingSpeed_ * dt * scaleY_;
+-	  }
+-
+-	  needRender_ = true;
+-	}
++    if (needScrolling_ && renderedText_) {
++        if (waitEndTime_ > 0) {
++            waitEndTime_ -= dt;
++        } else if (waitStartTime_ > 0) {
++            waitStartTime_ -= dt;
++        } else {
++            if (direction_ == "horizontal") {
++                currentPosition_ += (scrollForward_ ? 1.0f : -1.0f) * scrollingSpeed_ * dt * scaleX_;
++                
++                // Sanity check
++                if (currentPosition_ < -startPosition_ * scaleX_) {
++                    currentPosition_ = -startPosition_ * scaleX_;
++                }
++            } else if (direction_ == "vertical") {
++                currentPosition_ += scrollingSpeed_ * dt * scaleY_;
++            }
++            
++            needRender_ = true;
++        }
+     }
+-
++    
+     // Reload media
+-	if (newItemSelected)
+-	{
+-		reloadTexture();
+-		newItemSelected       = false;
+-	}
+-	else if(newScrollItemSelected && getMenuScrollReload())
+-	{
+-		reloadTexture(true);
+-		newScrollItemSelected = false;
+-	}
+-
++    if (newItemSelected) {
++        reloadTexture();
++        newItemSelected = false;
++    } else if (newScrollItemSelected && getMenuScrollReload()) {
++        reloadTexture(true);
++        newScrollItemSelected = false;
++    }
++    
+     Component::update(dt);
+ }
+ 
+ 
+-void ReloadableScrollingText::allocateGraphicsMemory( )
++void ReloadableScrollingText::allocateGraphicsMemory()
+ {
+-    Component::allocateGraphicsMemory( );
+-    reloadTexture( );
++    Component::allocateGraphicsMemory();
++    reloadTexture();
+ }
+ 
+ 
+-void ReloadableScrollingText::freeGraphicsMemory( )
++void ReloadableScrollingText::freeGraphicsMemory()
+ {
+-    Component::freeGraphicsMemory( );
+-    text_.clear( );
++    Component::freeGraphicsMemory();
++    if (renderedText_) {
++        SDL_FreeSurface(renderedText_);
++        renderedText_ = NULL;
++    }
++    text_.clear();
+ }
+ 
+ 
+-void ReloadableScrollingText::deInitializeFonts( )
++void ReloadableScrollingText::deInitializeFonts()
+ {
+-    fontInst_->deInitialize( );
++    fontInst_->deInitialize();
+ }
+ 
+ 
+-void ReloadableScrollingText::initializeFonts( )
++void ReloadableScrollingText::initializeFonts()
+ {
+-    fontInst_->initialize( );
++    fontInst_->initialize();
+ }
+ 
+-void ReloadableScrollingText::reloadTexture( )
++void ReloadableScrollingText::reloadTexture()
+ {
+-	reloadTexture(false);
++    reloadTexture(false);
+ }
+ 
+-void ReloadableScrollingText::reloadTexture( bool previousItem )
++void ReloadableScrollingText::reloadTexture(bool previousItem)
+ {
+-	needRender_ = true;
+-
+-    if (direction_ == "horizontal")
+-    {
++    needRender_ = true;
++    
++    if (direction_ == "horizontal") {
+         currentPosition_ = -startPosition_ * scaleX_;
+-    }
+-    else if (direction_ == "vertical")
+-    {
++    } else if (direction_ == "vertical") {
+         currentPosition_ = -startPosition_ * scaleY_;
+     }
+-    waitStartTime_   = startTime_;
+-    waitEndTime_     = 0.0f;
+-
+-    text_.clear( );
+-
++    waitStartTime_ = startTime_;
++    waitEndTime_ = 0.0f;
++    
++    text_.clear();
++    
++    // 释放旧的渲染表面
++    if (renderedText_) {
++        SDL_FreeSurface(renderedText_);
++        renderedText_ = NULL;
++    }
++    
+     /* Select item to reload */
+-	Item *selectedItem = NULL;
+-	if(previousItem){
+-		selectedItem = page.getPreviousSelectedItem(displayOffset_);
+-	}
+-	else{
+-		selectedItem = page.getSelectedItem(displayOffset_);
+-	}
+-	if(!selectedItem) return;
+-
+-    config_.getProperty( "currentCollection", currentCollection_ );
+-
++    Item *selectedItem = NULL;
++    if (previousItem) {
++        selectedItem = page.getPreviousSelectedItem(displayOffset_);
++    } else {
++        selectedItem = page.getSelectedItem(displayOffset_);
++    }
++    if (!selectedItem) return;
++    
++    config_.getProperty("currentCollection", currentCollection_);
++    
+     // build clone list
+     std::vector<std::string> names;
+-
+-    names.push_back( selectedItem->name );
+-    names.push_back( selectedItem->fullTitle );
+-
+-    if (selectedItem->cloneof.length( ) > 0)
+-    {
+-        names.push_back( selectedItem->cloneof );
++    
++    names.push_back(selectedItem->name);
++    names.push_back(selectedItem->fullTitle);
++    
++    if (selectedItem->cloneof.length() > 0) {
++        names.push_back(selectedItem->cloneof);
+     }
+-
++    
+     // Check for corresponding .txt files
+-    for (unsigned int n = 0; n < names.size( ) && text_.empty( ); ++n)
+-    {
+-
++    for (unsigned int n = 0; n < names.size() && text_.empty(); ++n) {
+         std::string basename = names[n];
+-
+-        Utils::replaceSlashesWithUnderscores( basename );
+-
+-        if (systemMode_)
+-        {
+-
++        Utils::replaceSlashesWithUnderscores(basename);
++        
++        if (systemMode_) {
+             // check the master collection for the system artifact
+-            loadText( collectionName, type_, type_, "", true );
+-
++            loadText(collectionName, type_, type_, "", true);
++            
+             // check collection for the system artifact
+-            if (text_.empty( ))
+-            {
+-              loadText( selectedItem->collectionInfo->name, type_, type_, "", true );
++            if (text_.empty()) {
++                loadText(selectedItem->collectionInfo->name, type_, type_, "", true);
+             }
+-
+-        }
+-        else
+-        {
+-
++        } else {
+             // are we looking at a leaf or a submenu
+-            if (selectedItem->leaf) // item is a leaf
+-            {
+-
+-              // check the master collection for the artifact
+-              loadText( collectionName, type_, basename, "", false );
+-
+-              // check the collection for the artifact
+-              if (text_.empty( ))
+-              {
+-                loadText( selectedItem->collectionInfo->name, type_, basename, "", false );
+-              }
+-
+-            }
+-            else // item is a submenu
+-            {
+-
+-              // check the master collection for the artifact
+-              loadText( collectionName, type_, basename, "", false );
+-
+-              // check the collection for the artifact
+-              if (text_.empty( ))
+-              {
+-                loadText( selectedItem->collectionInfo->name, type_, basename, "", false );
+-              }
+-
+-              // check the submenu collection for the system artifact
+-              if (text_.empty( ))
+-              {
+-                loadText( selectedItem->name, type_, type_, "", true );
+-              }
+-
++            if (selectedItem->leaf) { // item is a leaf
++                // check the master collection for the artifact
++                loadText(collectionName, type_, basename, "", false);
++                
++                // check the collection for the artifact
++                if (text_.empty()) {
++                    loadText(selectedItem->collectionInfo->name, type_, basename, "", false);
++                }
++            } else { // item is a submenu
++                // check the master collection for the artifact
++                loadText(collectionName, type_, basename, "", false);
++                
++                // check the collection for the artifact
++                if (text_.empty()) {
++                    loadText(selectedItem->collectionInfo->name, type_, basename, "", false);
++                }
++                
++                // check the submenu collection for the system artifact
++                if (text_.empty()) {
++                    loadText(selectedItem->name, type_, type_, "", true);
++                }
+             }
+-
+         }
+     }
+-
+-    // Check for thext in the roms directory
+-    if ( text_.empty( ))
+-        loadText( selectedItem->filepath, type_, type_, selectedItem->filepath, false );
+-
++    
++    // Check for text in the roms directory
++    if (text_.empty()) {
++        loadText(selectedItem->filepath, type_, type_, selectedItem->filepath, false);
++    }
++    
+     // Check for supported fields if text is still empty
+-    if (text_.empty( ))
+-    {
++    if (text_.empty()) {
+         std::stringstream ss;
+         std::string text = "";
+-        if (type_ == "numberButtons")
+-        {
++        if (type_ == "numberButtons") {
+             text = selectedItem->numberButtons;
+-        }
+-        else if (type_ == "numberPlayers")
+-        {
++        } else if (type_ == "numberPlayers") {
+             text = selectedItem->numberPlayers;
+-        }
+-        else if (type_ == "ctrlType")
+-        {
++        } else if (type_ == "ctrlType") {
+             text = selectedItem->ctrlType;
+-        }
+-        else if (type_ == "numberJoyWays")
+-        {
++        } else if (type_ == "numberJoyWays") {
+             text = selectedItem->joyWays;
+-        }
+-        else if (type_ == "rating")
+-        {
++        } else if (type_ == "rating") {
+             text = selectedItem->rating;
+-        }
+-        else if (type_ == "score")
+-        {
++        } else if (type_ == "score") {
+             text = selectedItem->score;
+-        }
+-        else if (type_ == "year")
+-        {
++        } else if (type_ == "year") {
+             if (selectedItem->leaf) // item is a leaf
+-              text = selectedItem->year;
++                text = selectedItem->year;
+             else // item is a collection
+-              (void)config_.getProperty("collections." + selectedItem->name + ".year", text );
+-        }
+-        else if (type_ == "title")
+-        {
++                (void)config_.getProperty("collections." + selectedItem->name + ".year", text);
++        } else if (type_ == "title") {
+             text = selectedItem->title;
+-        }
+-        else if(type_ == "developer")
+-        {
++        } else if (type_ == "developer") {
+             text = selectedItem->developer;
+             // Overwrite in case developer has not been specified
+-            if (text == "")
+-            {
++            if (text == "") {
+                 text = selectedItem->manufacturer;
+             }
+-        }
+-        else if (type_ == "manufacturer")
+-        {
++        } else if (type_ == "manufacturer") {
+             if (selectedItem->leaf) // item is a leaf
+-              text = selectedItem->manufacturer;
++                text = selectedItem->manufacturer;
+             else // item is a collection
+-              (void)config_.getProperty("collections." + selectedItem->name + ".manufacturer", text );
+-        }
+-        else if (type_ == "genre")
+-        {
++                (void)config_.getProperty("collections." + selectedItem->name + ".manufacturer", text);
++        } else if (type_ == "genre") {
+             if (selectedItem->leaf) // item is a leaf
+-              text = selectedItem->genre;
++                text = selectedItem->genre;
+             else // item is a collection
+-              (void)config_.getProperty("collections." + selectedItem->name + ".genre", text );
+-        }
+-        else if (type_ == "playlist")
+-        {
++                (void)config_.getProperty("collections." + selectedItem->name + ".genre", text);
++        } else if (type_ == "playlist") {
+             text = playlistName;
+-        }
+-        else if (type_ == "firstLetter")
+-        {
+-          text = selectedItem->fullTitle.at(0);
+-        }
+-        else if (type_ == "collectionName")
+-        {
++        } else if (type_ == "firstLetter") {
++            if (!selectedItem->fullTitle.empty())
++                text = selectedItem->fullTitle.at(0);
++        } else if (type_ == "collectionName") {
+             text = page.getCollectionName();
+-        }
+-        else if (type_ == "collectionSize")
+-        {
+-            if (page.getCollectionSize() == 0)
+-            {
++        } else if (type_ == "collectionSize") {
++            if (page.getCollectionSize() == 0) {
+                 ss << singlePrefix_ << page.getCollectionSize() << pluralPostfix_;
+-            }
+-            else if (page.getCollectionSize() == 1)
+-            {
++            } else if (page.getCollectionSize() == 1) {
+                 ss << singlePrefix_ << page.getCollectionSize() << singlePostfix_;
+-            }
+-            else
+-            {
++            } else {
+                 ss << pluralPrefix_ << page.getCollectionSize() << pluralPostfix_;
+             }
+-        }
+-        else if (type_ == "collectionIndex")
+-        {
+-            if (page.getSelectedIndex() == 0)
+-            {
+-                ss << singlePrefix_ << (page.getSelectedIndex()+1) << pluralPostfix_;
+-            }
+-            else if (page.getSelectedIndex() == 1)
+-            {
+-                ss << singlePrefix_ << (page.getSelectedIndex()+1) << singlePostfix_;
+-            }
+-            else
+-            {
+-                ss << pluralPrefix_ << (page.getSelectedIndex()+1) << pluralPostfix_;
++        } else if (type_ == "collectionIndex") {
++            if (page.getSelectedIndex() == 0) {
++                ss << singlePrefix_ << (page.getSelectedIndex() + 1) << pluralPostfix_;
++            } else if (page.getSelectedIndex() == 1) {
++                ss << singlePrefix_ << (page.getSelectedIndex() + 1) << singlePostfix_;
++            } else {
++                ss << pluralPrefix_ << (page.getSelectedIndex() + 1) << pluralPostfix_;
++            }
++        } else if (type_ == "collectionIndexSize") {
++            if (page.getSelectedIndex() == 0) {
++                ss << singlePrefix_ << (page.getSelectedIndex() + 1) << "/" << page.getCollectionSize() << pluralPostfix_;
++            } else if (page.getSelectedIndex() == 1) {
++                ss << singlePrefix_ << (page.getSelectedIndex() + 1) << "/" << page.getCollectionSize() << singlePostfix_;
++            } else {
++                ss << pluralPrefix_ << (page.getSelectedIndex() + 1) << "/" << page.getCollectionSize() << pluralPostfix_;
+             }
++        } else if (!selectedItem->leaf) { // item is not a leaf
++            (void)config_.getProperty("collections." + selectedItem->name + "." + type_, text);
+         }
+-        else if (type_ == "collectionIndexSize")
+-        {
+-            if (page.getSelectedIndex() == 0)
+-            {
+-                ss << singlePrefix_ << (page.getSelectedIndex()+1) << "/" << page.getCollectionSize() << pluralPostfix_;
+-            }
+-            else if (page.getSelectedIndex() == 1)
+-            {
+-                ss << singlePrefix_ << (page.getSelectedIndex()+1) << "/" << page.getCollectionSize() << singlePostfix_;
+-            }
+-            else
+-            {
+-                ss << pluralPrefix_ << (page.getSelectedIndex()+1) << "/" << page.getCollectionSize() << pluralPostfix_;
+-            }
+-        }
+-        else if (!selectedItem->leaf) // item is not a leaf
+-        {
+-            (void)config_.getProperty("collections." + selectedItem->name + "." + type_, text );
+-        }
+-
+-        if (text == "0")
+-        {
++        
++        if (text == "0") {
+             text = singlePrefix_ + text + pluralPostfix_;
+-        }
+-        else if (text == "1")
+-        {
++        } else if (text == "1") {
+             text = singlePrefix_ + text + singlePostfix_;
+-        }
+-        else if (text != "")
+-        {
++        } else if (text != "") {
+             text = pluralPrefix_ + text + pluralPostfix_;
+         }
+-
+-        if (text != "")
+-        {
+-            if (textFormat_ == "uppercase")
+-            {
++        
++        if (text != "") {
++            if (textFormat_ == "uppercase") {
+                 std::transform(text.begin(), text.end(), text.begin(), ::toupper);
+             }
+-            if (textFormat_ == "lowercase")
+-            {
++            if (textFormat_ == "lowercase") {
+                 std::transform(text.begin(), text.end(), text.begin(), ::tolower);
+             }
+             ss << text;
+             text_.push_back(ss.str());
+         }
+     }
+-
+-    // Set scrolling needed by default
+-    needScrolling_ = true;
+-
+-    // For horizontal images, determine if text needs scrolling
+-    if (direction_ == "horizontal"){
+-        Font *font;
+-        if (baseViewInfo.font) // Use font of this specific item if available
+-            font = baseViewInfo.font;
+-        else                   // If not, use the general font settings
+-            font = fontInst_;
+-
+-	int imageWidth = 0, curLineWidth;
+-
+-	for (unsigned int l = 0; l < text_.size( ); ++l)
+-	{
+-	    curLineWidth = 0;
+-
+-	    for (unsigned int i = 0; i < text_[l].size( ); ++i)
+-	    {
+-	        Font::GlyphInfo glyph;
+-		if (font->getRect( text_[l][i], glyph ))
+-		{
+-		  if ( glyph.minX < 0 )
+-		  {
+-		      curLineWidth += glyph.minX;
+-		  }
+-
+-		  int char_width = static_cast<int>( glyph.rect.w?glyph.rect.w:glyph.advance );
+-		  curLineWidth += char_width;
+-
+-		  //printf("char=%c, char_width = %d, curLineWidth = %d\n", text_[l][i], char_width, curLineWidth);
+-		}
+-	    }
+-
+-	    imageWidth = (curLineWidth > imageWidth) ? curLineWidth : imageWidth;
+-	}
+-
+-        float imageMaxWidth  = 0;
+-        if (baseViewInfo.Width < baseViewInfo.MaxWidth && baseViewInfo.Width > 0)
+-        {
++    
++    // 渲染文本为表面
++    renderTextToSurface();
++    
++    // 确定是否需要滚动
++    if (renderedText_ && direction_ == "horizontal") {
++        float imageMaxWidth = 0;
++        if (baseViewInfo.Width < baseViewInfo.MaxWidth && baseViewInfo.Width > 0) {
+             imageMaxWidth = baseViewInfo.Width;
+-        }
+-        else
+-        {
++        } else {
+             imageMaxWidth = baseViewInfo.MaxWidth;
+         }
+-
+-        //printf("imageWidth * scaleX_ - currentPosition_ = %f, imageMaxWidth = %f\n", imageWidth * scaleX_ - currentPosition_, imageMaxWidth);
+-
+-	if ( imageWidth * scaleX_ - currentPosition_ <= imageMaxWidth )
+-	{
+-	    needScrolling_ = false;
+-	}
++        
++        float textWidth = renderedWidth_ * scaleX_;
++        float startPos = startPosition_ * scaleX_;
++        
++        if (textWidth - startPos <= imageMaxWidth) {
++            needScrolling_ = false;
++            currentPosition_ = 0;
++        } else {
++            needScrolling_ = true;
++        }
++    } else if (renderedText_ && direction_ == "vertical") {
++        float imageMaxHeight = 0;
++        if (baseViewInfo.Height < baseViewInfo.MaxHeight && baseViewInfo.Height > 0) {
++            imageMaxHeight = baseViewInfo.Height;
++        } else {
++            imageMaxHeight = baseViewInfo.MaxHeight;
++        }
++        
++        float textHeight = renderedHeight_ * scaleY_;
++        
++        if (textHeight <= imageMaxHeight) {
++            needScrolling_ = false;
++            currentPosition_ = 0;
++        } else {
++            needScrolling_ = true;
++        }
+     }
+ }
+ 
++void ReloadableScrollingText::renderTextToSurface()
++{
++    if (text_.empty()) return;
++    
++    Font* font = baseViewInfo.font ? baseViewInfo.font : fontInst_;
++    if (!font) return;
++    
++    std::string displayText;
++    
++    if (direction_ == "horizontal") {
++        displayText = text_[0];
++    } else {
++        for (size_t i = 0; i < text_.size(); ++i) {
++            if (i > 0) displayText += "\n";
++            displayText += text_[i];
++        }
++    }
++    
++    SDL_Surface* surface = font->renderText(displayText);
++    if (!surface) return;
++    
++    renderedText_ = surface;
++    renderedWidth_ = surface->w;
++    renderedHeight_ = surface->h;
++}
+ 
+-void ReloadableScrollingText::loadText( std::string collection, std::string type, std::string basename, std::string filepath, bool systemMode )
+-{
+ 
++void ReloadableScrollingText::loadText(std::string collection, std::string type, std::string basename, 
++                                        std::string filepath, bool systemMode)
++{
+     std::string textPath = "";
+-
++    
+     // check the system folder
+-    if (layoutMode_)
+-    {
++    if (layoutMode_) {
+         std::string layoutName;
+         config_.getProperty("layout", layoutName);
+-        textPath = Utils::combinePath(Configuration::isUserLayout_?Configuration::userPath:Configuration::absolutePath, "layouts", layoutName, "collections", collection);
++        textPath = Utils::combinePath(Configuration::isUserLayout_ ? Configuration::userPath : Configuration::absolutePath, 
++                                       "layouts", layoutName, "collections", collection);
+         if (systemMode)
+             textPath = Utils::combinePath(textPath, "system_artwork");
+         else
+             textPath = Utils::combinePath(textPath, "medium_artwork", type);
++    } else {
++        config_.getMediaPropertyAbsolutePath(collection, type, systemMode, textPath);
+     }
+-    else
+-    {
+-        config_.getMediaPropertyAbsolutePath( collection, type, systemMode, textPath );
+-    }
+-    if ( filepath != "" )
++    if (filepath != "")
+         textPath = filepath;
+-
+-    textPath = Utils::combinePath( textPath, basename );
+-
++    
++    textPath = Utils::combinePath(textPath, basename);
+     textPath += ".txt";
+-
+-    std::ifstream includeStream( textPath.c_str( ) );
+-
+-    if (!includeStream.good( ))
+-    {
++    
++    std::ifstream includeStream(textPath.c_str());
++    
++    if (!includeStream.good()) {
+         return;
+     }
+-
++    
+     std::string line;
+-
+-    while(std::getline(includeStream, line))
+-    {
+-        // In horizontal scrolling direction, add a space before every line except the first.
+-        if (direction_ == "horizontal" && !text_.empty( ))
+-        {
+-            line = " " + line;
+-        }
+-
++    
++    while (std::getline(includeStream, line)) {
+         // Reformat lines to uppercase or lowercase
+-        if (textFormat_ == "uppercase")
+-        {
++        if (textFormat_ == "uppercase") {
+             std::transform(line.begin(), line.end(), line.begin(), ::toupper);
+         }
+-        if (textFormat_ == "lowercase")
+-        {
++        if (textFormat_ == "lowercase") {
+             std::transform(line.begin(), line.end(), line.begin(), ::tolower);
+         }
+-
+-        text_.push_back( line );
+-
++        
++        text_.push_back(line);
+     }
+-
+-    return;
+-
+ }
+ 
+ 
+-void ReloadableScrollingText::draw( )
++void ReloadableScrollingText::draw()
+ {
+-    Component::draw( );
+-
+-    if (!text_.empty( ) && baseViewInfo.Alpha > 0.0f)
+-    {
+-
+-        Font *font;
+-        if (baseViewInfo.font) // Use font of this specific item if available
+-          font = baseViewInfo.font;
+-        else                   // If not, use the general font settings
+-          font = fontInst_;
+-
+-        SDL_Surface *t = font->getTexture( );
+-
+-        float imageHeight = 0;
+-        float imageWidth     = 0;
+-        float imageMaxWidth  = 0;
+-        float imageMaxHeight = 0;
+-        if (baseViewInfo.Width < baseViewInfo.MaxWidth && baseViewInfo.Width > 0)
+-        {
+-            imageMaxWidth = baseViewInfo.Width;
+-        }
+-        else
+-        {
+-            imageMaxWidth = baseViewInfo.MaxWidth;
+-        }
+-        if (baseViewInfo.Height < baseViewInfo.MaxHeight && baseViewInfo.Height > 0)
+-        {
+-            imageMaxHeight = baseViewInfo.Height;
+-        }
+-        else
+-        {
+-            imageMaxHeight = baseViewInfo.MaxHeight;
+-        }
+-
+-        imageHeight = (float)font->getHeight( );
+-
+-        //float scale = (float)baseViewInfo.FontSize / (float)font->getHeight( ) / scaleY_;
+-        //TODO, modify for scaling - for now, no scaling in effect
+-        float scale = 1.0f;
+-
+-
+-        // Horizontal mode only:
+-        // Compute image width that fits inside the the container width to get the origin position
+-        if (direction_ == "horizontal")
+-        {
+-	    for ( unsigned int i = 0; i < text_[0].size( ); ++i )
+-	    {
+-	        Font::GlyphInfo glyph;
+-		if ( font->getRect( text_[0][i], glyph ) )
+-		{
+-		    if ( glyph.minX < 0 )
+-		    {
+-		        imageWidth += glyph.minX;
+-		    }
+-
+-                    int char_width = static_cast<int>( glyph.rect.w?glyph.rect.w:glyph.advance );
+-
+-		    if ( (imageWidth + char_width) * scale * scaleX_ > imageMaxWidth )
+-		    {
+-		        break;
+-		    }
+-		    imageWidth  += char_width;
+-
+-		    /*printf("textData_[%d]=%c, glyph.advance= %f - %d\n", i, textData_[i], glyph.advance, glyph.advance);
+-		      printf("imageWidth=%f \n", imageWidth);*/
+-		}
+-		else{
+-		    /*std::stringstream ss;
+-		      ss << "Could not find Glyph info for char: " << textData_[i];
+-		      Logger::write(Logger::ZONE_WARNING, "Text", ss.str());*/
+-		}
+-	    }
+-        }
+-
+-        float oldWidth       = baseViewInfo.Width;
+-        float oldHeight      = baseViewInfo.Height;
+-        float oldImageWidth  = baseViewInfo.ImageHeight;
+-        float oldImageHeight = baseViewInfo.ImageWidth;
+-
+-        baseViewInfo.Width       = imageWidth*scale;
+-        baseViewInfo.Height      = baseViewInfo.FontSize;
+-        baseViewInfo.ImageWidth  = imageWidth;
+-        baseViewInfo.ImageHeight = imageHeight;
+-
+-        float xOrigin = baseViewInfo.XRelativeToOrigin( );
+-        float yOrigin = baseViewInfo.YRelativeToOrigin( );
+-        //printf("IN SCROLLABLE_TEXT - xOrigin=%f, yOrigin=%f, imageWidth=%f\n", xOrigin, yOrigin, imageWidth);
+-
+-        baseViewInfo.Width       = oldWidth;
+-        baseViewInfo.Height      = oldHeight;
+-        baseViewInfo.ImageWidth  = oldImageWidth;
+-        baseViewInfo.ImageHeight = oldImageHeight;
+-
+-
+-
+-
+-        SDL_Rect rect;
+-        float position = 0.0f;
+-
+-        if (direction_ == "horizontal")
+-        {
+-
+-            rect.x = static_cast<int>( xOrigin );
+-
+-            if (currentPosition_ < 0)
+-            {
+-                rect.x -= static_cast<int>( currentPosition_ );
+-            }
+-
+-            for (unsigned int l = 0; l < text_.size( ); ++l)
+-            {
+-                for (unsigned int i = 0; i < text_[l].size( ); ++i)
+-                {
+-
+-                    // Do not print outside the box
+-                    if (rect.x >= (static_cast<int>( xOrigin ) + imageMaxWidth))
+-                    {
+-                        break;
+-                    }
+-
+-                    Font::GlyphInfo glyph;
+-
+-                    //printf("text_[%d][%d] = %c, 0x%02X\n", l, i, text_[l][i], text_[l][i]);
+-
+-                    //if (font->getRect( text_[l][i], glyph) && glyph.rect.h > 0)
+-                    if (font->getRect( text_[l][i], glyph))
+-                    {
+-                        SDL_Rect charRect = glyph.rect;
+-                        rect.h  = static_cast<int>( charRect.h * scale * scaleY_ );
+-                        int char_width = static_cast<int>( charRect.w?charRect.w:glyph.advance );
+-                        rect.w  = static_cast<int>( char_width * scale * scaleX_ );
+-                        rect.y  = static_cast<int>( yOrigin );
+-
+-                        /*if (font->getAscent( ) < glyph.maxY)
+-                        {
+-                            rect.y += static_cast<int>( (font->getAscent( ) - glyph.maxY) * scale * scaleY_ );
+-                        }*/
+-                        rect.y += static_cast<int>( (font->getAscent( ) - glyph.maxY) * scale * scaleY_ );
+-
+-                        // Check if glyph falls partially outside the box at the back end
+-                        if ((rect.x + static_cast<int>( char_width * scale * scaleX_ )) >= (static_cast<int>( xOrigin ) + imageMaxWidth))
+-                        {
+-                            rect.w     = static_cast<int>( xOrigin ) + static_cast<int>( imageMaxWidth ) - rect.x;
+-                            charRect.w = static_cast<int>( rect.w / scale / scaleX_ );
+-                        }
+-
+-                        // Print the glyph if it falls (partially) within the box
+-                        if ( position + char_width * scale * scaleX_ > currentPosition_ )
+-                        {
+-                            // Check if glyph falls partially outside the box at the front end
+-                            if ( position < currentPosition_ )
+-                            {
+-                                rect.w     = static_cast<int>( char_width * scale * scaleX_ + position - currentPosition_ );
+-                                charRect.x = static_cast<int>( charRect.x + charRect.w - rect.w / scale / scaleX_ );
+-                                charRect.w = static_cast<int>( rect.w / scale / scaleX_ );
+-                            }
+-                            if (rect.w > 0)
+-                            {
+-                                SDL::renderCopy(t, baseViewInfo.Alpha, &charRect, &rect, baseViewInfo);
+-                                rect.x += rect.w;
+-                            }
+-                            else if ((rect.x + static_cast<int>( char_width * scale * scaleX_ )) >= (static_cast<int>( xOrigin ) + imageMaxWidth))
+-                            {
+-                                rect.x = static_cast<int>( xOrigin ) + static_cast<int>( imageMaxWidth ) + 10; // Stop handling the rest of the string
+-                            }
+-                            /*else{
+-			        rect.x += glyph.advance * scale * scaleX_;
+-                            }*/
+-                        }
+-                        position += char_width * scale * scaleX_;
+-
+-                    }
+-                }
+-            }
+-
+-            // Scrolling process
+-            if(needScrolling_){
+-
+-	        // Determine image width
+-	        int imageWidth = 0, curLineWidth, char_width;
+-
+-		for (unsigned int l = 0; l < text_.size( ); ++l)
+-		{
+-		    curLineWidth = 0;
+-
+-		    for (unsigned int i = 0; i < text_[l].size( ); ++i)
+-		    {
+-		        Font::GlyphInfo glyph;
+-			if (font->getRect( text_[l][i], glyph ))
+-			{
+-			    if ( glyph.minX < 0 )
+-			    {
+-			        curLineWidth += glyph.minX;
+-			    }
+-
+-			    char_width = static_cast<int>( glyph.rect.w?glyph.rect.w:glyph.advance );
+-			    curLineWidth += char_width;
+-			}
+-		    }
+-
+-		    imageWidth = (curLineWidth > imageWidth) ? curLineWidth : imageWidth;
+-		}
+-
+-		// Add right padding of one char width
+-		imageWidth += char_width;
+-
+-		//printf("in Draw imageWidth * scaleX_ - currentPosition_ = %f, imageMaxWidth = %f\n", imageWidth * scaleX_ - currentPosition_, imageMaxWidth);
+-
+-		// Reset scrolling position when we're done
+-		if (scrollForward_ &&
+-		    waitStartTime_ <= 0 &&
+-		    imageWidth * scale * scaleX_ - currentPosition_ <= imageMaxWidth)
+-		{
+-		    waitEndTime_     = endTime_;
+-		    scrollForward_ = false;
+-		    needRender_ = true;
+-		}
+-		else if(!scrollForward_ &&
+-			waitEndTime_ <= 0 &&
+-			currentPosition_ <= -startPosition_ * scaleX_)
+-		{
+-		  waitStartTime_   = startTime_;
+-		  currentPosition_ = -startPosition_ * scaleX_;
+-		  scrollForward_ = true;
+-		  needRender_ = true;
+-		}
+-            }
+-        }
+-        else if (direction_ == "vertical")
+-        {
+-
+-            unsigned int spaceWidth = 0;
+-            {
+-                Font::GlyphInfo glyph;
+-                if (font->getRect( ' ', glyph) )
+-                {
+-                    spaceWidth = static_cast<int>( glyph.advance * scale * scaleX_);
+-                }
+-            }
+-
+-            // Reformat the text based on the image width
+-            std::vector<std::string>  text;
+-            std::vector<unsigned int> textWords;
+-            std::vector<unsigned int> textWidth;
+-            std::vector<bool>         textLast;
+-            for (unsigned int l = 0; l < text_.size( ); ++l)
+-            {
+-                std::string        line = "";
+-                std::istringstream iss(text_[l]);
+-                std::string        word;
+-                unsigned int       width     = 0;
+-                unsigned int       lineWidth = 0;
+-                unsigned int       wordCount = 0;
+-                while (iss >> word)
+-                {
+-
+-                    // Determine word image width
+-                    unsigned int wordWidth = 0;
+-                    for (unsigned int i = 0; i < word.size( ); ++i)
+-                    {
+-                        Font::GlyphInfo glyph;
+-                        if (font->getRect( word[i], glyph) )
+-                        {
+-                            wordWidth += static_cast<int>( glyph.advance * scale * scaleX_ );
+-                        }
+-                    }
+-                    // Determine if the word will fit on the line
+-                    if (width > 0 && (width + spaceWidth + wordWidth > imageMaxWidth))
+-                    {
+-                        text.push_back( line );
+-                        textWords.push_back( wordCount );
+-                        textWidth.push_back( lineWidth );
+-                        textLast.push_back( false );
+-                        line      = word;
+-                        width     = wordWidth;
+-                        lineWidth = wordWidth;
+-                        wordCount = 1;
+-                    }
+-                    else
+-                    {
+-                        if (width == 0)
+-                        {
+-                            line  += word;
+-                            width += wordWidth;
+-                        }
+-                        else
+-                        {
+-                            line  += " " + word;
+-                            width += spaceWidth + wordWidth;
+-                        }
+-                        lineWidth += wordWidth;
+-                        wordCount += 1;
+-                    }
+-                }
+-                if (text_[l] == "" || line != "")
+-                {
+-                    text.push_back( line );
+-                    textWords.push_back( wordCount );
+-                    textWidth.push_back( lineWidth );
+-                    textLast.push_back( true );
+-                    width     = 0;
+-                    lineWidth = 0;
+-                    wordCount = 0;
+-                }
+-            }
+-
+-
+-            // Print reformatted text
+-            rect.y = static_cast<int>( yOrigin );
+-
+-            if (currentPosition_ < 0)
+-            {
+-                rect.y -= static_cast<int>( currentPosition_ );
+-            }
+-
+-            // Do not scroll if the text fits fully inside the box, and start position is 0
+-            if (text.size() * font->getHeight( ) * scale * scaleY_ <= imageMaxHeight && startPosition_ == 0.0f)
+-            {
+-                currentPosition_ = 0.0f;
+-                waitStartTime_   = 0.0f;
+-                waitEndTime_     = 0.0f;
+-            }
+-
+-            for (unsigned int l = 0; l < text.size( ); ++l)
+-            {
+-
+-                // Do not print outside the box
+-                if (rect.y >= (static_cast<int>( yOrigin ) + imageMaxHeight))
+-                {
+-                    break;
+-                }
+-
+-                // Define x coordinate
+-                rect.x = static_cast<int>( xOrigin );
+-                if (alignment_ == "right")
+-                {
+-                    rect.x = static_cast<int>( xOrigin + imageMaxWidth - textWidth[l] - (textWords[l] - 1) * spaceWidth * scale * scaleX_ );
+-                }
+-                if (alignment_ == "centered")
+-                {
+-                    rect.x = static_cast<int>( xOrigin + imageMaxWidth / 2 - textWidth[l] / 2 - (textWords[l] - 1) * spaceWidth * scale * scaleX_ / 2 );
+-                }
+-
+-                std::istringstream iss(text[l]);
+-                std::string        word;
+-                unsigned int       wordCount = textWords[l];
+-                unsigned int       spaceFill = static_cast<int>( imageMaxWidth ) - textWidth[l];
+-                unsigned int       yAdvance  = static_cast<int>( font->getHeight( ) * scale * scaleY_ );
+-                while (iss >> word)
+-                {
+-
+-                    for (unsigned int i = 0; i < word.size( ); ++i)
+-                    {
+-                        Font::GlyphInfo glyph;
+-
+-                        //if (font->getRect( word[i], glyph) && glyph.rect.h > 0)
+-                        if (font->getRect( word[i], glyph))
+-                        {
+-                            SDL_Rect charRect = glyph.rect;
+-                            rect.h   = static_cast<int>( charRect.h * scale * scaleY_ );
+-                            rect.w   = static_cast<int>( charRect.w * scale * scaleX_ );
+-                            yAdvance = static_cast<int>( font->getHeight( ) * scale * scaleY_ );
+-
+-                            // Check if glyph falls partially outside the box at the bottom end
+-                            if ((rect.y + rect.h) >= (static_cast<int>( yOrigin ) + imageMaxHeight))
+-                            {
+-                                rect.h     = static_cast<int>( yOrigin ) + static_cast<int>( imageMaxHeight ) - rect.y;
+-                                charRect.h = static_cast<int>( rect.h / scale / scaleY_ );
+-                            }
+-
+-                            // Print the glyph if it falls (partially) within the box
+-                            if ( position + font->getHeight( ) * scale * scaleY_ > currentPosition_ )
+-                            {
+-                                // Check if glyph falls partially outside the box at the front end
+-                                if ( position < currentPosition_ )
+-                                {
+-                                    yAdvance  -= rect.h - static_cast<int>( font->getHeight( ) * scale * scaleX_ + position - currentPosition_ );
+-                                    rect.h     = static_cast<int>( font->getHeight( ) * scale * scaleX_ + position - currentPosition_ );
+-                                    charRect.y = static_cast<int>( charRect.y + charRect.h - rect.h / scale / scaleX_ );
+-                                    charRect.h = static_cast<int>( rect.h / scale / scaleX_ );
+-                                }
+-                                if (rect.h > 0)
+-                                {
+-                                    SDL::renderCopy(t, baseViewInfo.Alpha, &charRect, &rect, baseViewInfo);
+-                                }
+-                            }
+-                            rect.x += static_cast<int>( glyph.advance * scale * scaleX_ );
+-                        }
+-                    }
+-
+-                    // Print justified
+-                    wordCount -= 1;
+-                    if (wordCount > 0 && !textLast[l] && alignment_ == "justified")
+-                    {
+-                        unsigned int advance = static_cast<int>( spaceFill / wordCount );
+-                        spaceFill -= advance;
+-                        rect.x    += advance;
+-                    }
+-                    else
+-                    {
+-                        rect.x += static_cast<int>( spaceWidth );
+-                    }
+-                }
+-
+-                // Handle scrolling of empty lines
+-                if (text[l] == "")
+-                {
+-                    Font::GlyphInfo glyph;
+-
+-                    if (font->getRect( ' ', glyph) && glyph.rect.h > 0)
+-                    {
+-                        rect.h   = static_cast<int>( glyph.rect.h * scale * scaleY_ );
+-
+-                        // Check if the glyph falls (partially) within the box at the front end
+-                        if ((position + font->getHeight( ) * scale * scaleY_ > currentPosition_) &&
+-                            (position < currentPosition_))
+-                        {
+-                            yAdvance  -= rect.h - static_cast<int>( font->getHeight( ) * scale * scaleX_ + position - currentPosition_ );
+-                        }
+-                    }
+-                }
+-
+-                if ( position + font->getHeight( ) * scale * scaleY_ > currentPosition_ )
+-                {
+-                    rect.y += yAdvance;
+-                }
+-                position += font->getHeight( ) * scale * scaleY_;
+-
+-            }
+-
+-            // Reset scrolling position when we're done
+-            if (currentPosition_ > text.size( ) * font->getHeight( ) * scale * scaleX_)
+-            {
+-                waitStartTime_   = startTime_;
+-                waitEndTime_     = endTime_;
+-                currentPosition_ = -startPosition_ * scaleY_;
+-            }
+-
+-        }
++    Component::draw();
++    
++    if (!renderedText_ || baseViewInfo.Alpha <= 0.0f) {
++        return;
+     }
+-}
+-
+-bool ReloadableScrollingText::mustRender(  )
+-{
+-    if ( Component::mustRender(  ) ) return true;
+-
+-    if (!text_.empty( ) && baseViewInfo.Alpha > 0.0f && needRender_)
+-    {
++    
++    Font* font = baseViewInfo.font ? baseViewInfo.font : fontInst_;
++    if (!font) return;
++    
++    // 获取显示区域大小
++    float imageMaxWidth = 0;
++    float imageMaxHeight = 0;
++    
++    if (baseViewInfo.Width < baseViewInfo.MaxWidth && baseViewInfo.Width > 0) {
++        imageMaxWidth = baseViewInfo.Width;
++    } else {
++        imageMaxWidth = baseViewInfo.MaxWidth;
++    }
++    
++    if (baseViewInfo.Height < baseViewInfo.MaxHeight && baseViewInfo.Height > 0) {
++        imageMaxHeight = baseViewInfo.Height;
++    } else {
++        imageMaxHeight = baseViewInfo.MaxHeight;
++    }
++    
++    float xOrigin = baseViewInfo.XRelativeToOrigin();
++    float yOrigin = baseViewInfo.YRelativeToOrigin();
++    
++    if (direction_ == "horizontal") {
++        // 水平滚动：只显示可见部分
++        float textWidth = renderedWidth_ * scaleX_;
++        
++        // 计算源矩形
++        SDL_Rect srcRect;
++        srcRect.x = static_cast<int>(currentPosition_ / scaleX_);
++        if (srcRect.x < 0) srcRect.x = 0;
++        if (srcRect.x >= renderedWidth_) return;
++        
++        srcRect.y = 0;
++        srcRect.w = static_cast<int>(imageMaxWidth / scaleX_);
++        if (srcRect.x + srcRect.w > renderedWidth_) {
++            srcRect.w = renderedWidth_ - srcRect.x;
++        }
++        srcRect.h = renderedHeight_;
++        
++        // 计算目标矩形
++        SDL_Rect destRect;
++        destRect.w = static_cast<int>(srcRect.w * scaleX_);
++        destRect.h = static_cast<int>(srcRect.h * scaleY_);
++        destRect.x = static_cast<int>(xOrigin) - destRect.w / 2;
++        destRect.y = static_cast<int>(yOrigin) + destRect.h / 2;
++        
++        // 渲染
++        SDL::renderCopy(renderedText_, baseViewInfo.Alpha, &srcRect, &destRect, baseViewInfo);
++        
++        // 滚动位置更新
++        if (needScrolling_) {
++            float textEnd = textWidth - currentPosition_;
++            
++            // 重置滚动位置
++            if (scrollForward_ && waitStartTime_ <= 0 && textEnd <= imageMaxWidth) {
++                waitEndTime_ = endTime_;
++                scrollForward_ = false;
++                needRender_ = true;
++            } else if (!scrollForward_ && waitEndTime_ <= 0 && currentPosition_ <= -startPosition_ * scaleX_) {
++                waitStartTime_ = startTime_;
++                currentPosition_ = -startPosition_ * scaleX_;
++                scrollForward_ = true;
++                needRender_ = true;
++            }
++        }
++        
++    } else if (direction_ == "vertical") {
++        // 垂直滚动
++        float textHeight = renderedHeight_ * scaleY_;
++        
++        // 计算源矩形
++        SDL_Rect srcRect;
++        srcRect.x = 0;
++        srcRect.y = static_cast<int>(currentPosition_ / scaleY_);
++        if (srcRect.y < 0) srcRect.y = 0;
++        if (srcRect.y >= renderedHeight_) return;
++        
++        srcRect.w = renderedWidth_;
++        srcRect.h = static_cast<int>(imageMaxHeight / scaleY_);
++        if (srcRect.y + srcRect.h > renderedHeight_) {
++            srcRect.h = renderedHeight_ - srcRect.y;
++        }
++        
++        // 计算目标矩形
++        SDL_Rect destRect;
++        destRect.x = static_cast<int>(xOrigin);
++        destRect.y = static_cast<int>(yOrigin);
++        destRect.w = static_cast<int>(srcRect.w * scaleX_);
++        destRect.h = static_cast<int>(srcRect.h * scaleY_);
++        
++        // 渲染
++        SDL::renderCopy(renderedText_, baseViewInfo.Alpha, &srcRect, &destRect, baseViewInfo);
++        
++        // 重置滚动位置
++        if (needScrolling_ && currentPosition_ > textHeight - imageMaxHeight) {
++            waitStartTime_ = startTime_;
++            waitEndTime_ = endTime_;
++            currentPosition_ = -startPosition_ * scaleY_;
++        }
++    }
++}
++
++bool ReloadableScrollingText::mustRender()
++{
++    if (Component::mustRender()) return true;
++    
++    if (renderedText_ && baseViewInfo.Alpha > 0.0f && needRender_) {
+         needRender_ = false;
+-	return true;
++        return true;
+     }
+-
++    
+     return false;
+ }
+diff -uprN a/RetroFE/Source/Graphics/Component/ReloadableScrollingText.h b/RetroFE/Source/Graphics/Component/ReloadableScrollingText.h
+--- a/RetroFE/Source/Graphics/Component/ReloadableScrollingText.h	2026-04-07 19:53:49.948006272 +0800
++++ b/RetroFE/Source/Graphics/Component/ReloadableScrollingText.h	2026-04-08 19:11:19.882065521 +0800
+@@ -38,6 +38,7 @@ private:
+     void reloadTexture( );
+     void reloadTexture( bool previousItem );
+     void loadText( std::string collection, std::string type, std::string basename, std::string filepath, bool systemMode );
++    void renderTextToSurface();  // 新增：渲染文本到表面
+     Configuration           &config_;
+     bool                     systemMode_;
+     bool                     layoutMode_;
+@@ -67,4 +68,8 @@ private:
+     bool                     scrollForward_;
+     bool                     needScrolling_;
+     bool                     needRender_;
++    
++    SDL_Surface*             renderedText_;   // 预渲染的文本表面
++    int                      renderedWidth_;  // 渲染宽度
++    int                      renderedHeight_; // 渲染高度
+ };
+diff -uprN a/RetroFE/Source/Graphics/Component/ScrollingList.cpp b/RetroFE/Source/Graphics/Component/ScrollingList.cpp
+--- a/RetroFE/Source/Graphics/Component/ScrollingList.cpp	2026-04-07 20:24:28.558008571 +0800
++++ b/RetroFE/Source/Graphics/Component/ScrollingList.cpp	2026-04-09 20:44:05.470039341 +0800
+@@ -734,7 +734,7 @@ bool ScrollingList::allocateTexture( uns
+ 
+     if ( !t )
+     {
+-        t = new Text(item->title, page, fontInst_, scaleX_, scaleY_ );
++        t = new Component(page);
+     }
+ 
+     if ( t )
+diff -uprN a/RetroFE/Source/Graphics/Component/Text.cpp b/RetroFE/Source/Graphics/Component/Text.cpp
+--- a/RetroFE/Source/Graphics/Component/Text.cpp	2026-04-06 18:51:22.095553526 +0800
++++ b/RetroFE/Source/Graphics/Component/Text.cpp	2026-04-09 20:20:20.440037559 +0800
+@@ -1,192 +1,109 @@
+-/* This file is part of RetroFE.
+- *
+- * RetroFE is free software: you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation, either version 3 of the License, or
+- * (at your option) any later version.
+- *
+- * RetroFE is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with RetroFE.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-
+-#include "Text.h"
+-#include "../../Utility/Log.h"
+-#include "../../SDL.h"
+-#include "../Font.h"
+-#include <sstream>
+-
+-
+-Text::Text( std::string text, Page &p, Font *font, float scaleX, float scaleY )
+-    : Component(p)
+-    , textData_(text)
+-    , fontInst_(font)
+-    , scaleX_(scaleX)
+-    , scaleY_(scaleY)
+-{
+-    allocateGraphicsMemory( );
+-}
+-
+-Text::~Text( )
+-{
+-    freeGraphicsMemory( );
+-    textData_.clear();
+-}
+-
+-void Text::freeGraphicsMemory( )
+-{
+-    Component::freeGraphicsMemory( );
+-    textData_.clear();
+-}
+-
+-void Text::allocateGraphicsMemory( )
+-{
+-    Component::allocateGraphicsMemory( );
+-}
+-
+-void Text::deInitializeFonts( )
+-{
+-    fontInst_->deInitialize( );
+-}
+-
+-void Text::initializeFonts( )
+-{
+-    fontInst_->initialize( );
+-}
+-
+-void Text::setText( std::string text, int id )
+-{
+-    if ( getId( ) == id )
+-        textData_ = text;
+-}
+-
+-void Text::draw( )
+-{
+-    Component::draw( );
+-
+-    Font *font;
+-    if ( baseViewInfo.font ) // Use font of this specific item if available
+-      font = baseViewInfo.font;
+-    else                     // If not, use the general font settings
+-      font = fontInst_;
+-
+-    //SDL_Texture *t = font->getTexture( );
+-    SDL_Surface *t = font->getTexture( );
+-
+-    float imageHeight = 0;
+-    float imageWidth = 0;
+-    float imageMaxWidth = 0;
+-    if (baseViewInfo.Width < baseViewInfo.MaxWidth && baseViewInfo.Width > 0)
+-    {
+-        imageMaxWidth = baseViewInfo.Width;
+-    }
+-    else
+-    {
+-        imageMaxWidth = baseViewInfo.MaxWidth;
+-    }
+-
+-    imageHeight = (float)font->getHeight( );
+-    //float scale = (float)baseViewInfo.FontSize / (float)imageHeight;
+-
+-    //TODO, modify for scaling - for now, no scaling in effect
+-    float scale = 1.0f;
+-
+-    /*printf("\n");
+-    printf("imageMaxWidth=%f, imageHeight=%f, baseViewInfo.FontSize=%f,scale=%f\n", imageMaxWidth, imageHeight, baseViewInfo.FontSize, scale);
+-*/
+-    unsigned int textIndexMax = 0;
+-
+-    // determine image width
+-    for ( unsigned int i = 0; i < textData_.size( ); ++i )
+-    {
+-        Font::GlyphInfo glyph;
+-        if ( font->getRect( textData_[i], glyph ) )
+-        {
+-            SDL_Rect charRect = glyph.rect;
+-            //charRect.w  = static_cast<int>( glyph.advance );
+-            charRect.w  = static_cast<int>( glyph.rect.w?glyph.rect.w:glyph.advance );
+-
+-            if ( glyph.minX < 0 )
+-            {
+-                imageWidth += glyph.minX;
+-            }
+-
+-            if ( (imageWidth + charRect.w)*scale > imageMaxWidth )
+-            {
+-                break;
+-            }
+-
+-            textIndexMax = i;
+-            imageWidth  += charRect.w;
+-
+-            /*printf("textData_[%d]=%c, glyph.advance= %f - %d\n", i, textData_[i], glyph.advance, glyph.advance);
+-            printf("imageWidth=%f \n", imageWidth);*/
+-        }
+-        else{
+-	    /*std::stringstream ss;
+-	      ss << "Could not find Glyph info for char: " << textData_[i];
+-	      Logger::write(Logger::ZONE_WARNING, "Text", ss.str());*/
+-        }
+-    }
+-
+-    float oldWidth       = baseViewInfo.Width;
+-    float oldHeight      = baseViewInfo.Height;
+-    float oldImageWidth  = baseViewInfo.ImageHeight;
+-    float oldImageHeight = baseViewInfo.ImageWidth;
+-
+-    baseViewInfo.Width       = imageWidth*scale;
+-    baseViewInfo.Height      = baseViewInfo.FontSize;
+-    baseViewInfo.ImageWidth  = imageWidth;
+-    baseViewInfo.ImageHeight = imageHeight;
+-
+-    float xOrigin = baseViewInfo.XRelativeToOrigin( );
+-    float yOrigin = baseViewInfo.YRelativeToOrigin( );
+-
+-    //printf("IN TEXT %s - xOrigin=%f, yOrigin=%f\n",textData_.c_str(), xOrigin, yOrigin);
+-
+-    baseViewInfo.Width       = oldWidth;
+-    baseViewInfo.Height      = oldHeight;
+-    baseViewInfo.ImageWidth  = oldImageWidth;
+-    baseViewInfo.ImageHeight = oldImageHeight;
+-
+-
+-    SDL_Rect rect;
+-    rect.x = static_cast<int>( xOrigin );
+-
+-    for ( unsigned int i = 0; i <= textIndexMax; ++i )
+-    {
+-        Font::GlyphInfo glyph;
+-
+-        //if ( font->getRect(textData_[i], glyph) && glyph.rect.h > 0 ) 	// Not working in SDL1.2 because glyph.rect.h = 0 for spaces
+-        if ( font->getRect(textData_[i], glyph))
+-        {
+-            SDL_Rect charRect = glyph.rect;
+-            float h = static_cast<float>( charRect.h * scale );
+-            float w = static_cast<float>( (charRect.w?charRect.w:glyph.advance) * scale );
+-            rect.h = static_cast<int>( h );
+-            rect.w = static_cast<int>( w );
+-            rect.y = static_cast<int>( yOrigin );
+-
+-            if(glyph.minX < 0)
+-            {
+-                rect.x += static_cast<int>( (float)(glyph.minX) * scale );
+-            }
+-            /*if ( font->getAscent( ) < glyph.maxY )
+-            {
+-                rect.y += static_cast<int>( (font->getAscent( ) - glyph.maxY)*scale );
+-            }*/
+-
+-            /*printf("font->getAscent( ) = %d, glyph.maxY : %d\n", font->getAscent( ), glyph.maxY );*/
+-            rect.y += static_cast<int>( (font->getAscent( ) - glyph.maxY)*scale );
+-
+-            SDL::renderCopy( t, baseViewInfo.Alpha, &charRect, &rect, baseViewInfo );
+-
+-            rect.x += rect.w;
+-        }
+-    }
+-}
++/* This file is part of RetroFE.
++ *
++ * RetroFE is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * RetroFE is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with RetroFE.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++
++#include "Text.h"
++#include "../../Utility/Log.h"
++#include "../../SDL.h"
++#include "../Font.h"
++#include <sstream>
++
++
++Text::Text( std::string text, Page &p, Font *font, float scaleX, float scaleY )
++    : Component(p)
++    , textData_(text)
++    , fontInst_(font)
++    , scaleX_(scaleX)
++    , scaleY_(scaleY)
++    , renderedText_(NULL)
++{
++    allocateGraphicsMemory( );
++}
++
++Text::~Text( )
++{
++    freeGraphicsMemory( );
++    textData_.clear();
++}
++
++void Text::freeGraphicsMemory( )
++{
++    Component::freeGraphicsMemory( );
++    if (renderedText_) {
++        SDL_FreeSurface(renderedText_);
++        renderedText_ = NULL;
++    }
++    textData_.clear();
++}
++
++void Text::allocateGraphicsMemory( )
++{
++    Component::allocateGraphicsMemory( );
++    renderTextToSurface();
++}
++
++void Text::deInitializeFonts( )
++{
++    fontInst_->deInitialize( );
++}
++
++void Text::initializeFonts( )
++{
++    fontInst_->initialize( );
++    renderTextToSurface();
++}
++
++void Text::setText( std::string text, int id )
++{
++    if ( getId( ) == id ) {
++        textData_ = text;
++        renderTextToSurface();
++    }
++}
++
++void Text::renderTextToSurface()
++{
++    if (renderedText_) {
++        SDL_FreeSurface(renderedText_);
++        renderedText_ = NULL;
++    }
++    
++    if (textData_.empty()) return;
++    
++    Font* font = baseViewInfo.font ? baseViewInfo.font : fontInst_;
++    if (!font) return;
++    
++    renderedText_ = font->renderText(textData_);
++}
++
++void Text::draw( )
++{
++    Component::draw( );
++
++    if (!renderedText_ || baseViewInfo.Alpha <= 0.0f) return;
++    
++    float scale = 1.0f;
++    float xOrigin = baseViewInfo.XRelativeToOrigin();
++    float yOrigin = baseViewInfo.YRelativeToOrigin();
++    
++    SDL_Rect destRect;
++    destRect.w = static_cast<int>(renderedText_->w * scaleX_);
++    destRect.h = static_cast<int>(renderedText_->h * scaleY_);
++    destRect.x = (static_cast<int>(xOrigin) > destRect.w / 2) ? (static_cast<int>(xOrigin) - destRect.w / 2) : static_cast<int>(xOrigin);
++    destRect.y = (static_cast<int>(yOrigin) > destRect.h / 2) ? (static_cast<int>(yOrigin) - destRect.h / 2) : static_cast<int>(yOrigin);
++    
++    SDL::renderCopy(renderedText_, baseViewInfo.Alpha, NULL, &destRect, baseViewInfo);
++}
+diff -uprN a/RetroFE/Source/Graphics/Component/Text.h b/RetroFE/Source/Graphics/Component/Text.h
+--- a/RetroFE/Source/Graphics/Component/Text.h	2026-04-07 19:55:46.778006418 +0800
++++ b/RetroFE/Source/Graphics/Component/Text.h	2026-04-08 13:17:16.647497103 +0800
+@@ -43,4 +43,7 @@ private:
+     Font       *fontInst_;
+     float       scaleX_;
+     float       scaleY_;
++    
++    void renderTextToSurface();
++    SDL_Surface* renderedText_;
+ };
+diff -uprN a/RetroFE/Source/Graphics/Font.cpp b/RetroFE/Source/Graphics/Font.cpp
+--- a/RetroFE/Source/Graphics/Font.cpp	2026-04-06 18:05:00.135546717 +0800
++++ b/RetroFE/Source/Graphics/Font.cpp	2026-04-08 19:09:46.332065292 +0800
+@@ -21,6 +21,8 @@
+ //#include <SDL/SDL_gfxBlitFunc.h>
+ #include <cstdio>
+ #include <cstring>
++#include <vector>
++#include <set>
+ 
+ Font::Font(std::string fontPath, int fontSize, SDL_Color color)
+     : texture(NULL)
+@@ -35,11 +37,6 @@ Font::~Font()
+     deInitialize();
+ }
+ 
+-SDL_Surface *Font::getTexture()
+-{
+-    return texture;
+-}
+-
+ int Font::getHeight()
+ {
+     return height;
+@@ -48,148 +45,46 @@ int Font::getAscent()
+ {
+     return ascent;
+ }
+-bool Font::getRect(unsigned int charCode, GlyphInfo &glyph)
+-{
+-    std::map<unsigned int, GlyphInfoBuild *>::iterator it = atlas.find(charCode);
+-
+-    if(it != atlas.end())
+-    {
+-        GlyphInfoBuild *info = it->second;
+-
+-        glyph = info->glyph;
+ 
+-        return true;
++SDL_Surface* Font::renderText(const std::string& text)
++{
++    if (!font_ || text.empty()) {
++        return NULL;
+     }
+-
+-    return false;
++    
++    // 直接渲染整个文本
++    SDL_Surface* surface = TTF_RenderUTF8_Blended(font_, text.c_str(), color_);
++    if (!surface) {
++        Logger::write(Logger::ZONE_WARNING, "Font", 
++            std::string("Failed to render text: ") + TTF_GetError());
++    }
++    
++    return surface;
+ }
+ 
+ bool Font::initialize()
+ {
+-    TTF_Font *font = TTF_OpenFont(fontPath_.c_str(), fontSize_);
+-
+-    if (!font)
+-    {
++    font_ = TTF_OpenFont(fontPath_.c_str(), fontSize_);
++    if (!font_) {
+         std::stringstream ss;
+         ss << "Could not open font: " << TTF_GetError();
+         Logger::write(Logger::ZONE_ERROR, "FontCache", ss.str());
+         return false;
+     }
+-
+-    int x = 0;
+-    int y = 0;
+-    int atlasHeight = 0;
+-    int atlasWidth = 0;
+-    height = TTF_FontHeight(font);
+-    ascent = TTF_FontAscent(font);
+-
+-    for(unsigned short int i = 32; i < 128; ++i)
+-    {
+-        GlyphInfoBuild *info = new GlyphInfoBuild;
+-        memset(info, 0, sizeof(GlyphInfoBuild));
+-
+-        //color_.a = 255;
+-        info->surface = TTF_RenderGlyph_Blended(font, i, color_);
+-        TTF_GlyphMetrics(font, i,
+-        		&info->glyph.minX, &info->glyph.maxX,
+-        		&info->glyph.minY, &info->glyph.maxY,
+-        		&info->glyph.advance);
+-
+-        if(x + info->surface->w >= 1024)
+-        {
+-            atlasHeight += y;
+-            atlasWidth = (atlasWidth >= x) ? atlasWidth : x;
+-            x = 0;
+-            y = 0;
+-        }
+-
+-        info->glyph.rect.w = info->surface->w;
+-        info->glyph.rect.h = info->surface->h;
+-        info->glyph.rect.x = x;
+-        info->glyph.rect.y = atlasHeight;
+-        atlas[i] = info;
+-
+-        x += info->glyph.rect.w;
+-        y = (y > info->glyph.rect.h) ? y : info->glyph.rect.h;
+-
+-        /*std::stringstream ss;
+-        ss << " tw:" << atlasWidth << " th:" << atlasHeight << " x:" << x << " y:" << y << " w:" << info->glyph.rect.w << " h:" << info->glyph.rect.h;
+-        Logger::write(Logger::ZONE_INFO, "FontCache", ss.str());*/
+-
+-    }
+-
+-    atlasWidth = (atlasWidth >= x) ? atlasWidth : x;
+-    atlasHeight += y;
+-
+-    unsigned int rmask;
+-    unsigned int gmask;
+-    unsigned int bmask;
+-    unsigned int amask;
+-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+-    rmask = 0xff000000;
+-    gmask = 0x00ff0000;
+-    bmask = 0x0000ff00;
+-    amask = 0x000000ff;
+-#else
+-    rmask = 0x000000ff;
+-    gmask = 0x0000ff00;
+-    bmask = 0x00ff0000;
+-    amask = 0xff000000;
+-#endif
+-
+-    //SDL_Surface *atlasSurface = SDL_CreateRGBSurface(0, atlasWidth, atlasHeight, 32, rmask, gmask, bmask, amask);
+-    texture = SDL_CreateRGBSurface(0, atlasWidth, atlasHeight, 32, rmask, gmask, bmask, amask);
+-    SDL_FillRect(texture, NULL, SDL_MapRGBA(texture->format, 0, 0, 0, 0));
+-
+-    /*texture = SDL_CreateRGBSurface(0, atlasWidth, atlasHeight, 32, 0, 0, 0, 0);
+-    int transparentColorKey = SDL_MapRGB(texture->format, color_.r-1, color_.g-1, color_.b-1);
+-    SDL_FillRect(texture, NULL, transparentColorKey);
+-    SDL_SetColorKey(texture, SDL_SRCCOLORKEY, transparentColorKey);*/
+-
+-    std::map<unsigned int, GlyphInfoBuild *>::iterator it;
+-    for(it = atlas.begin(); it != atlas.end(); it++)
+-    {
+-        GlyphInfoBuild *info = it->second;
+-        //SDL_BlitSurface(info->surface, NULL, atlasSurface, &info->glyph.rect);
+-        SDL_SetAlpha( info->surface, 0, SDL_ALPHA_OPAQUE );
+-        SDL_BlitSurface(info->surface, NULL, texture, &info->glyph.rect);
+-        //SDL_gfxBlitRGBA (info->surface, NULL, texture, &info->glyph.rect);
+-        SDL_FreeSurface(info->surface);
+-        info->surface = NULL;
+-    }
+-
+-    /*SDL_LockMutex(SDL::getMutex());
+-    //texture = SDL_CreateTextureFromSurface(SDL::getRenderer(), atlasSurface);
+-    //SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+-    SDL_FreeSurface(atlasSurface);
+-    SDL_UnlockMutex(SDL::getMutex());*/
+-
+-    TTF_CloseFont(font);
+-
++    
++    height = TTF_FontHeight(font_);
++    ascent = TTF_FontAscent(font_);
++    
+     return true;
+ }
+ 
+ 
+-
+ void Font::deInitialize()
+ {
+-    if(texture)
+-    {
+-        SDL_LockMutex(SDL::getMutex());
+-        //SDL_DestroyTexture(texture);
+-        SDL_FreeSurface(texture);
+-        texture = NULL;
+-        SDL_UnlockMutex(SDL::getMutex());
++    if (font_) {
++        TTF_CloseFont(font_);
++        font_ = NULL;
+     }
+-
+-    std::map<unsigned int, GlyphInfoBuild *>::iterator atlasIt = atlas.begin();
+-    while(atlasIt != atlas.end())
+-    {
+-        delete atlasIt->second;
+-        atlas.erase(atlasIt);
+-        atlasIt = atlas.begin();
+-    }
+-
+ }
+ 
+ 
+diff -uprN a/RetroFE/Source/Graphics/Font.h b/RetroFE/Source/Graphics/Font.h
+--- a/RetroFE/Source/Graphics/Font.h	2026-04-06 21:32:39.355577211 +0800
++++ b/RetroFE/Source/Graphics/Font.h	2026-04-08 19:10:09.372065348 +0800
+@@ -16,6 +16,7 @@
+ #pragma once
+ 
+ #include <SDL/SDL.h>
++#include <SDL/SDL_ttf.h>
+ #include <map>
+ #include <string>
+ 
+@@ -41,6 +42,8 @@ public:
+     bool getRect(unsigned int charCode, GlyphInfo &glyph);
+     int getHeight();
+     int getAscent();
++    
++    SDL_Surface* renderText(const std::string& text);
+ 
+ private:
+     struct GlyphInfoBuild
+@@ -57,4 +60,6 @@ private:
+     std::string fontPath_;
+     int fontSize_;
+     SDL_Color color_;
++    
++    TTF_Font* font_;
+ };
+diff -uprN a/RetroFE/Source/Menu/MenuMode.cpp b/RetroFE/Source/Menu/MenuMode.cpp
+--- a/RetroFE/Source/Menu/MenuMode.cpp	2026-04-03 13:17:25.425784469 +0800
++++ b/RetroFE/Source/Menu/MenuMode.cpp	2026-04-10 10:25:10.131780747 +0800
+@@ -23,27 +23,27 @@
+ #define MENU_ERROR_PRINTF(...)
+ #endif //MENU_ERROR
+ 
+-#define SCREEN_HORIZONTAL_SIZE      240 //RES_HW_SCREEN_HORIZONTAL
++#define SCREEN_HORIZONTAL_SIZE      320 //RES_HW_SCREEN_HORIZONTAL
+ #define SCREEN_VERTICAL_SIZE        240 //RES_HW_SCREEN_VERTICAL
+ 
+ #define SCROLL_SPEED_PX             30
+ #define FPS_MENU                    60
+ #define ARROWS_PADDING              8
+ 
+-#define MENU_ZONE_WIDTH             SCREEN_HORIZONTAL_SIZE
++#define MENU_ZONE_WIDTH             240
+ #define MENU_ZONE_HEIGHT            SCREEN_VERTICAL_SIZE
+ #define MENU_BG_SQURE_WIDTH         180
+ #define MENU_BG_SQUREE_HEIGHT       140
+ 
+-#define MENU_FONT_NAME_TITLE        "/usr/games/menu_resources/OpenSans-Bold.ttf"
+-#define MENU_FONT_SIZE_TITLE        22
+-#define MENU_FONT_NAME_INFO         "/usr/games/menu_resources/OpenSans-Bold.ttf"
++#define MENU_FONT_NAME_TITLE        "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
++#define MENU_FONT_SIZE_TITLE        20
++#define MENU_FONT_NAME_INFO         "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
+ #define MENU_FONT_SIZE_INFO         16
+-#define MENU_FONT_NAME_SMALL_INFO   "/usr/games/menu_resources/OpenSans-Regular.ttf"
++#define MENU_FONT_NAME_SMALL_INFO   "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
+ #define MENU_FONT_SIZE_SMALL_INFO   13
+-#define MENU_PNG_BG_PATH            "/usr/games/menu_resources/zone_bg.png"
+-#define MENU_PNG_ARROW_TOP_PATH     "/usr/games/menu_resources/arrow_top.png"
+-#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/games/menu_resources/arrow_bottom.png"
++#define MENU_PNG_BG_PATH            "/usr/share/gmenu2x/skins/240x240/Default/imgs/zone_bg.png"
++#define MENU_PNG_ARROW_TOP_PATH     "/usr/share/gmenu2x/skins/240x240/Default/imgs/arrow_top.png"
++#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/share/gmenu2x/skins/240x240/Default/imgs/arrow_bottom.png"
+ 
+ #define GRAY_MAIN_R                 85
+ #define GRAY_MAIN_G                 85
+@@ -473,8 +473,8 @@ void MenuMode::menu_screen_refresh(int m
+ 
+ 	/// --------- Setup Blit Window ----------
+ 	SDL_Rect menu_blit_window;
+-	menu_blit_window.x = 0;
+-	menu_blit_window.w = SCREEN_HORIZONTAL_SIZE;
++	menu_blit_window.x = (SCREEN_HORIZONTAL_SIZE - MENU_ZONE_WIDTH)/2;
++	menu_blit_window.w = MENU_ZONE_WIDTH;
+ 
+ 	/// --------- Blit prev menu Zone going away ----------
+ 	menu_blit_window.y = scroll;
+@@ -485,6 +485,7 @@ void MenuMode::menu_screen_refresh(int m
+ 
+ 	/// --------- Blit new menu Zone going in (only during animations) ----------
+ 	if(scroll>0){
++	    menu_blit_window.x = (MENU_ZONE_WIDTH - SCREEN_HORIZONTAL_SIZE)/2;
+ 		menu_blit_window.y = SCREEN_VERTICAL_SIZE-scroll;
+ 		menu_blit_window.h = SCREEN_VERTICAL_SIZE;
+ 		if(SDL_BlitSurface(menu_zone_surfaces[menuItem], NULL, virtual_hw_screen, &menu_blit_window)){
+@@ -511,12 +512,12 @@ void MenuMode::menu_screen_refresh(int m
+ 
+ 		switch(idx_menus[menuItem]){
+ 		case MENU_TYPE_VOLUME:
+-			draw_progress_bar(virtual_hw_screen, x_volume_bar, y_volume_bar,
++			draw_progress_bar(virtual_hw_screen, (MENU_ZONE_WIDTH - width_progress_bar)/2, y_volume_bar,
+ 					width_progress_bar, height_progress_bar, volume_percentage, 100/STEP_CHANGE_VOLUME);
+ 			break;
+ 
+ 		case MENU_TYPE_BRIGHTNESS:
+-			draw_progress_bar(virtual_hw_screen, x_volume_bar, y_volume_bar,
++			draw_progress_bar(virtual_hw_screen, (MENU_ZONE_WIDTH - width_progress_bar)/2, y_volume_bar,
+ 					width_progress_bar, height_progress_bar, brightness_percentage, 100/STEP_CHANGE_BRIGHTNESS);
+ 			break;
+ 
+@@ -758,6 +759,7 @@ int MenuMode::launch( )
+ 					switch (event.key.keysym.sym)
+ 					{
+ 					case SDLK_b:
++					case SDLK_LCTRL:
+ 						if(menu_confirmation){
+ 							/// ------ Reset menu confirmation ------
+ 							menu_confirmation = 0;
+@@ -946,7 +948,7 @@ int MenuMode::launch( )
+ 						break;
+ 
+ 					case SDLK_a:
+-					case SDLK_RETURN:
++					case SDLK_SPACE:
+ 						if(idx_menus[menuItem] == MENU_TYPE_SAVE){
+ 							if(menu_confirmation){
+ 								MENU_DEBUG_PRINTF("Saving in slot %d\n", savestate_slot);
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build.sh	2026-04-06 18:16:32.445548411 +0800
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++export PKG_CONFIG_PATH=/opt/SDL2/lib/pkgconfig:$PKG_CONFIG_PATH
++CMAKE_ARGS="-BRetroFE/Build -DVERSION_MAJOR=0 -DVERSION_MINOR=0 -DVERSION_BUILD=0 \
++            -DCMAKE_CXX_FLAGS=-I/opt/SDL2/include \
++            -DCMAKE_TOOLCHAIN_FILE=/opt/FunKey-sdk-2.3.0/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
++cmake $CMAKE_ARGS -DCMAKE_EXE_LINKER_FLAGS="-L/opt/SDL2/lib -L/opt/opengl/lib" RetroFE/Source
++
++make -C RetroFE/Build

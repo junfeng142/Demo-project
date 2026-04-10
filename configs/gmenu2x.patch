@@ -120,7 +120,7 @@ diff -uprN "a/Chinese (CN)" "b/Chinese (CN)"
 +START: Show options menu=START: 显示选项菜单
 diff -uprN a/build.sh b/build.sh
 --- a/build.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build.sh	2026-03-21 20:37:22.932707837 +0800
++++ b/build.sh	2026-04-10 08:51:47.501811143 +0800
 @@ -0,0 +1,6 @@
 +#!/bin/bash
 +
@@ -154,7 +154,7 @@ diff -uprN a/src/contextmenu.cpp b/src/contextmenu.cpp
  		static_cast<Sint16>((gmenu2x.width() - w) / 2),
 diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
 --- a/src/funkeymenu.cpp	2026-03-18 21:06:46.320823991 +0800
-+++ b/src/funkeymenu.cpp	2026-03-22 12:47:58.502231249 +0800
++++ b/src/funkeymenu.cpp	2026-04-10 09:24:37.571800455 +0800
 @@ -1,4 +1,5 @@
  #include "funkeymenu.h"
 +#include "gmenu2x.h"
@@ -180,13 +180,13 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  #define MENU_BG_SQUREE_HEIGHT       140
  
 -#define MENU_FONT_NAME_TITLE        "/usr/games/menu_resources/OpenSans-Bold.ttf"
-+#define MENU_FONT_NAME_TITLE        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
++#define MENU_FONT_NAME_TITLE        "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
  #define MENU_FONT_SIZE_TITLE        22
 -#define MENU_FONT_NAME_INFO         "/usr/games/menu_resources/OpenSans-Bold.ttf"
-+#define MENU_FONT_NAME_INFO         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
++#define MENU_FONT_NAME_INFO         "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
  #define MENU_FONT_SIZE_INFO         16
 -#define MENU_FONT_NAME_SMALL_INFO   "/usr/games/menu_resources/OpenSans-Regular.ttf"
-+#define MENU_FONT_NAME_SMALL_INFO   "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
++#define MENU_FONT_NAME_SMALL_INFO   "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
  #define MENU_FONT_SIZE_SMALL_INFO   13
 -#define MENU_PNG_BG_PATH            "/usr/games/menu_resources/zone_bg.png"
 -#define MENU_PNG_ARROW_TOP_PATH     "/usr/games/menu_resources/arrow_top.png"
@@ -294,15 +294,6 @@ diff -uprN a/src/funkeymenu.cpp b/src/funkeymenu.cpp
  		text_pos.x = (surface->w - MENU_ZONE_WIDTH)/2 + (MENU_ZONE_WIDTH - text_surface->w)/2;
  		text_pos.y = surface->h - MENU_ZONE_HEIGHT/2 - text_surface->h/2;
  		SDL_BlitSurface(text_surface, NULL, surface, &text_pos);
-@@ -394,7 +399,7 @@ void FunkeyMenu::init_menu_zones(){
- 	/// Init USB Menu
- 	add_menu_zone(MENU_TYPE_USB);
- 	/// Init Launcher Menu
--	add_menu_zone(MENU_TYPE_LAUNCHER);
-+	//add_menu_zone(MENU_TYPE_LAUNCHER);
- 	/// Init Powerdown Menu
- 	add_menu_zone(MENU_TYPE_POWERDOWN);
- }
 @@ -484,8 +489,15 @@ void FunkeyMenu::menu_screen_refresh(int
  
  	/// --------- Setup Blit Window ----------
@@ -619,13 +610,78 @@ diff -uprN a/src/menu.cpp b/src/menu.cpp
  void Menu::calcSectionRange(int &leftSection, int &rightSection) {
 diff -uprN a/src/selector.cpp b/src/selector.cpp
 --- a/src/selector.cpp	2026-03-18 21:06:46.320823991 +0800
-+++ b/src/selector.cpp	2026-03-18 21:08:38.090825011 +0800
++++ b/src/selector.cpp	2026-04-10 09:12:12.461804497 +0800
 @@ -117,7 +117,7 @@ int Selector::exec(int startSelection) {
  				string path = screendir + trimExtension(fl[selected]) + ".png";
  				auto screenshot = OffscreenSurface::loadImage(path, false);
  				if (screenshot) {
 -					screenshot->blitRight(s, gmenu2x.width(), 0, gmenu2x.width(), gmenu2x.height(), 128u);
-+					screenshot->blitRight(s, gmenu2x.width(), 25, 170, 190, 255u);
++					screenshot->blitScaledTo(s, gmenu2x.width() - 170, 25, 170, 190, 255);
  				}
  			}
  
+diff -uprN a/src/surface.cpp b/src/surface.cpp
+--- a/src/surface.cpp	2026-03-18 21:06:46.320823991 +0800
++++ b/src/surface.cpp	2026-04-10 09:14:55.341803613 +0800
+@@ -61,6 +61,50 @@ ostream& operator<<(ostream& os, RGBACol
+ 	return os;
+ }
+ 
++void Surface::blitScaledTo(Surface& destination, int x, int y, int destW, int destH, int a) {
++    if (!raw || destW <= 0 || destH <= 0) return;
++    
++    // 创建缩放后的表面
++    SDL_Surface* scaled = SDL_CreateRGBSurface(
++        SDL_SWSURFACE, destW, destH, raw->format->BitsPerPixel,
++        raw->format->Rmask, raw->format->Gmask, raw->format->Bmask, raw->format->Amask
++    );
++    
++    if (!scaled) return;
++    
++    // 使用简单的缩放算法
++    for (int dy = 0; dy < destH; dy++) {
++        for (int dx = 0; dx < destW; dx++) {
++            int sx = (dx * raw->w) / destW;
++            int sy = (dy * raw->h) / destH;
++            
++            // 获取源像素
++            Uint8 *src_pixel = (Uint8*)raw->pixels + sy * raw->pitch + sx * raw->format->BytesPerPixel;
++            Uint32 pixel;
++            switch(raw->format->BytesPerPixel) {
++                case 2: pixel = *(Uint16*)src_pixel; break;
++                case 4: pixel = *(Uint32*)src_pixel; break;
++                default: pixel = 0;
++            }
++            
++            // 设置目标像素
++            Uint8 *dst_pixel = (Uint8*)scaled->pixels + dy * scaled->pitch + dx * scaled->format->BytesPerPixel;
++            switch(scaled->format->BytesPerPixel) {
++                case 2: *(Uint16*)dst_pixel = pixel; break;
++                case 4: *(Uint32*)dst_pixel = pixel; break;
++            }
++        }
++    }
++    
++    // 设置透明度并绘制
++    if (a > 0 && a != scaled->format->alpha)
++        SDL_SetAlpha(scaled, SDL_SRCALPHA | SDL_RLEACCEL, a);
++    
++    SDL_Rect dest = { static_cast<Sint16>(x), static_cast<Sint16>(y), 0, 0 };
++    SDL_BlitSurface(scaled, NULL, destination.raw, &dest);
++    
++    SDL_FreeSurface(scaled);
++}
+ 
+ // Surface:
+ 
+diff -uprN a/src/surface.h b/src/surface.h
+--- a/src/surface.h	2026-04-10 09:10:11.061805156 +0800
++++ b/src/surface.h	2026-04-10 09:12:40.901804343 +0800
+@@ -79,6 +79,7 @@ public:
+ 	SDL_Surface *getSurface() {
+ 		return raw;
+ 	}
++	void blitScaledTo(Surface& destination, int x, int y, int destW, int destH, int a = 255);
+ 
+ protected:
+ 	Surface(SDL_Surface *raw) : raw(raw) {}
