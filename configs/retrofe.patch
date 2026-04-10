@@ -1358,50 +1358,77 @@ diff -uprN a/RetroFE/Source/Graphics/Component/ScrollingList.cpp b/RetroFE/Sourc
      if ( t )
 diff -uprN a/RetroFE/Source/Graphics/Component/Text.cpp b/RetroFE/Source/Graphics/Component/Text.cpp
 --- a/RetroFE/Source/Graphics/Component/Text.cpp	2026-04-06 18:51:22.095553526 +0800
-+++ b/RetroFE/Source/Graphics/Component/Text.cpp	2026-04-10 11:22:03.511762228 +0800
-@@ -28,6 +28,7 @@ Text::Text( std::string text, Page &p, F
-     , fontInst_(font)
-     , scaleX_(scaleX)
-     , scaleY_(scaleY)
-+    , renderedText_(NULL)
- {
-     allocateGraphicsMemory( );
- }
-@@ -41,12 +42,17 @@ Text::~Text( )
- void Text::freeGraphicsMemory( )
- {
-     Component::freeGraphicsMemory( );
-+    if (renderedText_) {
-+        SDL_FreeSurface(renderedText_);
-+        renderedText_ = NULL;
-+    }
-     textData_.clear();
- }
- 
- void Text::allocateGraphicsMemory( )
- {
-     Component::allocateGraphicsMemory( );
-+    renderTextToSurface();
- }
- 
- void Text::deInitializeFonts( )
-@@ -57,136 +63,46 @@ void Text::deInitializeFonts( )
- void Text::initializeFonts( )
- {
-     fontInst_->initialize( );
-+    renderTextToSurface();
- }
- 
- void Text::setText( std::string text, int id )
- {
-     if ( getId( ) == id )
-         textData_ = text;
-+        renderTextToSurface();
- }
- 
++++ b/RetroFE/Source/Graphics/Component/Text.cpp	2026-04-10 11:37:34.431757177 +0800
+@@ -1,192 +1,108 @@
+-/* This file is part of RetroFE.
+- *
+- * RetroFE is free software: you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation, either version 3 of the License, or
+- * (at your option) any later version.
+- *
+- * RetroFE is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with RetroFE.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-
+-
+-#include "Text.h"
+-#include "../../Utility/Log.h"
+-#include "../../SDL.h"
+-#include "../Font.h"
+-#include <sstream>
+-
+-
+-Text::Text( std::string text, Page &p, Font *font, float scaleX, float scaleY )
+-    : Component(p)
+-    , textData_(text)
+-    , fontInst_(font)
+-    , scaleX_(scaleX)
+-    , scaleY_(scaleY)
+-{
+-    allocateGraphicsMemory( );
+-}
+-
+-Text::~Text( )
+-{
+-    freeGraphicsMemory( );
+-    textData_.clear();
+-}
+-
+-void Text::freeGraphicsMemory( )
+-{
+-    Component::freeGraphicsMemory( );
+-    textData_.clear();
+-}
+-
+-void Text::allocateGraphicsMemory( )
+-{
+-    Component::allocateGraphicsMemory( );
+-}
+-
+-void Text::deInitializeFonts( )
+-{
+-    fontInst_->deInitialize( );
+-}
+-
+-void Text::initializeFonts( )
+-{
+-    fontInst_->initialize( );
+-}
+-
+-void Text::setText( std::string text, int id )
+-{
+-    if ( getId( ) == id )
+-        textData_ = text;
+-}
+-
 -void Text::draw( )
-+void Text::renderTextToSurface()
- {
+-{
 -    Component::draw( );
 -
 -    Font *font;
@@ -1423,29 +1450,13 @@ diff -uprN a/RetroFE/Source/Graphics/Component/Text.cpp b/RetroFE/Source/Graphic
 -    else
 -    {
 -        imageMaxWidth = baseViewInfo.MaxWidth;
-+    if (renderedText_) {
-+        SDL_FreeSurface(renderedText_);
-+        renderedText_ = NULL;
-     }
-+    
-+    if (textData_.empty()) return;
-+    
-+    Font* font = baseViewInfo.font ? baseViewInfo.font : fontInst_;
-+    if (!font) return;
-+    
-+    renderedText_ = font->renderText(textData_);
-+}
- 
+-    }
+-
 -    imageHeight = (float)font->getHeight( );
 -    //float scale = (float)baseViewInfo.FontSize / (float)imageHeight;
-+void Text::draw( )
-+{
-+    Component::draw( );
- 
+-
 -    //TODO, modify for scaling - for now, no scaling in effect
-+    if (!renderedText_ || baseViewInfo.Alpha <= 0.0f) return;
-+    
-     float scale = 1.0f;
+-    float scale = 1.0f;
 -
 -    /*printf("\n");
 -    printf("imageMaxWidth=%f, imageHeight=%f, baseViewInfo.FontSize=%f,scale=%f\n", imageMaxWidth, imageHeight, baseViewInfo.FontSize, scale);
@@ -1482,8 +1493,62 @@ diff -uprN a/RetroFE/Source/Graphics/Component/Text.cpp b/RetroFE/Source/Graphic
 -	    /*std::stringstream ss;
 -	      ss << "Could not find Glyph info for char: " << textData_[i];
 -	      Logger::write(Logger::ZONE_WARNING, "Text", ss.str());*/
--        }
--    }
++    /* This file is part of RetroFE.
++     *
++     * RetroFE is free software: you can redistribute it and/or modify
++     * it under the terms of the GNU General Public License as published by
++     * the Free Software Foundation, either version 3 of the License, or
++     * (at your option) any later version.
++     *
++     * RetroFE is distributed in the hope that it will be useful,
++     * but WITHOUT ANY WARRANTY; without even the implied warranty of
++     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++     * GNU General Public License for more details.
++     *
++     * You should have received a copy of the GNU General Public License
++     * along with RetroFE.  If not, see <http://www.gnu.org/licenses/>.
++     */
++    
++    
++    #include "Text.h"
++    #include "../../Utility/Log.h"
++    #include "../../SDL.h"
++    #include "../Font.h"
++    #include <sstream>
++    
++    
++    Text::Text( std::string text, Page &p, Font *font, float scaleX, float scaleY )
++        : Component(p)
++        , textData_(text)
++        , fontInst_(font)
++        , scaleX_(scaleX)
++        , scaleY_(scaleY)
++        , renderedText_(NULL)
++    {
++        allocateGraphicsMemory( );
++    }
++    
++    Text::~Text( )
++    {
++        freeGraphicsMemory( );
++        textData_.clear();
++    }
++    
++    void Text::freeGraphicsMemory( )
++    {
++        Component::freeGraphicsMemory( );
++        if (renderedText_) {
++            SDL_FreeSurface(renderedText_);
++            renderedText_ = NULL;
+         }
++        textData_.clear();
++    }
++    
++    void Text::allocateGraphicsMemory( )
++    {
++        Component::allocateGraphicsMemory( );
++        renderTextToSurface();
+     }
 -
 -    float oldWidth       = baseViewInfo.Width;
 -    float oldHeight      = baseViewInfo.Height;
@@ -1538,19 +1603,59 @@ diff -uprN a/RetroFE/Source/Graphics/Component/Text.cpp b/RetroFE/Source/Graphic
 -            SDL::renderCopy( t, baseViewInfo.Alpha, &charRect, &rect, baseViewInfo );
 -
 -            rect.x += rect.w;
--        }
--    }
-+    float xOrigin = baseViewInfo.XRelativeToOrigin();
-+    float yOrigin = baseViewInfo.YRelativeToOrigin();
 +    
-+    SDL_Rect destRect;
-+    destRect.w = static_cast<int>(renderedText_->w * scaleX_);
-+    destRect.h = static_cast<int>(renderedText_->h * scaleY_);
-+    destRect.x = (static_cast<int>(xOrigin) > destRect.w / 2) ? (static_cast<int>(xOrigin) - destRect.w / 2) : static_cast<int>(xOrigin);
-+    destRect.y = (static_cast<int>(yOrigin) > destRect.h / 2) ? (static_cast<int>(yOrigin) - destRect.h / 2) : static_cast<int>(yOrigin);
++    void Text::deInitializeFonts( )
++    {
++        fontInst_->deInitialize( );
++    }
 +    
-+    SDL::renderCopy(renderedText_, baseViewInfo.Alpha, NULL, &destRect, baseViewInfo);
- }
++    void Text::initializeFonts( )
++    {
++        fontInst_->initialize( );
++        renderTextToSurface();
++    }
++    
++    void Text::setText( std::string text, int id )
++    {
++        if ( getId( ) == id )
++            textData_ = text;
++            renderTextToSurface();
++    }
++    
++    void Text::renderTextToSurface()
++    {
++        if (renderedText_) {
++            SDL_FreeSurface(renderedText_);
++            renderedText_ = NULL;
+         }
++        
++        if (textData_.empty()) return;
++        
++        Font* font = baseViewInfo.font ? baseViewInfo.font : fontInst_;
++        if (!font) return;
++        
++        renderedText_ = font->renderText(textData_);
++    }
++    
++    void Text::draw( )
++    {
++        Component::draw( );
++    
++        if (!renderedText_ || baseViewInfo.Alpha <= 0.0f) return;
++        
++        float scale = 1.0f;
++        float xOrigin = baseViewInfo.XRelativeToOrigin();
++        float yOrigin = baseViewInfo.YRelativeToOrigin();
++        
++        SDL_Rect destRect;
++        destRect.w = static_cast<int>(renderedText_->w * scaleX_);
++        destRect.h = static_cast<int>(renderedText_->h * scaleY_);
++        destRect.x = (static_cast<int>(xOrigin) > destRect.w / 2) ? (static_cast<int>(xOrigin) - destRect.w / 2) : static_cast<int>(xOrigin);
++        destRect.y = (static_cast<int>(yOrigin) > destRect.h / 2) ? (static_cast<int>(yOrigin) - destRect.h / 2) : static_cast<int>(yOrigin);
++        
++        SDL::renderCopy(renderedText_, baseViewInfo.Alpha, NULL, &destRect, baseViewInfo);
+     }
+-}
 diff -uprN a/RetroFE/Source/Graphics/Component/Text.h b/RetroFE/Source/Graphics/Component/Text.h
 --- a/RetroFE/Source/Graphics/Component/Text.h	2026-04-07 19:55:46.778006418 +0800
 +++ b/RetroFE/Source/Graphics/Component/Text.h	2026-04-08 13:17:16.647497103 +0800
@@ -1564,41 +1669,150 @@ diff -uprN a/RetroFE/Source/Graphics/Component/Text.h b/RetroFE/Source/Graphics/
  };
 diff -uprN a/RetroFE/Source/Graphics/Font.cpp b/RetroFE/Source/Graphics/Font.cpp
 --- a/RetroFE/Source/Graphics/Font.cpp	2026-04-06 18:05:00.135546717 +0800
-+++ b/RetroFE/Source/Graphics/Font.cpp	2026-04-10 11:16:02.911764184 +0800
-@@ -64,11 +64,27 @@ bool Font::getRect(unsigned int charCode
-     return false;
- }
- 
-+SDL_Surface* Font::renderText(const std::string& text)
-+{
-+    if (!font_ || text.empty()) {
-+        return NULL;
++++ b/RetroFE/Source/Graphics/Font.cpp	2026-04-10 11:37:04.821757338 +0800
+@@ -1,195 +1,91 @@
+-/* This file is part of RetroFE.
+- *
+- * RetroFE is free software: you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation, either version 3 of the License, or
+- * (at your option) any later version.
+- *
+- * RetroFE is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with RetroFE.  If not, see <http://www.gnu.org/licenses/>.
+- */
+-#include "Font.h"
+-#include "../SDL.h"
+-#include "../Utility/Log.h"
+-#include <SDL/SDL.h>
+-#include <SDL/SDL_ttf.h>
+-//#include <SDL/SDL_gfxBlitFunc.h>
+-#include <cstdio>
+-#include <cstring>
+-
+-Font::Font(std::string fontPath, int fontSize, SDL_Color color)
+-    : texture(NULL)
+-    , fontPath_(fontPath)
+-    , fontSize_(fontSize)
+-    , color_(color)
+-{
+-}
+-
+-Font::~Font()
+-{
+-    deInitialize();
+-}
+-
+-SDL_Surface *Font::getTexture()
+-{
+-    return texture;
+-}
+-
+-int Font::getHeight()
+-{
+-    return height;
+-}
+-int Font::getAscent()
+-{
+-    return ascent;
+-}
+-bool Font::getRect(unsigned int charCode, GlyphInfo &glyph)
+-{
+-    std::map<unsigned int, GlyphInfoBuild *>::iterator it = atlas.find(charCode);
+-
+-    if(it != atlas.end())
+-    {
+-        GlyphInfoBuild *info = it->second;
+-
+-        glyph = info->glyph;
+-
+-        return true;
++    /* This file is part of RetroFE.
++     *
++     * RetroFE is free software: you can redistribute it and/or modify
++     * it under the terms of the GNU General Public License as published by
++     * the Free Software Foundation, either version 3 of the License, or
++     * (at your option) any later version.
++     *
++     * RetroFE is distributed in the hope that it will be useful,
++     * but WITHOUT ANY WARRANTY; without even the implied warranty of
++     * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++     * GNU General Public License for more details.
++     *
++     * You should have received a copy of the GNU General Public License
++     * along with RetroFE.  If not, see <http://www.gnu.org/licenses/>.
++     */
++    #include "Font.h"
++    #include "../SDL.h"
++    #include "../Utility/Log.h"
++    #include <SDL/SDL.h>
++    #include <SDL/SDL_ttf.h>
++    //#include <SDL/SDL_gfxBlitFunc.h>
++    #include <cstdio>
++    #include <cstring>
++    
++    Font::Font(std::string fontPath, int fontSize, SDL_Color color)
++        : texture(NULL)
++        , fontPath_(fontPath)
++        , fontSize_(fontSize)
++        , color_(color)
++    {
 +    }
 +    
-+    // 直接渲染整个文本
-+    SDL_Surface* surface = TTF_RenderUTF8_Blended(font_, text.c_str(), color_);
-+    if (!surface) {
-+        Logger::write(Logger::ZONE_WARNING, "Font", 
-+            std::string("Failed to render text: ") + TTF_GetError());
++    Font::~Font()
++    {
++        deInitialize();
 +    }
 +    
-+    return surface;
-+}
-+
- bool Font::initialize()
- {
--    TTF_Font *font = TTF_OpenFont(fontPath_.c_str(), fontSize_);
-+    font_ = TTF_OpenFont(fontPath_.c_str(), fontSize_);
- 
--    if (!font)
-+    if (!font_)
-     {
-         std::stringstream ss;
-         ss << "Could not open font: " << TTF_GetError();
-@@ -76,95 +92,8 @@ bool Font::initialize()
-         return false;
++    SDL_Surface *Font::getTexture()
++    {
++        return texture;
++    }
++    
++    int Font::getHeight()
++    {
++        return height;
++    }
++    int Font::getAscent()
++    {
++        return ascent;
++    }
++    
++    SDL_Surface* Font::renderText(const std::string& text)
++    {
++        if (!font_ || text.empty()) {
++            return NULL;
++        }
++        
++        SDL_Surface* surface = TTF_RenderUTF8_Blended(font_, text.c_str(), color_);
++        if (!surface) {
++            Logger::write(Logger::ZONE_WARNING, "Font", 
++                std::string("Failed to render text: ") + TTF_GetError());
++        }
++        
++        return surface;
      }
- 
+-
+-    return false;
+-}
+-
+-bool Font::initialize()
+-{
+-    TTF_Font *font = TTF_OpenFont(fontPath_.c_str(), fontSize_);
+-
+-    if (!font)
+-    {
+-        std::stringstream ss;
+-        ss << "Could not open font: " << TTF_GetError();
+-        Logger::write(Logger::ZONE_ERROR, "FontCache", ss.str());
+-        return false;
+-    }
+-
 -    int x = 0;
 -    int y = 0;
 -    int atlasHeight = 0;
@@ -1619,12 +1833,35 @@ diff -uprN a/RetroFE/Source/Graphics/Font.cpp b/RetroFE/Source/Graphics/Font.cpp
 -        		&info->glyph.advance);
 -
 -        if(x + info->surface->w >= 1024)
--        {
++    
++    bool Font::initialize()
++    {
++        font_ = TTF_OpenFont(fontPath_.c_str(), fontSize_);
++    
++        if (!font_)
+         {
 -            atlasHeight += y;
 -            atlasWidth = (atlasWidth >= x) ? atlasWidth : x;
 -            x = 0;
 -            y = 0;
--        }
++            std::stringstream ss;
++            ss << "Could not open font: " << TTF_GetError();
++            Logger::write(Logger::ZONE_ERROR, "FontCache", ss.str());
++            return false;
++        }
++    
++        height = TTF_FontHeight(font_);
++        ascent = TTF_FontAscent(font_);
++    
++        return true;
++    }
++    
++    void Font::deInitialize()
++    {
++        if (font_) {
++            TTF_CloseFont(font_);
++            font_ = NULL;
+         }
 -
 -        info->glyph.rect.w = info->surface->w;
 -        info->glyph.rect.h = info->surface->h;
@@ -1688,40 +1925,60 @@ diff -uprN a/RetroFE/Source/Graphics/Font.cpp b/RetroFE/Source/Graphics/Font.cpp
 -    SDL_UnlockMutex(SDL::getMutex());*/
 -
 -    TTF_CloseFont(font);
-+    height = TTF_FontHeight(font_);
-+    ascent = TTF_FontAscent(font_);
- 
-     return true;
- }
-@@ -189,7 +118,11 @@ void Font::deInitialize()
-         atlas.erase(atlasIt);
-         atlasIt = atlas.begin();
-     }
 -
-+    
-+    if (font_) {
-+        TTF_CloseFont(font_);
-+        font_ = NULL;
+-    return true;
+-}
+-
+-
+-
+-void Font::deInitialize()
+-{
+-    if(texture)
+-    {
+-        SDL_LockMutex(SDL::getMutex());
+-        //SDL_DestroyTexture(texture);
+-        SDL_FreeSurface(texture);
+-        texture = NULL;
+-        SDL_UnlockMutex(SDL::getMutex());
+-    }
+-
+-    std::map<unsigned int, GlyphInfoBuild *>::iterator atlasIt = atlas.begin();
+-    while(atlasIt != atlas.end())
+-    {
+-        delete atlasIt->second;
+-        atlas.erase(atlasIt);
+-        atlasIt = atlas.begin();
+-    }
+-
+-}
+-
+-
 +    }
- }
- 
- 
 diff -uprN a/RetroFE/Source/Graphics/Font.h b/RetroFE/Source/Graphics/Font.h
 --- a/RetroFE/Source/Graphics/Font.h	2026-04-06 21:32:39.355577211 +0800
-+++ b/RetroFE/Source/Graphics/Font.h	2026-04-10 11:12:03.471765483 +0800
-@@ -41,6 +41,7 @@ public:
++++ b/RetroFE/Source/Graphics/Font.h	2026-04-10 11:33:38.871758455 +0800
+@@ -16,6 +16,7 @@
+ #pragma once
+ 
+ #include <SDL/SDL.h>
++#include <SDL/SDL_ttf.h>
+ #include <map>
+ #include <string>
+ 
+@@ -39,6 +40,7 @@ public:
+     //SDL_Texture *getTexture();
+     SDL_Surface *getTexture();
      bool getRect(unsigned int charCode, GlyphInfo &glyph);
++    SDL_Surface* renderText(const std::string& text);
      int getHeight();
      int getAscent();
-+    SDL_Surface* renderText(const std::string& text);
  
- private:
-     struct GlyphInfoBuild
-@@ -57,4 +58,5 @@ private:
+@@ -56,5 +58,6 @@ private:
+     std::map<unsigned int, GlyphInfoBuild *> atlas;
      std::string fontPath_;
      int fontSize_;
-     SDL_Color color_;
 +    TTF_Font* font_;
+     SDL_Color color_;
  };
 diff -uprN a/RetroFE/Source/Menu/MenuMode.cpp b/RetroFE/Source/Menu/MenuMode.cpp
 --- a/RetroFE/Source/Menu/MenuMode.cpp	2026-04-03 13:17:25.425784469 +0800
