@@ -39,6 +39,9 @@ JLP=$MIDPATH_HOME/dist
 
 CLASS=org.thenesis.midpath.main.MIDletLauncherSE
 
+if [ ! -f "/usr/local/lib/timidity/timidity.cfg" ]; then
+    mount ./timidity /usr/local/lib/timidity
+fi
 
 PIDS=`ps -ef |grep "$JAVA_CMD" |grep -v grep | awk '{print $2}'`
 
@@ -49,4 +52,8 @@ if [ "$PIDS" != "" ]; then
 else
 #    $JAVA_CMD -Dsun.boot.library.path=${JLP} -Xbootclasspath/p:${CP} -Xmx10M ${CLASS} ${ARGS} > $DIR/j2me_std_log.txt 2>$DIR/j2me_err_log.txt
     $JAVA_CMD -Dsun.boot.library.path=${JLP} -Xbootclasspath/p:${CP} -Xmx10M ${CLASS} ${ARGS}
+fi
+
+if [ -f "/usr/local/lib/timidity/timidity.cfg" ]; then
+    umount /usr/local/lib/timidity
 fi
