@@ -25,7 +25,7 @@ diff -uprN a/build.sh b/build.sh
 +./configure --target-device miyoo --disable notify-frontend --disable web-frontend --disable log-frontend
 +make clean
 +make
-+mv frontends/sdl.so _opk/frontends/
++cp -r frontends/ decoders/ _opk/
 diff -uprN a/src/frontends/sdl/playerdisplay.c b/src/frontends/sdl/playerdisplay.c
 --- a/src/frontends/sdl/playerdisplay.c	2026-04-19 20:18:16.729824942 +0800
 +++ b/src/frontends/sdl/playerdisplay.c	2026-04-19 21:36:09.159781197 +0800
