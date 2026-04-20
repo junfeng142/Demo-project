@@ -64,7 +64,8 @@ jobs:
         patch -p1 < fit_for_commander_build.patch
         cd $EXTRA_NAME_1 && mv _opk/fit_for_ffplay_build.patch ./
         patch -p1 < fit_for_ffplay_build.patch
-        cd ../$EXTRA_NAME_2 && mv _opk/build.sh ./
+        cd ../$EXTRA_NAME_2 && mv _opk/fit_for_gmu_build.patch ./
+        patch -p1 < fit_for_gmu_build.patch
         cd ../$EXTRA_NAME_3 && mv _opk/build.sh ./
         cd ../$EXTRA_NAME_4 &&  mv _opk/fit_for_reader_build.patch ./
         patch -p1 < fit_for_reader_build.patch

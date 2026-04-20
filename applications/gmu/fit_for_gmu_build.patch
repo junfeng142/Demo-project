@@ -1,0 +1,321 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-04-19 13:45:08.218644767 +0800
++++ b/Makefile	2026-04-19 13:47:53.358644974 +0800
+@@ -37,6 +37,11 @@ LIBS_SDLFE+=-lSDL_gfx
+ else
+ CFLAGS+=-DSDLFE_WITHOUT_SDL_GFX=1
+ endif
++ifneq ($(SDLFE_WITHOUT_SDL_TTF),1)
++LIBS_SDLFE+=-lSDL_ttf
++else
++CFLAGS+=-DSDLFE_WITHOUT_SDL_TTF=1
++endif
+ 
+ OBJECTFILES=core.o ringbuffer.o util.o dir.o trackinfo.o playlist.o wejconfig.o m3u.o pls.o audio.o charset.o fileplayer.o decloader.o feloader.o eventqueue.o debug.o reader.o hw_$(TARGET).o fmath.o id3.o metadatareader.o dirparser.o gmuerror.o pthread_helper.o
+ ifeq ($(GMU_MEDIALIB),1)
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build.sh	2026-04-20 10:57:57.614242812 +0800
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++export EXTRA_CFLAGS="-D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64"
++export CC=/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-gcc
++
++./configure --target-device miyoo --disable notify-frontend --disable web-frontend --disable log-frontend
++make clean
++make
++mv frontends/sdl.so _opk/frontends/
+diff -uprN a/src/frontends/sdl/playerdisplay.c b/src/frontends/sdl/playerdisplay.c
+--- a/src/frontends/sdl/playerdisplay.c	2026-04-19 20:18:16.729824942 +0800
++++ b/src/frontends/sdl/playerdisplay.c	2026-04-19 21:36:09.159781197 +0800
+@@ -183,11 +183,33 @@ void player_display_draw(TextRenderer *t
+ 			UCodePoint *to_draw = lcd_text_cp;
+ 			if (display_message_pos < 0 && !notice_time_left)
+ 				to_draw -= display_message_pos;
+-			textrenderer_draw_string_codepoints(&skin.font_display, to_draw,
+-												str_max_visible_len,
+-												buffer, 
+-												skin.title_scroller_offset_x1,
+-												skin.title_scroller_offset_y);
++			/* 新增：将 codepoints 转换为 UTF-8 字符串，以便 TTF 字体正确渲染中文 */
++            char utf8_buffer[MAX_LENGTH+1];
++            int utf8_pos = 0;
++            int cp_pos = 0;
++            
++            while (cp_pos < str_max_visible_len && to_draw[cp_pos] && utf8_pos < MAX_LENGTH - 4) {
++                UCodePoint cp = to_draw[cp_pos];
++                if (cp < 0x80) {
++                    utf8_buffer[utf8_pos++] = (char)cp;
++                } else if (cp < 0x800) {
++                    utf8_buffer[utf8_pos++] = 0xC0 | (cp >> 6);
++                    utf8_buffer[utf8_pos++] = 0x80 | (cp & 0x3F);
++                } else if (cp < 0x10000) {
++                    utf8_buffer[utf8_pos++] = 0xE0 | (cp >> 12);
++                    utf8_buffer[utf8_pos++] = 0x80 | ((cp >> 6) & 0x3F);
++                    utf8_buffer[utf8_pos++] = 0x80 | (cp & 0x3F);
++                } else {
++                    utf8_buffer[utf8_pos++] = '?';
++                }
++                cp_pos++;
++            }
++            utf8_buffer[utf8_pos] = '\0';
++            
++            /* 使用 draw_string 而不是 draw_string_codepoints */
++            textrenderer_draw_string(&skin.font_display, utf8_buffer, buffer,
++                                     skin.title_scroller_offset_x1,
++                                     skin.title_scroller_offset_y);
+ 			free(lcd_text_cp);
+ 		}
+ 		if (notice_time_left) notice_time_left--;
+diff -uprN a/src/frontends/sdl/skin.c b/src/frontends/sdl/skin.c
+--- a/src/frontends/sdl/skin.c	2026-04-19 12:34:57.298639501 +0800
++++ b/src/frontends/sdl/skin.c	2026-04-19 21:44:16.769776631 +0800
+@@ -198,6 +198,30 @@ static int skin_config_load(Skin *skin,
+ 					wdprintf(V_DEBUG, "skin", "Loading %s\n", tmp);
+ 					c = textrenderer_init(&skin->font2, tmp,
+ 					                      skin->font2_char_width, skin->font2_char_height);
++					                      
++#ifndef SDLFE_WITHOUT_SDL_TTF
++            	{
++            		char ttf_path[PATH_LEN_MAX];
++            		SDL_Color white = {255, 255, 255, 0};
++            		SDL_Color green = {0, 200, 0, 0};
++            		
++            		/* 使用系统字体路径 */
++            		snprintf(ttf_path, PATH_LEN_MAX, "/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf");
++            		
++            		SDL_Color orange = {0xff, 0x94, 0x3e, 0};
++            		/* 为 font_display 加载TTF */
++            		textrenderer_init_ttf(&skin->font_display, ttf_path, 
++            		                      skin->font_display_char_height, orange);
++            		/* 为 font1 加载TTF */
++            		textrenderer_init_ttf(&skin->font1, ttf_path, 
++            		                      skin->font1_char_height, white);
++            		/* 为 font2 加载TTF */
++            		textrenderer_init_ttf(&skin->font2, ttf_path, 
++            		                      skin->font2_char_height, orange);
++            		
++            		wdprintf(V_INFO, "skin", "TTF fallback fonts loaded for Chinese characters\n");
++            	}
++#endif
+ 					if (a && b && c)
+ 						wdprintf(V_INFO, "skin", "skin: Skin data loaded successfully.\n");
+ 					else
+diff -uprN a/src/frontends/sdl/textrenderer.c b/src/frontends/sdl/textrenderer.c
+--- a/src/frontends/sdl/textrenderer.c	2026-04-19 12:34:57.298639501 +0800
++++ b/src/frontends/sdl/textrenderer.c	2026-04-20 09:15:08.884276280 +0800
+@@ -17,14 +17,22 @@
+ #include "textrenderer.h"
+ #include "SDL.h"
+ #include "SDL_image.h"
++#ifndef SDLFE_WITHOUT_SDL_TTF
++#include <SDL/SDL_ttf.h>
++#endif
+ #include "charset.h"
++#include "debug.h"
+ 
+ int textrenderer_init(TextRenderer *tr, char *chars_file, int chwidth, int chheight)
+ {
+-	int          result = 0;
++	int result = 0;
+ 	SDL_Surface *tmp = IMG_Load(chars_file);
+ 
+ 	tr->chars = NULL;
++#ifndef SDLFE_WITHOUT_SDL_TTF
++	tr->ttf_font = NULL;
++#endif
++	
+ 	if (tmp) {
+ 		if ((tr->chars = SDL_DisplayFormatAlpha(tmp))) {
+ 			tr->chwidth  = chwidth;
+@@ -36,16 +44,80 @@ int textrenderer_init(TextRenderer *tr,
+ 	return result;
+ }
+ 
++#ifndef SDLFE_WITHOUT_SDL_TTF
++int textrenderer_init_ttf(TextRenderer *tr, const char *ttf_file, int fontsize_points, SDL_Color ttf_color)
++{
++	int result = 0;
++	
++	if (!TTF_WasInit() && TTF_Init() == -1) {
++		wdprintf(V_ERROR, "textrenderer", "TTF_Init: %s\n", TTF_GetError());
++		return result;
++	}
++	
++	tr->ttf_font = TTF_OpenFont(ttf_file, fontsize_points);
++	
++	if (tr->ttf_font) {
++		tr->ttf_color = ttf_color;
++		result = 1;
++		wdprintf(V_INFO, "textrenderer", "TTF font loaded: %s size=%d\n", ttf_file, fontsize_points);
++	} else {
++		wdprintf(V_ERROR, "textrenderer", "Error opening TTF file: %s\n", ttf_file);
++	}
++	return result;
++}
++#endif
++
+ void textrenderer_free(TextRenderer *tr)
+ {
+ 	if (tr->chars != NULL) {
+ 		SDL_FreeSurface(tr->chars);
+ 		tr->chars = NULL;
+ 	}
+-}
+-
+-void textrenderer_draw_char(const TextRenderer *tr, UCodePoint ch, SDL_Surface *target, int target_x, int target_y)
+-{
++#ifndef SDLFE_WITHOUT_SDL_TTF
++	if (tr->ttf_font != NULL) {
++		TTF_CloseFont(tr->ttf_font);
++		tr->ttf_font = NULL;
++	}
++#endif
++}
++
++/* 检测是否为中文字符 */
++static int is_chinese(UCodePoint ch)
++{
++	return (ch >= 0x4E00 && ch <= 0x9FFF);  /* CJK统一表意文字 */
++}
++
++void textrenderer_draw_char(TextRenderer *tr, UCodePoint ch, SDL_Surface *target, int target_x, int target_y)
++{
++#ifndef SDLFE_WITHOUT_SDL_TTF
++	/* 如果是中文字符且TTF字体可用，用TTF渲染 */
++	if (is_chinese(ch) && tr->ttf_font != NULL) {
++		char utf8_char[5] = {0};
++		/* 将Unicode码点转换为UTF-8 */
++		if (ch < 0x800) {
++			utf8_char[0] = 0xC0 | (ch >> 6);
++			utf8_char[1] = 0x80 | (ch & 0x3F);
++		} else if (ch < 0x10000) {
++			utf8_char[0] = 0xE0 | (ch >> 12);
++			utf8_char[1] = 0x80 | ((ch >> 6) & 0x3F);
++			utf8_char[2] = 0x80 | (ch & 0x3F);
++		} else {
++			utf8_char[0] = 0xF0 | (ch >> 18);
++			utf8_char[1] = 0x80 | ((ch >> 12) & 0x3F);
++			utf8_char[2] = 0x80 | ((ch >> 6) & 0x3F);
++			utf8_char[3] = 0x80 | (ch & 0x3F);
++		}
++		
++		SDL_Surface *surface = TTF_RenderUTF8_Solid(tr->ttf_font, utf8_char, tr->ttf_color);
++		if (surface) {
++			SDL_Rect drect = {target_x, target_y, surface->w, surface->h};
++			SDL_BlitSurface(surface, NULL, target, &drect);
++			SDL_FreeSurface(surface);
++			return;
++		}
++	}
++#endif
++    
+ 	const int n = (ch - '!') * tr->chwidth;
+ 	SDL_Rect  srect, drect;
+ 
+@@ -64,14 +136,14 @@ void textrenderer_draw_char(const TextRe
+ 	}
+ }
+ 
+-void textrenderer_draw_string_codepoints(const TextRenderer *tr, const UCodePoint *str, int str_len, SDL_Surface *target, int target_x, int target_y)
++void textrenderer_draw_string_codepoints(TextRenderer *tr, const UCodePoint *str, int str_len, SDL_Surface *target, int target_x, int target_y)
+ {
+ 	int i;
+ 	for (i = 0; i < str_len && str[i]; i++)
+ 		textrenderer_draw_char(tr, str[i], target, target_x + i * (tr->chwidth + 1), target_y);
+ }
+ 
+-void textrenderer_draw_string(const TextRenderer *tr, const char *str, SDL_Surface *target, int target_x, int target_y)
++void textrenderer_draw_string(TextRenderer *tr, const char *str, SDL_Surface *target, int target_x, int target_y)
+ {
+ 	int utf8_chars = charset_utf8_len(str)+1;
+ 	UCodePoint *ustr = utf8_chars > 0 ? malloc(sizeof(UCodePoint) * (utf8_chars+1)) : NULL;
+@@ -93,7 +165,7 @@ int textrenderer_get_string_length(const
+ 	return utf8_chars;
+ }
+ 
+-void textrenderer_draw_string_with_highlight(const TextRenderer *tr1, const TextRenderer *tr2,
++void textrenderer_draw_string_with_highlight(TextRenderer *tr1, TextRenderer *tr2,
+                                              const char *str, int str_offset,
+                                              SDL_Surface *target, int target_x, int target_y,
+                                              int max_length, Render_Mode rm)
+@@ -127,17 +199,22 @@ void textrenderer_draw_string_with_highl
+ 
+ 	if (ustr && charset_utf8_to_codepoints(ustr, str, utf8_chars)) {
+ 		for (i = 0, j = 0; i < utf8_chars && j - str_offset < max_length; i++, j++) {
++			/* 跳过高亮标记 **/
+ 			if (str[i] == '*' && i+1 < utf8_chars && str[i+1] == '*') {
+ 				highlight = !highlight;
+-				i+=2;
++				i += 2;
++				if (i >= utf8_chars) break;
+ 			}
+ 			if (j >= str_offset && (j != str_offset || str_offset == 0)) {
+-				if (!highlight)
+-					textrenderer_draw_char(tr1, ustr[i], target, 
+-										   target_x + (j-str_offset) * (tr1->chwidth + 1), target_y);
+-				else
+-					textrenderer_draw_char(tr2, ustr[i], target, 
+-										   target_x + (j-str_offset) * (tr2->chwidth + 1), target_y);
++				/* 关键修改：确保 j 的索引正确 */
++				int draw_x = target_x + (j - str_offset) * (tr1->chwidth + 1);
++				if (!highlight) {
++					/* 使用 tr1 绘制普通文本 */
++					textrenderer_draw_char(tr1, ustr[i], target, draw_x, target_y);
++				} else {
++					/* 使用 tr2 绘制高亮文本 */
++					textrenderer_draw_char(tr2, ustr[i], target, draw_x, target_y);
++				}
+ 			}
+ 		}
+ 	}
+diff -uprN a/src/frontends/sdl/textrenderer.h b/src/frontends/sdl/textrenderer.h
+--- a/src/frontends/sdl/textrenderer.h	2026-04-19 12:34:57.298639501 +0800
++++ b/src/frontends/sdl/textrenderer.h	2026-04-19 21:24:56.919787490 +0800
+@@ -15,14 +15,22 @@
+  */
+ #include "SDL.h"
+ #include "SDL_image.h"
++#ifndef SDLFE_WITHOUT_SDL_TTF
++#include <SDL/SDL_ttf.h>
++#endif
+ #include "charset.h"
+ 
+ #ifndef GMU_TEXTRENDERER_H
+ #define GMU_TEXTRENDERER_H
++
+ struct _TextRenderer
+ {
+ 	SDL_Surface *chars;
+ 	int chwidth, chheight;
++#ifndef SDLFE_WITHOUT_SDL_TTF
++	TTF_Font *ttf_font;      /* 新增：TTF字体句柄 */
++	SDL_Color ttf_color;     /* 新增：TTF字体颜色 */
++#endif
+ };
+ 
+ typedef struct _TextRenderer TextRenderer;
+@@ -30,15 +38,18 @@ typedef struct _TextRenderer TextRendere
+ typedef enum { RENDER_DEFAULT, RENDER_CROP, RENDER_ARROW } Render_Mode;
+ 
+ int  textrenderer_init(TextRenderer *tr, char *chars_file, int chwidth, int chheight);
++#ifndef SDLFE_WITHOUT_SDL_TTF
++int  textrenderer_init_ttf(TextRenderer *tr, const char *ttf_file, int fontsize_points, SDL_Color ttf_color);
++#endif
+ void textrenderer_free(TextRenderer *tr);
+-void textrenderer_draw_char(const TextRenderer *tr, UCodePoint ch, SDL_Surface *target, 
++void textrenderer_draw_char(TextRenderer *tr, UCodePoint ch, SDL_Surface *target, 
+                             int target_x, int target_y);
+-void textrenderer_draw_string_codepoints(const TextRenderer *tr, const UCodePoint *str, 
++void textrenderer_draw_string_codepoints(TextRenderer *tr, const UCodePoint *str, 
+                                          int str_len, SDL_Surface *target, 
+                                          int target_x, int target_y);
+-void textrenderer_draw_string(const TextRenderer *tr, const char *str, SDL_Surface *target, 
++void textrenderer_draw_string(TextRenderer *tr, const char *str, SDL_Surface *target, 
+                               int target_x, int target_y);
+-void textrenderer_draw_string_with_highlight(const TextRenderer *tr1, const TextRenderer *tr2,
++void textrenderer_draw_string_with_highlight(TextRenderer *tr1, TextRenderer *tr2,
+                                              const char *str, int str_offset,
+                                              SDL_Surface *target, int target_x, int target_y,
+                                              int max_length, Render_Mode rm);

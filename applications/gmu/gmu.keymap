@@ -8,12 +8,12 @@
 
 Modifier=Select
 # Global mappings:
-#Left=Left
-#Right=Right
+Left=Left
+Right=Right
 Up=Up
 Down=Down
-IncreaseVolume=Right
-DecreaseVolume=Left
+IncreaseVolume=Mod+Up
+DecreaseVolume=Mod+Down
 ToggleTime=Mod+Left
 Pause=X
 Stop=Mod+X
