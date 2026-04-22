@@ -1,6 +1,6 @@
 diff -uprN a/Makefile b/Makefile
 --- a/Makefile	2026-04-22 09:46:45.865950928 +0800
-+++ b/Makefile	2026-04-22 10:08:14.465947464 +0800
++++ b/Makefile	2026-04-22 13:14:17.935917451 +0800
 @@ -519,10 +519,10 @@ endif
  ifeq ($(TARGET_LINUX),1)
  
@@ -9,10 +9,10 @@ diff -uprN a/Makefile b/Makefile
 -  CC := $(OD_TOOLCHAIN)bin/arm-funkey-linux-musleabihf-gcc
 -  CXX := $(OD_TOOLCHAIN)bin/arm-funkey-linux-musleabihf-g++
 -  LD := $(OD_TOOLCHAIN)bin/arm-funkey-linux-musleabihf-gcc
-+  OD_TOOLCHAIN ?= /opt/FunKey-sdk-2.3.0/
-+  CC := $(OD_TOOLCHAIN)bin/arm-funkey-linux-gnueabihf-gcc
-+  CXX := $(OD_TOOLCHAIN)bin/arm-funkey-linux-gnueabihf-g++
-+  LD := $(OD_TOOLCHAIN)bin/arm-funkey-linux-gnueabihf-gcc
++  OD_TOOLCHAIN ?= /opt/mmiyoo/
++  CC := $(OD_TOOLCHAIN)bin/arm-linux-gnueabihf-gcc
++  CXX := $(OD_TOOLCHAIN)bin/arm-linux-gnueabihf-g++
++  LD := $(OD_TOOLCHAIN)bin/arm-linux-gnueabihf-gcc
    MARCH :=  -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -Ofast -fno-PIC -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -fno-builtin -DFUNKEY
  endif
  
@@ -22,14 +22,14 @@ diff -uprN a/Makefile b/Makefile
  	else ifeq ($(TARGET_FUNKEY),1)
 -	  GFX_CFLAGS  += $(shell /opt/FunKey-sdk/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config --cflags)
 -	  GFX_LDFLAGS += $(shell /opt/FunKey-sdk/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config --libs) -Wl,--as-needed -Wl,--gc-sections -Wl,-O1,--sort-common -flto -s
-+	  GFX_CFLAGS  += $(shell /opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags)
-+	  GFX_LDFLAGS += $(shell /opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs) -Wl,--as-needed -Wl,--gc-sections -Wl,-O1,--sort-common -flto -s
++	  GFX_CFLAGS  += $(shell /opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags)
++	  GFX_LDFLAGS += $(shell /opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs) -Wl,--as-needed -Wl,--gc-sections -Wl,-O1,--sort-common -flto -s
      GFX_LDFLAGS += -lSDL_ttf -lSDL_image
  	else ifeq ($(TARGET_BITTBOY),1)
  	  GFX_CFLAGS  += $(shell /opt/bittboy-toolchain/arm-buildroot-linux-musleabi/sysroot/usr/bin/sdl-config --cflags)
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	2026-04-22 13:01:57.745919441 +0800
-+++ b/build_opk.sh	2026-04-22 13:05:19.075918899 +0800
++++ b/build_opk.sh	2026-04-22 13:12:40.425917713 +0800
 @@ -1,21 +1,14 @@
  #!/bin/sh -e
  
@@ -49,13 +49,13 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 -	make -j16 VERSION=us
 -	mksquashfs build/us_funkey/sm64.us.f3dex2e opk/sm64.png opk/sm64_us."$1".desktop sm64_us_v1.3_"$1".opk
 +	make -j16 platform=funkey-s VERSION=us
-+	/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip build/us_funkey/sm64.us.f3dex2e -o _opk/sm64
++	/opt/mmiyoo/bin/arm-linux-gnueabihf-strip build/us_funkey/sm64.us.f3dex2e -o _opk/sm64
  fi
  if [ -e ./baserom.jp.z64 ]; then
 -	make -j16 VERSION=jp
 -	mksquashfs build/jp_funkey/sm64.jp.f3dex2e opk/sm64.png opk/sm64_jp."$1".desktop sm64_jp_v1.3_"$1".opk
 +	make -j16 platform=funkey-s VERSION=jp
-+	/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip build/jp_funkey/sm64.jp.f3dex2e -o _opk/sm64
++	/opt/mmiyoo/bin/arm-linux-gnueabihf-strip build/jp_funkey/sm64.jp.f3dex2e -o _opk/sm64
  fi
 +
 +mksquashfs _opk/* ../_opk/sm64_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
