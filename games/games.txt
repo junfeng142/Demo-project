@@ -3,7 +3,7 @@
 #apricots|https://github.com/Emulators-Salvacam/apricots.git|master
 #biniax2|https://github.com/Emulators-Salvacam/Biniax2.git|main
 #cannonball|https://github.com/DrUm78/Cannonball-C.git|v0.3-funkey-s
-crafti|https://github.com/gameblabla/crafti.git|dreamcast_xbox_ps2_new_branch
+#crafti|https://github.com/gameblabla/crafti.git|dreamcast_xbox_ps2_new_branch
 #fever|https://github.com/szymor/HomingFever.git|master
 #finalsnake|https://github.com/szymor/finalsnake.git|master
 #FleshChasmer|https://github.com/szymor/FleshChasmer.git|master
@@ -27,6 +27,7 @@ crafti|https://github.com/gameblabla/crafti.git|dreamcast_xbox_ps2_new_branch
 #slitherlink|https://github.com/szymor/od-slitherlink.git|master
 #spartakchess|https://github.com/szymor/Spartak-Chess.git|master
 #srb2|https://github.com/Emulators-Salvacam/srb2.git|master
+sm64|https://github.com/DrUm78/sm64-funkey.git|FunKey
 #smw|https://github.com/andrigamerita/super-mario-war.git|master
 #xrick|https://github.com/jamesofarrell/miyoo_xrick.git|master
 #yatka|https://github.com/szymor/yatka.git|master

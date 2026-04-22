@@ -1,0 +1,197 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-04-22 09:46:45.865950928 +0800
++++ b/Makefile	2026-04-22 10:08:14.465947464 +0800
+@@ -519,10 +519,10 @@ endif
+ ifeq ($(TARGET_LINUX),1)
+ 
+ ifeq ($(TARGET_FUNKEY),1)
+-  OD_TOOLCHAIN ?= /opt/FunKey-sdk/
+-  CC := $(OD_TOOLCHAIN)bin/arm-funkey-linux-musleabihf-gcc
+-  CXX := $(OD_TOOLCHAIN)bin/arm-funkey-linux-musleabihf-g++
+-  LD := $(OD_TOOLCHAIN)bin/arm-funkey-linux-musleabihf-gcc
++  OD_TOOLCHAIN ?= /opt/FunKey-sdk-2.3.0/
++  CC := $(OD_TOOLCHAIN)bin/arm-funkey-linux-gnueabihf-gcc
++  CXX := $(OD_TOOLCHAIN)bin/arm-funkey-linux-gnueabihf-g++
++  LD := $(OD_TOOLCHAIN)bin/arm-funkey-linux-gnueabihf-gcc
+   MARCH :=  -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -Ofast -fno-PIC -fdata-sections -ffunction-sections -fsingle-precision-constant -fno-common -fno-builtin -DFUNKEY
+ endif
+ 
+@@ -628,8 +628,8 @@ else ifeq ($(ENABLE_SOFTRAST),1)
+ 	  GFX_CFLAGS  += $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --cflags)
+ 	  GFX_LDFLAGS += $(shell /opt/rs90-toolchain/mipsel-rs90-linux-musl/sysroot/usr/bin/sdl-config --libs) -flto -Wl,--as-needed -Wl,--gc-sections -Wl,-O1,--sort-common -s
+ 	else ifeq ($(TARGET_FUNKEY),1)
+-	  GFX_CFLAGS  += $(shell /opt/FunKey-sdk/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config --cflags)
+-	  GFX_LDFLAGS += $(shell /opt/FunKey-sdk/arm-funkey-linux-musleabihf/sysroot/usr/bin/sdl-config --libs) -Wl,--as-needed -Wl,--gc-sections -Wl,-O1,--sort-common -flto -s
++	  GFX_CFLAGS  += $(shell /opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags)
++	  GFX_LDFLAGS += $(shell /opt/FunKey-sdk-2.3.0/arm-funkey-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs) -Wl,--as-needed -Wl,--gc-sections -Wl,-O1,--sort-common -flto -s
+     GFX_LDFLAGS += -lSDL_ttf -lSDL_image
+ 	else ifeq ($(TARGET_BITTBOY),1)
+ 	  GFX_CFLAGS  += $(shell /opt/bittboy-toolchain/arm-buildroot-linux-musleabi/sysroot/usr/bin/sdl-config --cflags)
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	2026-04-22 13:01:57.745919441 +0800
++++ b/build_opk.sh	2026-04-22 13:05:19.075918899 +0800
+@@ -1,21 +1,14 @@
+ #!/bin/sh -e
+ 
+-if [ $# -ne 1 ]; then
+-	echo "Usage: $0 platform"
+-	echo "	platforms: funkey-s, gcw0, retrofw"
++mv _opk/baserom.us.z64 ./
+ 
+-	exit 1
+-fi
+-
+-rm -f *.opk
+-make distclean
+-#convert textures/segment2/segment2.05A00.rgba16.png -resize 32x32! build/icon.png
+-#mksquashfs build/us_pc/sm64.us.f3dex2e ./run.sh build/icon.png default."$1".desktop sm64-port-"$1".opk
+ if [ -e ./baserom.us.z64 ]; then
+-	make -j16 VERSION=us
+-	mksquashfs build/us_funkey/sm64.us.f3dex2e opk/sm64.png opk/sm64_us."$1".desktop sm64_us_v1.3_"$1".opk
++	make -j16 platform=funkey-s VERSION=us
++	/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip build/us_funkey/sm64.us.f3dex2e -o _opk/sm64
+ fi
+ if [ -e ./baserom.jp.z64 ]; then
+-	make -j16 VERSION=jp
+-	mksquashfs build/jp_funkey/sm64.jp.f3dex2e opk/sm64.png opk/sm64_jp."$1".desktop sm64_jp_v1.3_"$1".opk
++	make -j16 platform=funkey-s VERSION=jp
++	/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip build/jp_funkey/sm64.jp.f3dex2e -o _opk/sm64
+ fi
++
++mksquashfs _opk/* ../_opk/sm64_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+diff -uprN a/src/pc/configfile.c b/src/pc/configfile.c
+--- a/src/pc/configfile.c	2026-04-22 10:48:09.915941024 +0800
++++ b/src/pc/configfile.c	2026-04-22 12:53:16.175920843 +0800
+@@ -69,19 +69,19 @@ unsigned int configKeyStickRight =  4;
+ // DInput scancodes
+ #if defined(TARGET_LINUX)
+     #if defined(FUNKEY)
+-    unsigned int configKeyA          = 30;
+-    unsigned int configKeyB          = 48;
+-    unsigned int configKeyStart      = 31;
+-    unsigned int configKeyR          = 49;
+-    unsigned int configKeyZ          = 50;
+-    unsigned int configKeyCUp        = 47;
+-    unsigned int configKeyCDown      = 24;
+-    unsigned int configKeyCLeft      = 36;
++    unsigned int configKeyA          = 57;
++    unsigned int configKeyB          = 29;
++    unsigned int configKeyStart      = 28;
++    unsigned int configKeyR          = 42;
++    unsigned int configKeyZ          = 56;
++    unsigned int configKeyCUp        = 14;
++    unsigned int configKeyCDown      = 15;
++    unsigned int configKeyCLeft      = 97;
+     unsigned int configKeyCRight     = 23;
+-    unsigned int configKeyStickUp    = 22;
+-    unsigned int configKeyStickDown  = 32;
+-    unsigned int configKeyStickLeft  = 38;
+-    unsigned int configKeyStickRight = 19;
++    unsigned int configKeyStickUp    = 584;
++    unsigned int configKeyStickDown  = 592;
++    unsigned int configKeyStickLeft  = 587;
++    unsigned int configKeyStickRight = 589;
+     #else
+     unsigned int configKeyA          = 29;
+     unsigned int configKeyB          = 56;
+diff -uprN a/src/pc/gfx/gfx_sdl.c b/src/pc/gfx/gfx_sdl.c
+--- a/src/pc/gfx/gfx_sdl.c	2026-04-22 10:06:46.235947701 +0800
++++ b/src/pc/gfx/gfx_sdl.c	2026-04-22 12:21:23.115925986 +0800
+@@ -492,6 +492,7 @@ static void gfx_sdl_handle_events(void)
+                 switch(event.key.keysym.sym){
+ 
+                   case SDLK_q:
++                  case SDLK_ESCAPE:
+                   //game_exit();
+                   run_menu_loop();
+                   clear_screen(texture);
+diff -uprN a/src/pc/gfx/gfx_sdl_menu.c b/src/pc/gfx/gfx_sdl_menu.c
+--- a/src/pc/gfx/gfx_sdl_menu.c	2026-04-22 10:06:46.235947701 +0800
++++ b/src/pc/gfx/gfx_sdl_menu.c	2026-04-22 11:20:16.725935843 +0800
+@@ -33,27 +33,27 @@
+ #define MENU_ERROR_PRINTF(...)
+ #endif //MENU_ERROR
+ 
+-#define SCREEN_HORIZONTAL_SIZE      RES_HW_SCREEN_HORIZONTAL
++#define SCREEN_HORIZONTAL_SIZE      320
+ #define SCREEN_VERTICAL_SIZE        RES_HW_SCREEN_VERTICAL
+ 
+ #define SCROLL_SPEED_PX             30
+ #define FPS_MENU                    50
+ #define ARROWS_PADDING              8
+ 
+-#define MENU_ZONE_WIDTH             SCREEN_HORIZONTAL_SIZE
++#define MENU_ZONE_WIDTH             240
+ #define MENU_ZONE_HEIGHT            SCREEN_VERTICAL_SIZE
+ #define MENU_BG_SQUARE_WIDTH        180
+ #define MENU_BG_SQUARE_HEIGHT       140
+ 
+-#define MENU_FONT_NAME_TITLE        "/usr/games/menu_resources/OpenSans-Bold.ttf"
++#define MENU_FONT_NAME_TITLE        "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
+ #define MENU_FONT_SIZE_TITLE        22
+-#define MENU_FONT_NAME_INFO         "/usr/games/menu_resources/OpenSans-Bold.ttf"
++#define MENU_FONT_NAME_INFO         "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
+ #define MENU_FONT_SIZE_INFO         16
+-#define MENU_FONT_NAME_SMALL_INFO   "/usr/games/menu_resources/OpenSans-Regular.ttf"
++#define MENU_FONT_NAME_SMALL_INFO   "/usr/share/fonts/droid/DroidSansFallbackFull.ttf"
+ #define MENU_FONT_SIZE_SMALL_INFO   13
+-#define MENU_PNG_BG_PATH            "/usr/games/menu_resources/zone_bg.png"
+-#define MENU_PNG_ARROW_TOP_PATH     "/usr/games/menu_resources/arrow_top.png"
+-#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/games/menu_resources/arrow_bottom.png"
++#define MENU_PNG_BG_PATH            "/usr/share/gmenu2x/skins/320x240/Default/imgs/zone_bg.png"
++#define MENU_PNG_ARROW_TOP_PATH     "/usr/share/gmenu2x/skins/320x240/Default/imgs/arrow_top.png"
++#define MENU_PNG_ARROW_BOTTOM_PATH  "/usr/share/gmenu2x/skins/320x240/Default/imgs/arrow_bottom.png"
+ 
+ #define GRAY_MAIN_R                 85
+ #define GRAY_MAIN_G                 85
+@@ -425,8 +425,8 @@ void menu_screen_refresh(int menuItem, i
+ 
+     /// --------- Setup Blit Window ----------
+     SDL_Rect menu_blit_window;
+-    menu_blit_window.x = 0;
+-    menu_blit_window.w = SCREEN_HORIZONTAL_SIZE;
++    menu_blit_window.x = (SCREEN_HORIZONTAL_SIZE - MENU_ZONE_WIDTH)/2;
++	menu_blit_window.w = MENU_ZONE_WIDTH;
+ 
+     /// --------- Blit prev menu Zone going away ----------
+     menu_blit_window.y = scroll;
+@@ -437,6 +437,7 @@ void menu_screen_refresh(int menuItem, i
+ 
+     /// --------- Blit new menu Zone going in (only during animations) ----------
+     if(scroll>0){
++        menu_blit_window.x = (MENU_ZONE_WIDTH - SCREEN_HORIZONTAL_SIZE)/2;
+         menu_blit_window.y = SCREEN_VERTICAL_SIZE-scroll;
+         menu_blit_window.h = SCREEN_VERTICAL_SIZE;
+         if(SDL_BlitSurface(menu_zone_surfaces[menuItem], NULL, draw_screen, &menu_blit_window)){
+@@ -461,12 +462,12 @@ void menu_screen_refresh(int menuItem, i
+ 
+         switch(idx_menus[menuItem]){
+         case MENU_TYPE_VOLUME:
+-            draw_progress_bar(draw_screen, x_volume_bar, y_volume_bar,
++            draw_progress_bar(draw_screen, (MENU_ZONE_WIDTH - width_progress_bar)/2, y_volume_bar,
+                             width_progress_bar, height_progress_bar, volume_percentage, 100/STEP_CHANGE_VOLUME);
+             break;
+ 
+         case MENU_TYPE_BRIGHTNESS:
+-            draw_progress_bar(draw_screen, x_volume_bar, y_volume_bar,
++            draw_progress_bar(draw_screen, (MENU_ZONE_WIDTH - width_progress_bar)/2, y_volume_bar,
+                             width_progress_bar, height_progress_bar, brightness_percentage, 100/STEP_CHANGE_BRIGHTNESS);
+             break;
+ 
+@@ -654,6 +655,7 @@ void run_menu_loop()
+                 switch (event.key.keysym.sym)
+                 {
+                     case SDLK_b:
++                    case SDLK_LCTRL:
+                         if(menu_confirmation){
+                             /// ------ Reset menu confirmation ------
+                             menu_confirmation = 0;
+@@ -830,7 +832,7 @@ void run_menu_loop()
+                         break;
+ 
+                     case SDLK_a:
+-                    case SDLK_RETURN:
++                    case SDLK_SPACE:
+                     if(idx_menus[menuItem] == MENU_TYPE_SAVE){
+                             if(menu_confirmation){
+                                 MENU_DEBUG_PRINTF("Saving in slot %d\n", menu_saveslot);

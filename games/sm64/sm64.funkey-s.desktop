@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=SM64(U)
+Name[ch]=超级马里奥64
+Comment=Super Mario 64 port for the FunKey S
+Comment[ch]=《超级马里奥64》移植FunKeyS版
+Exec=sm64
+Icon=sm64
+Categories=games
