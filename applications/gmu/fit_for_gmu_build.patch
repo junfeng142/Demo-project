@@ -319,3 +319,35 @@ diff -uprN a/src/frontends/sdl/textrenderer.h b/src/frontends/sdl/textrenderer.h
                                               const char *str, int str_offset,
                                               SDL_Surface *target, int target_x, int target_y,
                                               int max_length, Render_Mode rm);
+diff -uprN a/src/hw_miyoo.c b/src/hw_miyoo.c
+--- a/src/hw_miyoo.c	2026-04-23 09:05:35.123988318 +0800
++++ b/src/hw_miyoo.c	2026-04-23 10:26:06.823956294 +0800
+@@ -21,7 +21,6 @@
+ static int display_on_value = 100;
+ static int selected_mixer = -1;
+ 
+-#define MIYOO_LID_FILE  "/mnt/.backlight.conf"
+ #define MIYOO_LID_CONF  "/sys/devices/platform/backlight/backlight/backlight/brightness"
+ 
+ static int read_conf(const char *file)
+@@ -98,12 +97,15 @@ void hw_display_on(void)
+ 	FILE *f;
+   char buf[32]={0};
+ 
+-  val = read_conf(MIYOO_LID_FILE);
+ 	wdprintf(V_DEBUG, "hw_miyoo", "Display on requested.\n");
+-  if ((f = fopen(MIYOO_LID_CONF, "w"))) {
+-    sprintf(buf, "%d\n", val);
+-	  fprintf(f, buf);
+-		fclose(f);
++	f = popen("brightness get", "r");
++  if (f) {
++    if (fgets(buf, sizeof(buf), f)) {
++        val = atoi(buf);
++        snprintf(buf, sizeof(buf), "brightness set %d", val);
++        system(buf);
++    }
++    fclose(f);
+ 	}
+ }
+ 
