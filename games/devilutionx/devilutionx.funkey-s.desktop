@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Devilutionx
+Name[ch]=暗黑破坏神
+Comment=DevilutionX is a port of Diablo and Hellfire
+Comment[ch]=DevilutionX是《暗黑破坏神》和《地狱火》的移植版
+Icon=devilutionx
+Exec=run.sh
+Categories=games
