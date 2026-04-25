@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=jinyong
+Name[ch]=金庸群侠
+Comment=The Legend of Jin Yong's Heroes
+Comment[ch]=金庸群侠传移植版
+Icon=jinyong
+Exec=run.sh
+Categories=games
