@@ -1,87 +1,11 @@
-diff -uprN a/CMake/platforms/miyoo_mini.cmake b/CMake/platforms/miyoo_mini.cmake
---- a/CMake/platforms/miyoo_mini.cmake	2026-04-24 12:57:46.635572119 +0800
-+++ b/CMake/platforms/miyoo_mini.cmake	2026-04-25 09:27:56.747567642 +0800
-@@ -1,15 +1,17 @@
--set(USE_SDL1 ON)
-+#set(USE_SDL1 ON)
- set(NONET ON)
- set(DEVILUTIONX_SYSTEM_LIBFMT OFF)
- set(DEVILUTIONX_SYSTEM_LIBSODIUM OFF)
- set(DEVILUTIONX_SYSTEM_BZIP2 OFF)
- 
--set(SDL1_VIDEO_MODE_BPP 32)
-+set(SDL1_VIDEO_MODE_BPP 16)
- set(SDL1_VIDEO_MODE_FLAGS SDL_HWSURFACE)
- set(SDL1_FORCE_SVID_VIDEO_MODE ON)
- 
-+set(DEFAULT_WIDTH 320)
-+set(DEFAULT_HEIGHT 240)
-+
- set(PREFILL_PLAYER_NAME ON)
--set(DEFAULT_AUDIO_SAMPLE_RATE 44100)
- 
- # The mini's buttons are connected via GPIO and are mapped to keyboard inputs
- set(HAS_KBCTRL 1)
-@@ -18,10 +20,10 @@ set(KBCTRL_BUTTON_DPAD_LEFT SDLK_LEFT)
- set(KBCTRL_BUTTON_DPAD_RIGHT SDLK_RIGHT)
- set(KBCTRL_BUTTON_DPAD_UP SDLK_UP)
- set(KBCTRL_BUTTON_DPAD_DOWN SDLK_DOWN)
--set(KBCTRL_BUTTON_B SDLK_SPACE)
--set(KBCTRL_BUTTON_A SDLK_LCTRL)
-+set(KBCTRL_BUTTON_B SDLK_LCTRL)
-+set(KBCTRL_BUTTON_A SDLK_LALT)
- set(KBCTRL_BUTTON_Y SDLK_LSHIFT)
--set(KBCTRL_BUTTON_X SDLK_LALT)
-+set(KBCTRL_BUTTON_X SDLK_SPACE)
- set(KBCTRL_BUTTON_RIGHTSHOULDER SDLK_t)
- set(KBCTRL_BUTTON_LEFTSHOULDER SDLK_e)
- set(KBCTRL_BUTTON_TRIGGERRIGHT SDLK_BACKSPACE)
-diff -uprN a/Source/engine/dx.cpp b/Source/engine/dx.cpp
---- a/Source/engine/dx.cpp	2026-04-24 19:50:54.792385407 +0800
-+++ b/Source/engine/dx.cpp	2026-04-24 21:05:30.452343504 +0800
-@@ -122,6 +122,10 @@ void dx_cleanup()
- 
- void CreateBackBuffer()
- {
-+    if (gnScreenWidth == 0 || gnScreenHeight == 0) {
-+        gnScreenWidth = 640;
-+        gnScreenHeight = 480;
-+    }
- 	if (CanRenderDirectlyToOutputSurface()) {
- 		Log("{}", "Will render directly to the SDL output surface");
- 		PalSurface = GetOutputSurface();
-diff -uprN a/Source/utils/display.cpp b/Source/utils/display.cpp
---- a/Source/utils/display.cpp	2026-04-24 10:58:46.425478829 +0800
-+++ b/Source/utils/display.cpp	2026-04-24 21:03:59.302344357 +0800
-@@ -180,7 +180,10 @@ void CalculateUIRectangle()
- 
- Size GetPreferredWindowSize()
- {
--	Size windowSize = forceResolution.width != 0 ? forceResolution : *sgOptions.Graphics.resolution;
-+	if (forceResolution.width == 0) {
-+        forceResolution = { 640, 480 };
-+    }
-+    Size windowSize = forceResolution;
- 
- #ifndef USE_SDL1
- 	if (*sgOptions.Graphics.upscale && *sgOptions.Graphics.fitToScreen) {
-@@ -416,6 +419,11 @@ void ReinitializeRenderer()
- 	FreeRenderer();
- 
- 	if (*sgOptions.Graphics.upscale) {
-+	    if (gnScreenWidth == 0 || gnScreenHeight == 0) {
-+            gnScreenWidth = 640;
-+            gnScreenHeight = 480;
-+        }
-+        
- 		Uint32 rendererFlags = 0;
- 
- 		if (*sgOptions.Graphics.frameRateControl == FrameRateControl::VerticalSync) {
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build_opk.sh	2026-04-25 10:36:07.437572757 +0800
-@@ -0,0 +1,11 @@
++++ b/build_opk.sh	2026-04-25 11:43:40.947577826 +0800
+@@ -0,0 +1,14 @@
 +#!/bin/bash
++
++cp -r _opk/CMake/ _opk/Source/ ./
++rm -rf _opk/CMake/ _opk/Source/
 +
 +CMAKE_ARGS="-DTARGET_PLATFORM=miyoo_mini -DCMAKE_TOOLCHAIN_FILE=/opt/mmiyoo/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
 +cmake $CMAKE_ARGS .
