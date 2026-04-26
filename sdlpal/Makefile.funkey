@@ -7,7 +7,7 @@ CFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.c))
 CPPFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.cpp))
 OFILES = $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 
-CFLAGS = -g -Wall -O2 `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags` -DDINGOO -DPAL_CLASSIC -DPAL_SAVE_PREFIX="/mnt/FunKey/.sdlpal/"
+CFLAGS = -g -Wall -O2 `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags` -DDINGOO -DPAL_CLASSIC -D'PAL_SAVE_PREFIX="/mnt/FunKey/.sdlpal/"'
 CXXFLAGS = $(CFLAGS)
 LDFLAGS = `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs`
 
