@@ -1,13 +1,13 @@
 diff -uprN a/build_opk.sh b/build_opk.sh
 --- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build_opk.sh	2026-04-27 20:07:51.034788261 +0800
++++ b/build_opk.sh	2026-04-27 20:22:15.694799558 +0800
 @@ -0,0 +1,16 @@
 +#!/bin/bash
 +
 +if [ ! -d "flare-game" ]; then
 +    git clone -b v1.14 https://github.com/flareteam/flare-game.git --depth 1
 +    rm mods/default/fonts/unifont-10.0.06.ttf
-+    cp -r mods/default/ mods.txt _opk/mods
++    cp -r mods/default/ _opk/mods
 +    cp -r flare-game/mods/alpha_demo/ flare-game/mods/centered_statbars/ flare-game/mods/devlab/ flare-game/mods/empyrean_campaign/ flare-game/mods/fantasycore/ _opk/mods
 +    mv font_settings.txt _opk/mods/fantasycore/engine
 +    ln -s /usr/share/fonts/droid/DroidSansFallbackFull.ttf ./unifont-10.0.06.ttf
@@ -228,14 +228,6 @@ diff -uprN a/mods/default/engine/default_settings.txt b/mods/default/engine/defa
 +
 +# automatically equip items. 1 enable, 0 disable
 +auto_equip=1
-diff -uprN a/mods.txt b/mods.txt
---- a/mods.txt	1970-01-01 08:00:00.000000000 +0800
-+++ b/mods.txt	2026-04-27 19:32:17.774760389 +0800
-@@ -0,0 +1,4 @@
-+# Mods lower on the list will overwrite data in the entries higher on the list
-+
-+fantasycore
-+empyrean_campaign
 diff -uprN a/src/SDLSoftwareRenderDevice.cpp b/src/SDLSoftwareRenderDevice.cpp
 --- a/src/SDLSoftwareRenderDevice.cpp	2026-04-27 10:59:46.356696104 +0800
 +++ b/src/SDLSoftwareRenderDevice.cpp	2026-04-27 19:19:16.014750175 +0800
