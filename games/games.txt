@@ -4,9 +4,10 @@
 #biniax2|https://github.com/Emulators-Salvacam/Biniax2.git|main
 #cannonball|https://github.com/DrUm78/Cannonball-C.git|v0.3-funkey-s
 #crafti|https://github.com/gameblabla/crafti.git|dreamcast_xbox_ps2_new_branch
-devilutionx|https://github.com/diasurgical/DevilutionX.git|1.5.5
+#devilutionx|https://github.com/diasurgical/DevilutionX.git|1.5.5
 #fever|https://github.com/szymor/HomingFever.git|master
 #finalsnake|https://github.com/szymor/finalsnake.git|master
+flare|https://github.com/flareteam/flare-engine.git|v1.14
 #FleshChasmer|https://github.com/szymor/FleshChasmer.git|master
 #heretic|https://github.com/MiyanoOsu/hheretic-miyoo.git|main
 #hexen|https://github.com/MiyanoOsu/hhexen-miyoo.git|main

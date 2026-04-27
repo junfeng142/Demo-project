@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Flare
+Name[ch]=暗黑焰火
+Comment=A single player, 2D-isometric, action Role-Playing Game
+Comment[ch]=单人玩家，2D等距视角，动作角色扮演游戏
+Icon=flare
+Exec=run.sh
+Categories=games

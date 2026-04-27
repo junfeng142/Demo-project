@@ -1,0 +1,346 @@
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-04-27 20:07:51.034788261 +0800
+@@ -0,0 +1,16 @@
++#!/bin/bash
++
++if [ ! -d "flare-game" ]; then
++    git clone -b v1.14 https://github.com/flareteam/flare-game.git --depth 1
++    rm mods/default/fonts/unifont-10.0.06.ttf
++    cp -r mods/default/ mods.txt _opk/mods
++    cp -r flare-game/mods/alpha_demo/ flare-game/mods/centered_statbars/ flare-game/mods/devlab/ flare-game/mods/empyrean_campaign/ flare-game/mods/fantasycore/ _opk/mods
++    mv font_settings.txt _opk/mods/fantasycore/engine
++    ln -s /usr/share/fonts/droid/DroidSansFallbackFull.ttf ./unifont-10.0.06.ttf
++    mv ./unifont-10.0.06.ttf _opk/mods/default/fonts/
++fi
++CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=/opt/mmiyoo/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
++cmake $CMAKE_ARGS .
++make -j8 V=s
++/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip flare -o _opk/flare
++mksquashfs ./_opk/* ../_opk/flare_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+diff -uprN a/font_settings.txt b/font_settings.txt
+--- a/font_settings.txt	1970-01-01 08:00:00.000000000 +0800
++++ b/font_settings.txt	2026-04-27 19:30:25.454758922 +0800
+@@ -0,0 +1,51 @@
++# Only .ttf files are supported, due to limitations in SDL_ttf
++# The font must be placed in /fonts
++
++[font]
++id=font_regular
++style=default,LiberationSans-Regular.ttf,22,1
++style=ja,unifont-10.0.06.ttf,22,1
++style=ko,unifont-10.0.06.ttf,22,1
++style=zh,unifont-10.0.06.ttf,22,1
++style=zh_TW,unifont-10.0.06.ttf,22,1
++
++[font]
++id=font_bold
++style=default,LiberationSans-Bold.ttf,22,1
++style=ja,unifont-10.0.06.ttf,22,1
++style=ko,unifont-10.0.06.ttf,22,1
++style=zh,unifont-10.0.06.ttf,22,1
++style=zh_TW,unifont-10.0.06.ttf,22,1
++
++[font]
++id=font_italic
++style=default,LiberationSans-Italic.ttf,22,1
++style=ja,unifont-10.0.06.ttf,22,1
++style=ko,unifont-10.0.06.ttf,22,1
++style=zh,unifont-10.0.06.ttf,22,1
++style=zh_TW,unifont-10.0.06.ttf,22,1
++
++[font]
++id=font_captions
++style=default,LiberationSans-Regular.ttf,22,1
++style=ja,unifont-10.0.06.ttf,22,1
++style=ko,unifont-10.0.06.ttf,22,1
++style=zh,unifont-10.0.06.ttf,22,1
++style=zh_TW,unifont-10.0.06.ttf,22,1
++
++[font]
++id=font_subtitles
++style=default,LiberationSans-Italic.ttf,26,1
++style=ja,unifont-10.0.06.ttf,26,1
++style=ko,unifont-10.0.06.ttf,26,1
++style=zh,unifont-10.0.06.ttf,26,1
++style=zh_TW,unifont-10.0.06.ttf,26,1
++
++[font]
++id=font_slot_quantity
++style=default,LiberationSans-Bold.ttf,20,1
++style=ja,unifont-10.0.06.ttf,22,1
++style=ko,unifont-10.0.06.ttf,22,1
++style=zh,unifont-10.0.06.ttf,22,1
++style=zh_TW,unifont-10.0.06.ttf,22,1
++
+diff -uprN a/mods/default/engine/default_keybindings.txt b/mods/default/engine/default_keybindings.txt
+--- a/mods/default/engine/default_keybindings.txt	1970-01-01 08:00:00.000000000 +0800
++++ b/mods/default/engine/default_keybindings.txt	2026-04-27 18:40:56.134720126 +0800
+@@ -0,0 +1,67 @@
++# Keybindings
++# FORMAT: {ACTION}={BIND},{TYPE}
++# A bind value of -1 means unbound and will clear any existing bindings for that action
++# Type may be any of the follwing: 0 = Keyboard, 1 = Mouse, 2 = Gamepad button, 3 = Gamepad Axis.
++# Human-readable key and gamepad mapping names may be used by prefixing the bind with "SDL:" (e.g. "SDL:space" or "SDL:leftstick").
++# If using the "SDL:" prefix for a gamepad axis, add ":-" to the end of the bind to get the negative direction (e.g. "SDL:leftx:-").
++
++file_version=1.12.90
++
++[user]
++cancel=74,0
++cancel=1,2
++accept=40,0
++accept=0,2
++up=82,0
++up=3,3
++up=11,2
++down=81,0
++down=2,3
++down=12,2
++left=80,0
++left=1,3
++left=13,2
++right=79,0
++right=0,3
++right=14,2
++bar1=226,0
++bar1=7,2
++bar2=225,0
++bar2=8,2
++bar3=28,0
++bar4=29,0
++bar5=30,0
++bar6=31,0
++bar7=32,0
++bar8=33,0
++bar9=34,0
++bar0=35,0
++character=6,0
++inventory=9,0
++inventory=3,2
++powers=19,0
++log=15,0
++main1=224,0
++main1=1,1
++main1=10,3
++main2=44,0
++main2=3,1
++main2=8,3
++equipment_swap=41,0
++equipment_swap_prev=13,0
++minimap_mode=16,0
++loot_tooltip_mode=56,0
++actionbar=42,0
++actionbar=4,2
++menu_page_next=42,0
++menu_page_next=10,2
++menu_page_prev=43,0
++menu_page_prev=9,2
++menu_activate=25,0
++menu_activate=2,2
++pause=6,2
++aim_up=7,3
++aim_down=6,3
++aim_left=5,3
++aim_right=4,3
++developer_menu=62,0
+diff -uprN a/mods/default/engine/default_settings.txt b/mods/default/engine/default_settings.txt
+--- a/mods/default/engine/default_settings.txt	1970-01-01 08:00:00.000000000 +0800
++++ b/mods/default/engine/default_settings.txt	2026-04-27 18:34:47.724715313 +0800
+@@ -0,0 +1,80 @@
++## flare-engine settings file ##
++# One time flag for initial movement type dialog | 0 = show dialog, 1 = no dialog
++move_type_dimissed=1
++
++# Fullscreen mode | 0 = disable, 1 = enable
++fullscreen=0
++
++# display resolution. 640x480 minimum.
++resolution_w=640
++resolution_h=480
++
++# music and sound volume (0 = silent, 128 = max)
++music_volume=96
++sound_volume=128
++
++# display floating damage text. 1 enable, 0 disable.
++combat_text=1
++
++# use mouse to move (experimental). 1 enable, 0 disable.
++mouse_move=0
++
++# hardware surfaces, v-sync. Try disabling for performance. 1 enable, 0 disable.
++hwsurface=1
++vsync=1
++
++# texture filter quality. 0 nearest neighbor (worst), 1 linear (best)
++texture_filter=1
++
++# maximum frames per second. default is 60
++max_fps=60
++
++# default render device. 'sdl' is the default setting
++renderer=sdl
++
++# joystick settings.
++enable_joystick=0
++joystick_device=0
++joystick_deadzone=100
++
++# 2-letter language code.
++language=zh
++
++# allow changing gamma (experimental). 1 enable, 0 disable.
++change_gamma=0
++
++# screen gamma (0.5 = darkest, 2.0 = lightest)
++gamma=1
++
++# use mouse to aim. 1 enable, 0 disable.
++mouse_aim=1
++
++# make using mouse secondary, give full control to keyboard. 1 enable, 0 disable.
++no_mouse=1
++
++# show frames per second. 1 enable, 0 disable.
++show_fps=0
++
++# enable colorblind tooltips. 1 enable, 0 disable
++colorblind=0
++
++# use the system mouse cursor. 1 enable, 0 disable
++hardware_cursor=0
++
++# allow opening the developer console. 1 enable, 0 disable
++dev_mode=0
++
++# shows some additional information on-screen when developer mode is enabled. 1 enable, 0 disable
++dev_hud=1
++
++# show the targeting reticle on the ground when attacking. 1 enable, 0 disable
++show_target=0
++
++# always show loot tooltips. 1 enable, 0 disable
++loot_tooltips=1
++
++# always show labels on HP/MP/XP bars. 1 enable, 0 disable
++statbar_labels=0
++
++# automatically equip items. 1 enable, 0 disable
++auto_equip=1
+diff -uprN a/mods.txt b/mods.txt
+--- a/mods.txt	1970-01-01 08:00:00.000000000 +0800
++++ b/mods.txt	2026-04-27 19:32:17.774760389 +0800
+@@ -0,0 +1,4 @@
++# Mods lower on the list will overwrite data in the entries higher on the list
++
++fantasycore
++empyrean_campaign
+diff -uprN a/src/SDLSoftwareRenderDevice.cpp b/src/SDLSoftwareRenderDevice.cpp
+--- a/src/SDLSoftwareRenderDevice.cpp	2026-04-27 10:59:46.356696104 +0800
++++ b/src/SDLSoftwareRenderDevice.cpp	2026-04-27 19:19:16.014750175 +0800
+@@ -405,18 +405,44 @@ Image* SDLSoftwareRenderDevice::renderTe
+ 	SDLSoftwareImage *image = new SDLSoftwareImage(this);
+ 	if (!image) return NULL;
+ 
+-	SDL_Color _color = color;
++	SDL_Color _color = { color.r, color.g, color.b, color.a };
++    SDL_Surface *temp = NULL;
++    
++    if (blended)
++        temp = TTF_RenderUTF8_Blended(static_cast<SDLFontStyle *>(font_style)->ttfont, text.c_str(), _color);
++    else
++        temp = TTF_RenderUTF8_Solid(static_cast<SDLFontStyle *>(font_style)->ttfont, text.c_str(), _color);
++
++    if (temp) {
++        // 创建 RGB565 表面
++        if (screen) {
++            image->surface = SDL_CreateRGBSurface(0, temp->w, temp->h,
++                                                  screen->format->BitsPerPixel,
++                                                  screen->format->Rmask,
++                                                  screen->format->Gmask,
++                                                  screen->format->Bmask,
++                                                  0);
++        } else {
++            Uint32 rmask = 0xF800;
++            Uint32 gmask = 0x07E0;
++            Uint32 bmask = 0x001F;
++            image->surface = SDL_CreateRGBSurface(0, temp->w, temp->h, 16,
++                                                   rmask, gmask, bmask, 0);
++        }
++        
++        if (image->surface) {
++            SDL_SetColorKey(image->surface, SDL_TRUE, 0);
++            SDL_BlitSurface(temp, NULL, image->surface, NULL);
++        }
++        SDL_FreeSurface(temp);
++        
++        if (image->surface) {
++            return image;
++        }
++    }
+ 
+-	if (blended)
+-		image->surface = TTF_RenderUTF8_Blended(static_cast<SDLFontStyle *>(font_style)->ttfont, text.c_str(), _color);
+-	else
+-		image->surface = TTF_RenderUTF8_Solid(static_cast<SDLFontStyle *>(font_style)->ttfont, text.c_str(), _color);
+-
+-	if (image->surface)
+-		return image;
+-
+-	delete image;
+-	return NULL;
++    delete image;
++    return NULL;
+ }
+ 
+ void SDLSoftwareRenderDevice::drawPixel(int x, int y, const Color& color) {
+@@ -573,23 +599,31 @@ Image *SDLSoftwareRenderDevice::createIm
+ 	if (!image)
+ 		return NULL;
+ 
+-	Uint32 rmask, gmask, bmask, amask;
+-	Utils::setSDL_RGBA(&rmask, &gmask, &bmask, &amask);
+-
+-	image->surface = SDL_CreateRGBSurface(0, width, height, BITS_PER_PIXEL, rmask, gmask, bmask, amask);
+-
+-	if(image->surface == NULL) {
+-		Utils::logError("SDLSoftwareRenderDevice: CreateRGBSurface failed: %s", SDL_GetError());
+-		delete image;
+-		return NULL;
+-	}
+-
+-	// optimize
+-	SDL_Surface *cleanup = image->surface;
+-	image->surface = SDL_ConvertSurfaceFormat(cleanup, SDL_PIXELFORMAT_ARGB8888, 0);
+-	SDL_FreeSurface(cleanup);
+-
+-	return image;
++    if (screen) {
++        image->surface = SDL_CreateRGBSurface(0, width, height, 
++                                              screen->format->BitsPerPixel,
++                                              screen->format->Rmask,
++                                              screen->format->Gmask,
++                                              screen->format->Bmask,
++                                              0);  // 无 Alpha
++    } else {
++        Uint32 rmask = 0xF800;
++        Uint32 gmask = 0x07E0;
++        Uint32 bmask = 0x001F;
++        image->surface = SDL_CreateRGBSurface(0, width, height, 16, 
++                                               rmask, gmask, bmask, 0);
++    }
++
++    if(image->surface == NULL) {
++        Utils::logError("SDLSoftwareRenderDevice: CreateRGBSurface failed: %s", SDL_GetError());
++        delete image;
++        return NULL;
++    }
++
++    // 设置透明色（黑色）
++    SDL_SetColorKey(image->surface, SDL_TRUE, 0);
++    
++    return image;
+ }
+ 
+ void SDLSoftwareRenderDevice::setGamma(float g) {
