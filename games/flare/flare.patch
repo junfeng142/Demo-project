@@ -16,7 +16,7 @@ diff -uprN a/build_opk.sh b/build_opk.sh
 +CMAKE_ARGS="-DCMAKE_TOOLCHAIN_FILE=/opt/mmiyoo/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
 +cmake $CMAKE_ARGS .
 +make -j8 V=s
-+/opt/FunKey-sdk-2.3.0/bin/arm-funkey-linux-gnueabihf-strip flare -o _opk/flare
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip flare -o _opk/flare
 +mksquashfs ./_opk/* ../_opk/flare_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
 diff -uprN a/font_settings.txt b/font_settings.txt
 --- a/font_settings.txt	1970-01-01 08:00:00.000000000 +0800
