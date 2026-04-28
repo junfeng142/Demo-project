@@ -128,7 +128,7 @@ diff -uprN a/src/build.sh b/src/build.sh
 +
 +make clean
 +make
-+/opt/mmiyoo/bin/arm-linux-gnueabihf-strip jysdllua -o ../_opk/jysdllua
++
 diff -uprN a/src/jymain.c b/src/jymain.c
 --- a/src/jymain.c	2026-03-17 15:18:08.692109378 +0800
 +++ b/src/jymain.c	2026-03-17 15:18:47.392109015 +0800
