@@ -4,7 +4,10 @@ on:
   workflow_dispatch:
 
 env:
+  REPO_URL: https://github.com/sdlpal/sdlpal.git
+  REPO_BRANCH: v2.0.2021.0214
   PKG_NAME: jinyong
+  EXTRA_NAME_1: sdlpal98
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -37,6 +40,7 @@ jobs:
         mkdir -p $PKG_NAME
         wget https://github.com/steward-fu/website/releases/download/miyoo/src_jinyong.7z
         7za x src_jinyong.7z
+        git clone $REPO_URL -b $REPO_BRANCH --depth 1 ${PKG_NAME}/$EXTRA_NAME_1
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
         cd && tar xvf toolchain.tar.gz
@@ -48,16 +52,24 @@ jobs:
       run: |
         cd $PKG_NAME && mkdir -p _opk
         mv $GITHUB_WORKSPACE/applications/$PKG_NAME/$PKG_NAME.patch ./
-        mv $GITHUB_WORKSPACE/applications/$PKG_NAME/* ./_opk
+        mv $GITHUB_WORKSPACE/applications/$PKG_NAME/ ./_opk
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_1/$EXTRA_NAME_1.patch $EXTRA_NAME_1
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_1/ ./_opk
         wget https://www.lua.org/ftp/lua-5.1.5.tar.gz
         tar xvf lua-5.1.5.tar.gz
+        patch -p1 < $PKG_NAME.patch
+        cd $EXTRA_NAME_1 && mkdir -p opengl/
+        mv $GITHUB_WORKSPACE/tools/opengl.tar.gz ./
+        tar -zxvf opengl.tar.gz -C opengl/
+        patch -p1 < $EXTRA_NAME_1.patch
+        sudo mv opengl/ /opt
 
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME && patch -p1 < $PKG_NAME.patch
-        chmod +x ./*.sh
+        cd $PKG_NAME && chmod +x ./*.sh
         ./build.sh
+        cd $EXTRA_NAME_1 && make -C unix j8 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
@@ -70,6 +82,7 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
+        /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/unix/sdlpal -o $PKG_NAME/_opk/${EXTRA_NAME_1}/${EXTRA_NAME_1}
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
