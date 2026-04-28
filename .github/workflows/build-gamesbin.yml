@@ -82,6 +82,7 @@ jobs:
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
+        /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/src/${PKG_NAME} -o ../_opk/${PKG_NAME}/${PKG_NAME}
         /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/unix/sdlpal -o $PKG_NAME/_opk/${EXTRA_NAME_1}/${EXTRA_NAME_1}
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
