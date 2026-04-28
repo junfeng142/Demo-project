@@ -1,0 +1,85 @@
+diff -uprN a/input.c b/input.c
+--- a/input.c	2026-04-28 14:10:06.255211657 +0800
++++ b/input.c	2026-04-28 14:32:34.145204344 +0800
+@@ -67,17 +67,17 @@ static const int g_KeyMap[][2] = {
+    { SDLK_ESCAPE,    kKeyMenu },
+    { SDLK_INSERT,    kKeyMenu },
+    { SDLK_LALT,      kKeyMenu },
+-   { SDLK_RALT,      kKeyMenu },
++   { SDLK_LSHIFT,    kKeyMenu },
+    { SDLK_KP_0,      kKeyMenu },
+    { SDLK_RETURN,    kKeySearch },
+    { SDLK_SPACE,     kKeySearch },
+    { SDLK_KP_ENTER,  kKeySearch },
+    { SDLK_LCTRL,     kKeySearch },
+-   { SDLK_PAGEUP,    kKeyPgUp },
++   { SDLK_BACKSPACE, kKeyPgUp },
+    { SDLK_KP_9,      kKeyPgUp },
+-   { SDLK_PAGEDOWN,  kKeyPgDn },
++   { SDLK_TAB,       kKeyPgDn },
+    { SDLK_KP_3,      kKeyPgDn },
+-   { SDLK_HOME,      kKeyHome },
++   { SDLK_RALT,      kKeyHome },
+    { SDLK_KP_7,      kKeyHome },
+    { SDLK_END,       kKeyEnd },
+    { SDLK_KP_1,      kKeyEnd },
+@@ -330,6 +330,17 @@ PAL_KeyboardEventFilter(
+       }
+ #endif
+    }
++   
++   switch (lpEvent->key.keysym.sym) {
++        case SDLK_HOME:
++        {
++            PAL_Shutdown(0);
++            system("cat /dev/zero > /dev/fb0");
++        }
++        
++        default:
++         break;
++   }
+ }
+ 
+ static VOID
+diff -uprN a/unix/Makefile b/unix/Makefile
+--- a/unix/Makefile	2026-04-28 13:04:01.715233166 +0800
++++ b/unix/Makefile	2026-04-28 13:46:44.315219263 +0800
+@@ -5,7 +5,7 @@ TEST_TARGET = ./sdlpal-tests
+ 
+ INTER=.unix
+ 
+-HOST =
++HOST =/opt/mmiyoo/bin/arm-linux-gnueabihf-
+ TEST_CCFLAGS =
+ 
+ GENERATED = -DPAL_HAS_GIT_REVISION $(shell ../scripts/gengitrev)
+@@ -32,7 +32,7 @@ TOBJFILES = $(CFILES:.c=$(INTER).o) $(CP
+ DEPFILES = $(OBJFILES:.o=.d)
+ TEST_CPPFILES = $(wildcard ../tests/*.cpp)
+ TEST_OBJFILES = $(TEST_CPPFILES:.cpp=.o)
+-SDL_CONFIG = sdl2-config
++SDL_CONFIG = /opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl2-config
+ 
+ 
+ FLTK_INSTALLED := $(shell command -v fltk-config 2> /dev/null)
+@@ -60,7 +60,7 @@ ifeq ($(UNAME_S),Darwin)
+ 	LDFLAGS += -framework OpenGL
+ 	OBJFILES = $(filter-out ../mini_glloader.unix.o, $(TOBJFILES))
+ else
+-	LDFLAGS += -lGL -pthread
++	LDFLAGS += -lEGL -lGLESv2 -pthread -L/opt/opengl/lib
+ 	OBJFILES = $(TOBJFILES)
+ endif
+ 
+diff -uprN a/unix/pal_config.h b/unix/pal_config.h
+--- a/unix/pal_config.h	2026-04-28 13:37:27.215222286 +0800
++++ b/unix/pal_config.h	2026-04-28 13:46:44.315219263 +0800
+@@ -35,7 +35,7 @@
+ # endif
+ 
+ # define PAL_PREFIX            "./"
+-# define PAL_SAVE_PREFIX       "./"
++# define PAL_SAVE_PREFIX       "/mnt/FunKey/.sdlpal98/"
+ 
+ # if APPIMAGE
+ #  undef PAL_PREFIX

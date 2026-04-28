@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Paladin98
+Name[ch]=仙剑逍遥游
+Comment=The Legend of Sword and Fairy 1: Free and Easy Wandering
+Comment[ch]=仙剑奇侠传逍遥游
+Icon=sdlpal98
+Exec=run.sh
+Categories=games;
