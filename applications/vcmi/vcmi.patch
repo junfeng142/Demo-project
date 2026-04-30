@@ -1,0 +1,98 @@
+diff -uprN a/boost/build.sh b/boost/build.sh
+--- a/boost/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/boost/build.sh	2026-04-30 08:53:45.627496858 +0800
+@@ -0,0 +1,6 @@
++#!/bin/bash
++
++./bootstrap.sh --with-libraries=date_time,filesystem,locale,program_options,iostreams,system,thread \
++               --prefix=../libs/boost 
++sed -i 's/using gcc ;/using gcc : arm : \/opt\/mmiyoo\/bin\/arm-linux-gnueabihf-g++ ;/' ./project-config.jam
++./b2 install
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-04-30 08:55:22.307497094 +0800
+@@ -0,0 +1,23 @@
++#!/bin/bash
++
++CMAKE_ARGS="-DVCMI_LAUNCHER=OFF \
++            -DENABLE_LAUNCHER=OFF \
++            -DENABLE_VIDEO=OFF \
++            -DENABLE_EDITOR=OFF \
++            -DBOOST_NO_SYSTEM_PATHS=ON \
++            -DBOOST_ROOT=./libs/boost \
++            -DBoost_DATE_TIME_LIBRARY_RELEASE=./libs/boost/lib/libboost_date_time.so \
++            -DBoost_FILESYSTEM_LIBRARY_RELEASE=./libs/boost/lib/libboost_filesystem.so \
++            -DBoost_LOCALE_LIBRARY_RELEASE=./libs/boost/lib/libboost_locale.so \
++            -DBoost_PROGRAM_OPTIONS_LIBRARY_RELEASE=./libs/boost/lib/libboost_program_options.so \
++            -DBoost_IOSTREAMS_LIBRARY_RELEASE=./libs/boost/lib/libboost_iostreams.so \
++            -DBoost_SYSTEM_LIBRARY_RELEASE=./libs/boost/lib/libboost_system.so \
++            -DCMAKE_EXE_LINKER_FLAGS="-Wl,-rpath-link,./libs/boost/lib" \
++            -Dminizip_INCLUDE_DIR=./libs/minizip/include/minizip \
++            -Dminizip_LIBRARY=./libs/minizip/lib/libminizip.so \
++            -DLIBSQUISH_LIBRARY=./libs/squish/lib/libsquish.so.0 \
++            -DLIBSQUISH_INCLUDE_DIR=./libs/squish/include \
++            -DTBB_DIR=./libs/tbb/lib/cmake/TBB \
++            -DCMAKE_TOOLCHAIN_FILE=/opt/mmiyoo/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
++cmake $CMAKE_ARGS .
++make -j8 V=s
+diff -uprN a/client/eventsSDL/InputHandler.cpp b/client/eventsSDL/InputHandler.cpp
+--- a/client/eventsSDL/InputHandler.cpp	2026-04-29 19:19:09.613186369 +0800
++++ b/client/eventsSDL/InputHandler.cpp	2026-04-29 20:39:38.343211426 +0800
+@@ -203,7 +203,7 @@ void InputHandler::preprocessEvent(const
+ 	}
+ 	else if(ev.type == SDL_KEYDOWN)
+ 	{
+-		if(ev.key.keysym.sym == SDLK_F4 && (ev.key.keysym.mod & KMOD_ALT))
++		if((ev.key.keysym.sym == SDLK_F4 && (ev.key.keysym.mod & KMOD_ALT)) || (ev.key.keysym.sym == SDLK_HOME))
+ 		{
+ 			// FIXME: dead code? Looks like intercepted by OS/SDL and delivered as SDL_Quit instead?
+ 			boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+diff -uprN a/client/renderSDL/ScreenHandler.cpp b/client/renderSDL/ScreenHandler.cpp
+--- a/client/renderSDL/ScreenHandler.cpp	2026-04-29 13:49:13.293608666 +0800
++++ b/client/renderSDL/ScreenHandler.cpp	2026-04-29 20:21:08.773205668 +0800
+@@ -406,7 +406,7 @@ void ScreenHandler::initializeScreenBuff
+ 	int amask = 0xFF000000;
+ #endif
+ 
+-	auto logicalSize = getPreferredLogicalResolution() * getScalingFactor();
++	Point logicalSize(800, 600);
+ 	SDL_RenderSetLogicalSize(mainRenderer, logicalSize.x, logicalSize.y);
+ 
+ 	screen = SDL_CreateRGBSurface(0, logicalSize.x, logicalSize.y, 32, rmask, gmask, bmask, amask);
+diff -uprN a/oneTBB/build.sh b/oneTBB/build.sh
+--- a/oneTBB/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/oneTBB/build.sh	2026-04-30 08:53:16.987496788 +0800
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++CMAKE_ARGS="-DCMAKE_SYSTEM_NAME=Linux \
++            -DCMAKE_SYSTEM_PROCESSOR=armv7l \
++            -DTBB_TEST=OFF \
++            -DCMAKE_INSTALL_PREFIX=../libs/tbb
++            -DCMAKE_TOOLCHAIN_FILE=/opt/mmiyoo/share/buildroot/toolchainfile.cmake ${CMAKE_ARGS}"
++cmake $CMAKE_ARGS .
++make install
+diff -uprN a/strip.sh b/strip.sh
+--- a/strip.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/strip.sh	2026-04-30 09:00:24.467497834 +0800
+@@ -0,0 +1,20 @@
++#!/bin/bash
++
++mkdir -p ../_opk/vcmi/AI
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/AI/libBattleAI.so -o ../_opk/vcmi/AI/libBattleAI.so
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/AI/libEmptyAI.so -o ../_opk/vcmi/AI/libEmptyAI.so
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/AI/libNullkiller.so -o ../_opk/vcmi/AI/libNullkiller.so
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/AI/libStupidAI.so -o ../_opk/vcmi/AI/libStupidAI.so
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/AI/libVCAI.so -o ../_opk/vcmi/AI/libVCAI.so
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/libvcmi.so -o ../_opk/vcmi/libvcmi.so
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/libvcmiclientcommon.a -o ../_opk/vcmi/libvcmiclientcommon.a
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/libvcmiservercommon.a -o ../_opk/vcmi/libvcmiservercommon.a
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/vcmiclient -o ../_opk/vcmi/vcmiclient
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip bin/vcmiserver -o ../_opk/vcmi/vcmiserver
++
++if [ ! -d "../_opk/vcmi/config" ]; then
++    cp -r bin/config/ ../_opk/vcmi
++fi
++if [ ! -d "../_opk/vcmi/Mods" ]; then
++    cp -r bin/Mods/ ../_opk/vcmi
++fi
