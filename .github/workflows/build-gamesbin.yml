@@ -8,6 +8,7 @@ env:
   REPO_BRANCH: v2.0.2021.0214
   PKG_NAME: jinyong
   EXTRA_NAME_1: sdlpal98
+  EXTRA_NAME_2: vcmi
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -41,6 +42,8 @@ jobs:
         wget https://github.com/steward-fu/website/releases/download/miyoo/src_jinyong.7z
         7za x src_jinyong.7z
         git clone $REPO_URL -b $REPO_BRANCH --depth 1 ${PKG_NAME}/$EXTRA_NAME_1
+        git clone https://github.com/vcmi/vcmi.git -b 1.6.8 --depth 1 ${PKG_NAME}/$EXTRA_NAME_2
+        git clone https://github.com/oneapi-src/oneTBB.git --depth 1 ${PKG_NAME}/$EXTRA_NAME_2/oneTBB
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
         cd && tar xvf toolchain.tar.gz
@@ -55,6 +58,8 @@ jobs:
         mv $GITHUB_WORKSPACE/applications/$PKG_NAME/ ./_opk
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_1/$EXTRA_NAME_1.patch $EXTRA_NAME_1
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_1/ ./_opk
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_2/* $EXTRA_NAME_2
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_2/ ./_opk
         wget https://www.lua.org/ftp/lua-5.1.5.tar.gz
         tar xvf lua-5.1.5.tar.gz
         patch -p1 < $PKG_NAME.patch
@@ -63,6 +68,10 @@ jobs:
         tar -zxvf opengl.tar.gz -C opengl/
         patch -p1 < $EXTRA_NAME_1.patch
         sudo mv opengl/ /opt
+        cd ../$EXTRA_NAME_2
+        wget -O- "https://archives.boost.io/release/1.78.0/source/boost_1_78_0.tar.bz2" | tar xj
+        mv boost_1_78_0 boost
+        patch -p1 < $EXTRA_NAME_2.patch
 
     - name: Compile the firmware
       id: compile
@@ -70,6 +79,12 @@ jobs:
         cd $PKG_NAME && chmod +x ./*.sh
         ./build.sh
         cd $EXTRA_NAME_1 && make -C unix -j8 V=s
+        cd ../$EXTRA_NAME_2 && chmod +x ./*.sh ./boost/build.sh ./oneTBB/build.sh
+        git submodule init && git submodule update
+        cd boost && ./build.sh
+        cd ../oneTBB && ./build.sh
+        cd .. && ./build.sh
+        ./strip.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
