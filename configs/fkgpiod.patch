@@ -108,9 +108,9 @@ diff -uprN a/gpio_axp209.h b/gpio_axp209.h
 +int axp209_read_interrupt_bank_4(void);
  
  #endif  //_GPIO_AXP209_H_
-diff -uprN a/gpio_mapping.c b/gpio_mapping.c
---- a/gpio_mapping.c	2021-06-04 05:28:41.000000000 +0800
-+++ b/gpio_mapping.c	2026-03-05 17:00:03.006029845 +0800
+diff -uprN c/gpio_mapping.c d/gpio_mapping.c
+--- c/gpio_mapping.c	2026-04-30 13:50:27.197540427 +0800
++++ d/gpio_mapping.c	2026-05-01 11:35:31.195864481 +0800
 @@ -36,16 +36,14 @@
  #include <sys/time.h>
  #include <sys/types.h>
@@ -123,15 +123,16 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
 -#include "gpio_pcal6416a.h"
 -#include "mapping_list.h"
 -#include "parse_config.h"
- #include "uinput.h"
+-#include "uinput.h"
++#include <linux/uinput.h>
++
  
 -//#define DEBUG_GPIO
 -//#define DEBUG_PERIODIC_CHECK
-+
  #define ERROR_GPIO
  
  #ifdef DEBUG_GPIO
-@@ -75,26 +73,54 @@
+@@ -75,26 +73,56 @@
  //#define TIMEOUT_SEC_SANITY_CHECK_GPIO_EXP     1
  #define TIMEOUT_MICROSEC_SANITY_CHECK_GPIO_EXP  (30 * 1000)
  
@@ -172,6 +173,8 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
 +key_state_t key_states[MAX_KEYS] = {0};
 +static int key_count = 0;
 +static int key_fd;
++static int uinput_fd = -1;
++static int last_x = 160, last_y = 120;  // 光标位置
 +
 +/*
 + *  KEY_k + KEY_u "quick_action_volume_up"
@@ -201,7 +204,7 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
  
  /* AXP209 I2C PMIC pseudo-file descriptor */
  static int fd_axp209;
-@@ -102,75 +128,24 @@ static int fd_axp209;
+@@ -102,75 +130,24 @@ static int fd_axp209;
  /* FIFO pseudo-file descriptor */
  static int fd_fifo;
  
@@ -289,7 +292,7 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
  }
  
  /* Initialize the GPIO interrupt for the I2C expander chip */
-@@ -207,43 +182,59 @@ static void deinit_gpio_interrupt(int fd
+@@ -207,43 +184,59 @@ static void deinit_gpio_interrupt(int fd
      gpio_fd_close(fd);
  }
  
@@ -375,7 +378,7 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
      /* Initialize the GPIO interrupt for the AXP209 chip */
      FK_DEBUG("Initialize interrupt for GPIO_PIN_AXP209_INTERRUPT\n");
      init_gpio_interrupt(GPIO_PIN_AXP209_INTERRUPT, &fd_axp209, "");
-@@ -251,8 +242,7 @@ bool init_gpio_mapping(const char *confi
+@@ -251,8 +244,7 @@ bool init_gpio_mapping(const char *confi
      /* Create the FIFO pseudo-file if it does not exist */
      FK_DEBUG("Create the FIFO pseudo-file if it does not exist\n");
      if (mkfifo(FIFO_FILE, O_RDWR | 0640) < 0 && errno != EEXIST) {
@@ -385,7 +388,7 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
          return false;
      }
  
-@@ -260,8 +250,7 @@ bool init_gpio_mapping(const char *confi
+@@ -260,26 +252,42 @@ bool init_gpio_mapping(const char *confi
      FK_DEBUG("Open the FIFO pseudo-file\n");
      fd_fifo = open(FIFO_FILE, O_RDWR | O_NONBLOCK);
      if (fd_fifo < 0) {
@@ -395,7 +398,35 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
          return false;
      }
  
-@@ -273,13 +262,6 @@ bool init_gpio_mapping(const char *confi
+     /* Clear buffer */
+     total_bytes = 0;
++    
++    uinput_fd = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
++    if (uinput_fd < 0) {
++        FK_ERROR("Cannot open /dev/uinput: %s\n", strerror(errno));
++    } else {
++        // 启用鼠标事件
++        ioctl(uinput_fd, UI_SET_EVBIT, EV_KEY);
++        ioctl(uinput_fd, UI_SET_EVBIT, EV_REL);
++        ioctl(uinput_fd, UI_SET_KEYBIT, BTN_LEFT);
++        ioctl(uinput_fd, UI_SET_KEYBIT, BTN_RIGHT);
++        ioctl(uinput_fd, UI_SET_RELBIT, REL_X);
++        ioctl(uinput_fd, UI_SET_RELBIT, REL_Y);
++        
++        struct uinput_setup usetup;
++        memset(&usetup, 0, sizeof(usetup));
++        usetup.id.bustype = BUS_USB;
++        usetup.id.vendor = 0x1234;
++        usetup.id.product = 0x5678;
++        strcpy(usetup.name, "Virtual Mouse");
++        
++        ioctl(uinput_fd, UI_DEV_SETUP, &usetup);
++        ioctl(uinput_fd, UI_DEV_CREATE);
++        FK_DEBUG("Virtual mouse device created\n");
++    }
+     return true;
+ }
+ 
  /*  Deinitialize the GPIO mapping */
  void deinit_gpio_mapping(void)
  {
@@ -409,11 +440,29 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
      /* Deinitialize the GPIO interrupt for the AXP209 PMIC chip */
      FK_DEBUG("DeInitiating interrupt for GPIO_PIN_AXP209_INTERRUPT\n");
      deinit_gpio_interrupt(fd_axp209);
-@@ -290,24 +272,21 @@ void deinit_gpio_mapping(void)
+@@ -290,24 +298,37 @@ void deinit_gpio_mapping(void)
      /* Close the FIFO pseudo-file */
      FK_DEBUG("Close the FIFO pseudo-file \n");
      close(fd_fifo);
 +    close(key_fd);
++    close(uinput_fd);
++}
++
++static void send_mouse_event(int type, int code, int value) {
++    if (uinput_fd < 0) return;
++    struct input_event ev;
++    memset(&ev, 0, sizeof(ev));
++    gettimeofday(&ev.time, NULL);
++    ev.type = type;
++    ev.code = code;
++    ev.value = value;
++    write(uinput_fd, &ev, sizeof(ev));
++}
++
++static void send_mouse_click(int button) {
++    send_mouse_event(EV_KEY, button, 1);
++    send_mouse_event(EV_KEY, button, 0);
++    send_mouse_event(EV_SYN, SYN_REPORT, 0);
  }
  
  /* Handle the GPIO mapping (with interrupts) */
@@ -431,16 +480,15 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
      bool forced_interrupt = false;
      char buffer[2], *next_line;
 -    mapping_t *mapping;
-+    struct input_event ev;
- 
+-
 -    /* Initialize masks */
 -    previous_gpio_mask = current_gpio_mask;
 -    current_gpio_mask = 0;
-+    key_read = read(key_fd, &ev, sizeof(ev));
++    struct input_event ev;
  
      /* Listen to FIFO read availability */
      FD_ZERO(&read_fds);
-@@ -315,12 +294,10 @@ void handle_gpio_mapping(mapping_list_t
+@@ -315,12 +336,10 @@ void handle_gpio_mapping(mapping_list_t
  
      /* Listen to interrupt exceptions */
      FD_ZERO(&except_fds);
@@ -454,7 +502,7 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
  
  #ifdef TIMEOUT_MICROSEC_SANITY_CHECK_GPIO_EXP
  
-@@ -343,7 +320,7 @@ void handle_gpio_mapping(mapping_list_t
+@@ -343,7 +362,7 @@ void handle_gpio_mapping(mapping_list_t
          FK_PERIODIC("Timeout, forcing sanity check\n");
  
          /* Timeout forces a "Found interrupt" event for sanity check */
@@ -463,7 +511,7 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
      } else if (result < 0) {
  
          /* Error case  */
-@@ -365,11 +342,6 @@ void handle_gpio_mapping(mapping_list_t
+@@ -365,11 +384,6 @@ void handle_gpio_mapping(mapping_list_t
                          (int) total_bytes, (int) total_bytes, fifo_buffer);
                      if (strtok_r(fifo_buffer, "\r\n", &next_line) != NULL) {
                          FK_DEBUG("Parse line \"%s\"\n", fifo_buffer);
@@ -475,7 +523,7 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
                          total_bytes -= next_line - fifo_buffer;
                          if (total_bytes != 0) {
                              memmove(fifo_buffer, next_line, total_bytes);
-@@ -390,15 +362,12 @@ void handle_gpio_mapping(mapping_list_t
+@@ -390,21 +404,27 @@ void handle_gpio_mapping(mapping_list_t
                  /* Rewind file and dummy read the current GPIO value */
                  lseek(fd, 0, SEEK_SET);
                  if (read(fd, &buffer, 2) != 2) {
@@ -493,7 +541,22 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
                      FK_DEBUG("Found interrupt generated by AXP209\r\n");
                      axp209_interrupt = true;
                  }
-@@ -414,114 +383,42 @@ void handle_gpio_mapping(mapping_list_t
+             }
+         }
+     }
++    
++    bool ctrl_pressed = false;
++    key_read = read(key_fd, &ev, sizeof(ev));
++    for (int i = 0; i < key_count; i++) {
++        if (key_states[i].key_code == 42 && key_states[i].is_pressed) {
++            ctrl_pressed = true;
++            break;
++        }
++    }
+ 
+     /* Process the AXP209 interrupts, if any */
+     if (axp209_interrupt) {
+@@ -414,114 +434,61 @@ void handle_gpio_mapping(mapping_list_t
              FK_DEBUG("Processing real AXP209 interrupt\n");
          }
          val_int_bank_3 = axp209_read_interrupt_bank_3();
@@ -587,7 +650,26 @@ diff -uprN a/gpio_mapping.c b/gpio_mapping.c
 -                gpio);
 -                interrupt_mask |= 1 << gpio;
 +    
-+    if ((key_read >= 0) && (ev.type == EV_KEY)) {
++    if (ctrl_pressed && (ev.value == 1 || ev.value == 2) && (ev.code == 103 || ev.code == 108 || ev.code == 106 || ev.code == 105)) {
++        int step = 10;
++        int dx = 0, dy = 0;
++        switch(ev.code) {
++            case 103: dy = -step; break;  // 上
++            case 108: dy = step; break;   // 下
++            case 106: dx = step; break;  // 左
++            case 105: dx = -step; break;   // 右
++        }
++        last_x += dx;
++        last_y += dy;
++        send_mouse_event(EV_REL, REL_X, dx);
++        send_mouse_event(EV_REL, REL_Y, dy);
++        send_mouse_event(EV_SYN, SYN_REPORT, 0);
++    } else if (ctrl_pressed && (ev.value == 1) && (ev.code == 14 || ev.code == 15)) {
++        switch(ev.code) {
++            case 14: send_mouse_click(BTN_LEFT); break;
++            case 15: send_mouse_click(BTN_RIGHT); break;
++        }
++    } else if ((key_read >= 0) && (ev.type == EV_KEY)) {
 +        int action = 0;
 +    
 +        update_key_state(ev.code, (ev.value != 0));

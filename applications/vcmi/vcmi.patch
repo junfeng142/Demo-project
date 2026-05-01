@@ -47,6 +47,36 @@ diff -uprN a/client/eventsSDL/InputHandler.cpp b/client/eventsSDL/InputHandler.c
  		{
  			// FIXME: dead code? Looks like intercepted by OS/SDL and delivered as SDL_Quit instead?
  			boost::mutex::scoped_lock interfaceLock(GH.interfaceMutex);
+diff -uprN a/client/eventsSDL/InputSourceMouse.cpp b/client/eventsSDL/InputSourceMouse.cpp
+--- a/client/eventsSDL/InputSourceMouse.cpp	2026-05-01 12:08:30.225890337 +0800
++++ b/client/eventsSDL/InputSourceMouse.cpp	2026-05-01 19:47:23.500143223 +0800
+@@ -25,6 +25,8 @@
+ #include <SDL_hints.h>
+ #include <SDL_version.h>
+ 
++Point lastKnownPosition;
++
+ InputSourceMouse::InputSourceMouse()
+ 	:mouseToleranceDistance(settings["input"]["mouseToleranceDistance"].Integer())
+ {
+@@ -34,6 +36,7 @@ InputSourceMouse::InputSourceMouse()
+ void InputSourceMouse::handleEventMouseMotion(const SDL_MouseMotionEvent & motion)
+ {
+ 	Point newPosition = Point(motion.x, motion.y) / GH.screenHandler().getScalingFactor();
++	lastKnownPosition = newPosition;  // 保存最后位置
+ 	Point distance = Point(-motion.xrel, -motion.yrel) / GH.screenHandler().getScalingFactor();
+ 
+ 	mouseButtonsMask = motion.state;
+@@ -50,7 +53,8 @@ void InputSourceMouse::handleEventMouseM
+ 
+ void InputSourceMouse::handleEventMouseButtonDown(const SDL_MouseButtonEvent & button)
+ {
+-	Point position = Point(button.x, button.y) / GH.screenHandler().getScalingFactor();
++//	Point position = Point(button.x, button.y) / GH.screenHandler().getScalingFactor();
++    Point position = lastKnownPosition;
+ 
+ 	switch(button.button)
+ 	{
 diff -uprN a/client/renderSDL/ScreenHandler.cpp b/client/renderSDL/ScreenHandler.cpp
 --- a/client/renderSDL/ScreenHandler.cpp	2026-04-29 13:49:13.293608666 +0800
 +++ b/client/renderSDL/ScreenHandler.cpp	2026-04-29 20:21:08.773205668 +0800
