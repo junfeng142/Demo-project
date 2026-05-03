@@ -17,9 +17,9 @@ diff -uprN a/Makefile b/Makefile
  
  CXXFLAGS = -g -O -Wall $(SDL_CFLAGS) $(DEFINES)
  
-diff -uprN a/build_opk.sh b/build_opk.sh
---- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
-+++ b/build_opk.sh	2026-05-03 19:20:38.888675555 +0800
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build.sh	2026-05-03 19:20:38.888675555 +0800
 @@ -0,0 +1,5 @@
 +#!/bin/bash
 +
