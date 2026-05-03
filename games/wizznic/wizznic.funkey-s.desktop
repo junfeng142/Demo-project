@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Wizznic
+Name[ch]=魔法方块
+Comment=Brick-matching puzzle game
+Comment[ch]=拼图游戏
+Icon=wizznic
+Exec=wizznic
+Categories=games

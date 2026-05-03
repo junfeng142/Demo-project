@@ -9,6 +9,7 @@ env:
   PKG_NAME: jinyong
   EXTRA_NAME_1: sdlpal98
   EXTRA_NAME_2: vcmi
+  EXTRA_NAME_3: bermuda
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -44,6 +45,7 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH --depth 1 ${PKG_NAME}/$EXTRA_NAME_1
         git clone https://github.com/vcmi/vcmi.git -b 1.6.8 --depth 1 ${PKG_NAME}/$EXTRA_NAME_2
         git clone https://github.com/oneapi-src/oneTBB.git --depth 1 ${PKG_NAME}/$EXTRA_NAME_2/oneTBB
+        git clone https://github.com/cyxx/bermuda.git -b 0.1.7 --depth 1 ${PKG_NAME}/$EXTRA_NAME_3
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
         cd && tar xvf toolchain.tar.gz
@@ -60,6 +62,8 @@ jobs:
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_1/ ./_opk
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_2/* $EXTRA_NAME_2
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_2/ ./_opk
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_3/$EXTRA_NAME_3.patch $EXTRA_NAME_3
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_3/ ./_opk
         wget https://www.lua.org/ftp/lua-5.1.5.tar.gz
         tar xvf lua-5.1.5.tar.gz
         patch -p1 < $PKG_NAME.patch
@@ -72,6 +76,8 @@ jobs:
         wget -O- "https://archives.boost.io/release/1.78.0/source/boost_1_78_0.tar.bz2" | tar xj
         mv boost_1_78_0 boost
         patch -p1 < $EXTRA_NAME_2.patch
+        cd ../$EXTRA_NAME_3
+        patch -p1 < $EXTRA_NAME_3.patch
 
     - name: Compile the firmware
       id: compile
@@ -85,6 +91,8 @@ jobs:
         cd ../oneTBB && ./build.sh
         cd .. && ./build.sh
         ./strip.sh
+        cd ../$EXTRA_NAME_3 && chmod +x ./*.sh
+        ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
@@ -99,6 +107,7 @@ jobs:
       run: |
         /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/src/jysdllua -o $PKG_NAME/_opk/${PKG_NAME}/jysdllua
         /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/unix/sdlpal -o $PKG_NAME/_opk/${EXTRA_NAME_1}/${EXTRA_NAME_1}
+        /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_3}/bs -o $PKG_NAME/_opk/${EXTRA_NAME_3}/bs
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT

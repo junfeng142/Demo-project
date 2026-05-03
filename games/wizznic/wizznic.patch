@@ -1,0 +1,58 @@
+diff -uprN a/Makefile.bittboy b/Makefile.bittboy
+--- a/Makefile.bittboy	2026-05-03 13:05:20.399187673 +0800
++++ b/Makefile.bittboy	2026-05-03 13:04:53.949187432 +0800
+@@ -3,7 +3,7 @@
+ #To compile without OpenGL scaling support, add WITH_OPENGL=false to the make command.
+ 
+ WITH_OPENGL := false
+-CROSS_COMPILE := /opt/miyoo/bin/arm-linux-
++CROSS_COMPILE := /opt/mmiyoo/bin/arm-linux-gnueabihf-
+ CC = $(CROSS_COMPILE)gcc
+ LD = $(CC)
+ STRIP = $(CROSS_COMPILE)strip
+@@ -39,7 +39,7 @@ else
+ endif
+ 
+ LDFLAGS=$(CFLAGS)
+-LIBS = $(shell /opt/miyoo/bin/pkg-config --libs sdl SDL_image SDL_ttf SDL_mixer) -ljpeg -lpng -lz -logg
++LIBS = -lSDL -lSDL_image -lSDL_mixer -lm -lpthread
+ 
+ #Are we compiling with gl?
+ ifneq ($(WITH_OPENGL),false)
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-05-03 13:05:55.819187997 +0800
+@@ -0,0 +1,9 @@
++#!/bin/bash
++
++if [ ! -d "_opk/data" ]; then
++    cp -r data/ packs/ _opk
++fi
++
++make -f Makefile.bittboy
++/opt/mmiyoo/bin/arm-linux-gnueabihf-strip wizznic.elf -o ./_opk/wizznic
++mksquashfs ./_opk/* ../_opk/wizznic_funkey-s.opk -all-root -no-xattrs -noappend -no-exports
+diff -uprN a/src/platform/gcw0.h b/src/platform/gcw0.h
+--- a/src/platform/gcw0.h	2026-05-03 13:06:25.329188266 +0800
++++ b/src/platform/gcw0.h	2026-05-03 13:07:19.879188764 +0800
+@@ -35,14 +35,14 @@
+ #define PLATFORM_BUTTON_DOWN      SDLK_DOWN
+ #define PLATFORM_BUTTON_LEFT      SDLK_LEFT
+ #define PLATFORM_BUTTON_RIGHT     SDLK_RIGHT
+-#define PLATFORM_BUTTON_Y         SDLK_SPACE
+-#define PLATFORM_BUTTON_X         SDLK_LALT
+-#define PLATFORM_BUTTON_A         SDLK_LSHIFT
+-#define PLATFORM_BUTTON_B         SDLK_LCTRL
++#define PLATFORM_BUTTON_Y         SDLK_LALT
++#define PLATFORM_BUTTON_X         SDLK_LSHIFT
++#define PLATFORM_BUTTON_A         SDLK_LCTRL
++#define PLATFORM_BUTTON_B         SDLK_SPACE
+ #define PLATFORM_SHOULDER_LEFT    SDLK_TAB
+ #define PLATFORM_SHOULLER_RIGHT   SDLK_BACKSPACE
+-#define PLATFORM_BUTTON_MENU      SDLK_RETURN
+-#define PLATFORM_BUTTON_SELECT    SDLK_ESCAPE
++#define PLATFORM_BUTTON_MENU      SDLK_RCTRL
++#define PLATFORM_BUTTON_SELECT    SDLK_RETURN
+ #define PLATFORM_BUTTON_VOLUP     0 //Not used
+ #define PLATFORM_BUTTON_VOLDOWN   0 //on GCW Zero
+ #define PLATFORM_JOY_DEADZONE	  4000

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Bermuda
+Name[ch]=百慕大历险记
+Comment="Bermuda Triangle" is a classic action-adventure game
+Comment[ch]=《百慕大历险记》是一款经典的动作冒险游戏
+Icon=bermuda
+Exec=run.sh
+Categories=games

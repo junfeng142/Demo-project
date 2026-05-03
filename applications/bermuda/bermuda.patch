@@ -1,0 +1,96 @@
+diff -uprN a/Makefile b/Makefile
+--- a/Makefile	2026-05-03 13:13:49.729192322 +0800
++++ b/Makefile	2026-05-03 13:15:24.099193184 +0800
+@@ -4,12 +4,13 @@
+ # BERMUDA_POSIX  : enable unix/posix directory browsing code
+ # BERMUDA_VORBIS : enable playback of digital soundtracks (22 khz mono .ogg files)
+ 
++CXX = /opt/mmiyoo/bin/arm-linux-gnueabihf-g++
+ #DEFINES = -DBERMUDA_WIN32 -DBERMUDA_VORBIS
+ DEFINES = -DBERMUDA_POSIX -DBERMUDA_VORBIS -DBERMUDA_ZLIB
+ VORBIS_LIBS = -lvorbisfile -lvorbis -logg
+ 
+-SDL_CFLAGS = `sdl2-config --cflags`
+-SDL_LIBS = `sdl2-config --libs` -lSDL2_mixer
++SDL_CFLAGS = `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl2-config --cflags`
++SDL_LIBS = `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl2-config --libs` -lSDL2_mixer
+ 
+ CXXFLAGS = -g -O -Wall $(SDL_CFLAGS) $(DEFINES)
+ 
+diff -uprN a/build_opk.sh b/build_opk.sh
+--- a/build_opk.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build_opk.sh	2026-05-03 19:20:38.888675555 +0800
+@@ -0,0 +1,5 @@
++#!/bin/bash
++
++make
++ln -s /mnt/FunKey/.bermuda/bermuda.001
++mv bermuda.001 ../_opk/bermuda/
+diff -uprN a/systemstub_sdl.cpp b/systemstub_sdl.cpp
+--- a/systemstub_sdl.cpp	2026-05-03 13:35:43.849204317 +0800
++++ b/systemstub_sdl.cpp	2026-05-03 14:31:43.449234982 +0800
+@@ -708,7 +708,7 @@ void SystemStub_SDL::handleEvent(const S
+ 		case SDLK_DOWN:
+ 			_pi.dirMask &= ~PlayerInput::DIR_DOWN;
+ 			break;
+-		case SDLK_RETURN:
++		case SDLK_LCTRL:
+ 			_pi.enter = false;
+ 			break;
+ 		case SDLK_SPACE:
+@@ -719,13 +719,13 @@ void SystemStub_SDL::handleEvent(const S
+ 			_pi.shift = false;
+ 			break;
+ 		case SDLK_RCTRL:
+-		case SDLK_LCTRL:
++		case SDLK_RETURN:
+ 			_pi.ctrl = false;
+ 			break;
+-		case SDLK_TAB:
++		case SDLK_ESCAPE:
+ 			_pi.tab = false;
+ 			break;
+-		case SDLK_ESCAPE:
++		case SDLK_LALT:
+ 			_pi.escape = false;
+ 			break;
+ 		case SDLK_c: {
+@@ -740,10 +740,10 @@ void SystemStub_SDL::handleEvent(const S
+ 		case SDLK_f:
+ 			_pi.fastMode = !_pi.fastMode;
+ 			break;
+-		case SDLK_s:
++		case SDLK_TAB:
+ 			_pi.save = true;
+ 			break;
+-		case SDLK_l:
++		case SDLK_BACKSPACE:
+ 			_pi.load = true;
+ 			break;
+ 		case SDLK_w:
+@@ -775,7 +775,7 @@ void SystemStub_SDL::handleEvent(const S
+ 		case SDLK_DOWN:
+ 			_pi.dirMask |= PlayerInput::DIR_DOWN;
+ 			break;
+-		case SDLK_RETURN:
++		case SDLK_LCTRL:
+ 			_pi.enter = true;
+ 			break;
+ 		case SDLK_SPACE:
+@@ -786,13 +786,13 @@ void SystemStub_SDL::handleEvent(const S
+ 			_pi.shift = true;
+ 			break;
+ 		case SDLK_RCTRL:
+-		case SDLK_LCTRL:
++		case SDLK_RETURN:
+ 			_pi.ctrl = true;
+ 			break;
+-		case SDLK_TAB:
++		case SDLK_ESCAPE:
+ 			_pi.tab = true;
+ 			break;
+-		case SDLK_ESCAPE:
++		case SDLK_LALT:
+ 			_pi.escape = true;
+ 			break;
+ 		default:
