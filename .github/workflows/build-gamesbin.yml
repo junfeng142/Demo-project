@@ -10,6 +10,7 @@ env:
   EXTRA_NAME_1: sdlpal98
   EXTRA_NAME_2: vcmi
   EXTRA_NAME_3: bermuda
+  EXTRA_NAME_4: soniccd
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: false
   TZ: Asia/Shanghai
@@ -46,6 +47,7 @@ jobs:
         git clone https://github.com/vcmi/vcmi.git -b 1.6.8 --depth 1 ${PKG_NAME}/$EXTRA_NAME_2
         git clone https://github.com/oneapi-src/oneTBB.git --depth 1 ${PKG_NAME}/$EXTRA_NAME_2/oneTBB
         git clone https://github.com/cyxx/bermuda.git -b 0.1.7 --depth 1 ${PKG_NAME}/$EXTRA_NAME_3
+        git clone https://github.com/RSDKModding/RSDKv3-Decompilation.git -b 1.3.3 --depth 1 ${PKG_NAME}/$EXTRA_NAME_4
         ln -sf /workdir/$PKG_NAME $GITHUB_WORKSPACE/$PKG_NAME
         cd && wget https://github.com/steward-fu/nds_miyoo/releases/download/assets/toolchain.tar.gz
         cd && tar xvf toolchain.tar.gz
@@ -64,6 +66,8 @@ jobs:
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_2/ ./_opk
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_3/$EXTRA_NAME_3.patch $EXTRA_NAME_3
         mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_3/ ./_opk
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_4/$EXTRA_NAME_4.patch $EXTRA_NAME_4
+        mv $GITHUB_WORKSPACE/applications/$EXTRA_NAME_4/ ./_opk
         wget https://www.lua.org/ftp/lua-5.1.5.tar.gz
         tar xvf lua-5.1.5.tar.gz
         patch -p1 < $PKG_NAME.patch
@@ -78,6 +82,8 @@ jobs:
         patch -p1 < $EXTRA_NAME_2.patch
         cd ../$EXTRA_NAME_3
         patch -p1 < $EXTRA_NAME_3.patch
+        cd ../$EXTRA_NAME_4
+        patch -p1 < $EXTRA_NAME_4.patch
 
     - name: Compile the firmware
       id: compile
@@ -92,6 +98,8 @@ jobs:
         cd .. && ./build.sh
         ./strip.sh
         cd ../$EXTRA_NAME_3 && chmod +x ./*.sh
+        ./build.sh
+        cd ../$EXTRA_NAME_4 && chmod +x ./*.sh
         ./build.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
@@ -108,6 +116,7 @@ jobs:
         /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/src/jysdllua -o $PKG_NAME/_opk/${PKG_NAME}/jysdllua
         /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_1}/unix/sdlpal -o $PKG_NAME/_opk/${EXTRA_NAME_1}/${EXTRA_NAME_1}
         /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_3}/bs -o $PKG_NAME/_opk/${EXTRA_NAME_3}/bs
+        /opt/mmiyoo/bin/arm-linux-gnueabihf-strip ${PKG_NAME}/${EXTRA_NAME_4}/build/RSDKv3 -o $PKG_NAME/_opk/${EXTRA_NAME_4}/${EXTRA_NAME_4}
         cd $PKG_NAME/_opk
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
