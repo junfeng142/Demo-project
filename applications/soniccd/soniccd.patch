@@ -27,4 +27,4 @@ diff -uprN a/build.sh b/build.sh
 +ln -s /mnt/FunKey/.soniccd/Sdata.bin
 +ln -s /mnt/FunKey/.soniccd/Udata.bin
 +ln -s /mnt/FunKey/.soniccd/settings.ini
-+mv usage.txt Sdata.bin Udata.bin settings.ini ../_opk/soniccd
++mv usage.txt Sdata.bin Udata.bin settings.ini ../../_opk/soniccd
