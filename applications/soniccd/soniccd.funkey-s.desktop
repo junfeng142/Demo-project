@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Soniccd
+Name[ch]=索尼克CD
+Comment=Sonic the Hedgehog CD port
+Comment[ch]=刺猬索尼克CD移植版
+Icon=soniccd
+Exec=run.sh
+Categories=games

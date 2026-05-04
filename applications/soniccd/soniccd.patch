@@ -1,0 +1,30 @@
+diff -uprN a/RSDKv3/Drawing.cpp b/RSDKv3/Drawing.cpp
+--- a/RSDKv3/Drawing.cpp	2026-05-04 11:50:28.108940423 +0800
++++ b/RSDKv3/Drawing.cpp	2026-05-04 11:50:10.948940198 +0800
+@@ -1215,7 +1215,7 @@ void SetScreenSize(int width, int lineSi
+     SCREEN_SCROLL_RIGHT = SCREEN_CENTERX + 8;
+     OBJECT_BORDER_X2    = width + 0x80;
+ 
+-    GFX_LINESIZE          = lineSize;
++    GFX_LINESIZE          = width;
+     GFX_LINESIZE_MINUSONE = lineSize - 1;
+     GFX_LINESIZE_DOUBLE   = 2 * lineSize;
+     GFX_FRAMEBUFFERSIZE   = SCREEN_YSIZE * lineSize;
+diff -uprN a/build.sh b/build.sh
+--- a/build.sh	1970-01-01 08:00:00.000000000 +0800
++++ b/build.sh	2026-05-04 13:10:42.619003326 +0800
+@@ -0,0 +1,14 @@
++CMAKE_ARGS="-DRETRO_USE_HW_RENDER=OFF \
++            -DCMAKE_TOOLCHAIN_FILE=/opt/mmiyoo/share/buildroot/toolchainfile.cmake \
++            ${CMAKE_ARGS}"
++cmake $CMAKE_ARGS -B build
++
++cd build
++find . -name "link.txt" -exec sed -i 's/\([^ ]*\.o[^ ]*\)/\1 -lstdc++fs/g' {} \;
++find . -name "link.txt" -exec sed -i 's/\([^ ]*\.o[^ ]*\)/-Wl,--start-group \1 -lstdc++fs -Wl,--end-group/g' {} \;
++make -j8 V=s
++ln -s /mnt/FunKey/.soniccd/usage.txt
++ln -s /mnt/FunKey/.soniccd/Sdata.bin
++ln -s /mnt/FunKey/.soniccd/Udata.bin
++ln -s /mnt/FunKey/.soniccd/settings.ini
++mv usage.txt Sdata.bin Udata.bin settings.ini ../_opk/soniccd
