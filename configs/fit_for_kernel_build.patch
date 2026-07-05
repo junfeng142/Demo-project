@@ -3634,8 +3634,8 @@ diff -uprN a/drivers/video/fbdev/fb_text.h b/drivers/video/fbdev/fb_text.h
 +#endif //__LINUX_FBTFT_TEXT_H
 diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 --- a/drivers/video/fbdev/v3s_gc9306.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_gc9306.c	2025-12-22 20:39:09.980522826 +0800
-@@ -0,0 +1,785 @@
++++ b/drivers/video/fbdev/v3s_gc9306.c	2026-07-05 19:32:31.983285170 +0800
+@@ -0,0 +1,814 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
 +#include <linux/cdev.h>
@@ -3808,6 +3808,35 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +    lcdc_wr(1, 0x00);
 +    lcdc_wr(1, 0x00);
 +    lcdc_wr(1, 0xef);
++    
++    // gc9307 Inter command ON
++    lcdc_wr(0, 0xfe);
++    lcdc_wr(0, 0xef);
++    
++    // gc9307 DBI 16bit
++    lcdc_wr(0, 0x3a);
++    lcdc_wr(1, 0x05);
++    
++    // gc9307 Frame Rate 60Hz
++    lcdc_wr(0, 0xe8);
++    lcdc_wr(1, 0x11);
++    lcdc_wr(1, 0x71);
++    
++    // gc9307 tear scanline setting
++    lcdc_wr(0, 0x44);
++    lcdc_wr(1, 0x01);
++    lcdc_wr(1, 0x2d);
++    
++    //gc9307 Power setting
++    lcdc_wr(0, 0xa4);
++    lcdc_wr(1, 0x44);
++    lcdc_wr(1, 0x44);
++    lcdc_wr(0, 0xa6);
++    lcdc_wr(1, 0x2a);
++    lcdc_wr(1, 0x2a);
++    lcdc_wr(0, 0xa9);
++    lcdc_wr(1, 0x2a);
++    lcdc_wr(1, 0x2a);
 +
 +    // gc9307 gamma setting
 +    lcdc_wr(0, 0xf0);
@@ -3978,7 +4007,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +
 +static void v3s_clock_init(struct myfb_par *par)
 +{
-+    writel(0x91001f06, iomm.ccm + PLL_VIDEO_CTRL_REG);
++    writel(0x91004206, iomm.ccm + PLL_VIDEO_CTRL_REG);
 +    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
 +    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
 +
@@ -4423,7 +4452,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9306.c b/drivers/video/fbdev/v3s_gc9306.c
 +MODULE_LICENSE("GPL");
 diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 --- a/drivers/video/fbdev/v3s_gc9307.c	1970-01-01 08:00:00.000000000 +0800
-+++ b/drivers/video/fbdev/v3s_gc9307.c	2026-02-14 10:20:53.290840562 +0800
++++ b/drivers/video/fbdev/v3s_gc9307.c	2026-07-05 19:31:57.133284714 +0800
 @@ -0,0 +1,820 @@
 +#include <asm/io.h>
 +#include <linux/clk.h>
@@ -4561,19 +4590,19 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    lcdc_wr(0, 0x11);	//sleep out
 +
 +    lcdc_wr(0, 0x36);
-+    lcdc_wr(1, 0xe8);
++    lcdc_wr(1, 0x48);
 +
 +    lcdc_wr(0, 0x2a);
 +    lcdc_wr(1, 0x00);
 +    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x01);
-+    lcdc_wr(1, 0x3f);
++    lcdc_wr(1, 0x00);
++    lcdc_wr(1, 0xef);
 +
 +    lcdc_wr(0, 0x2b);
 +    lcdc_wr(1, 0x00);
 +    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0x00);
-+    lcdc_wr(1, 0xef);
++    lcdc_wr(1, 0x01);
++    lcdc_wr(1, 0x3f);
 +    
 +    // gc9307 Inter command ON
 +    lcdc_wr(0, 0xfe);
@@ -4748,7 +4777,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +static void v3s_clock_init(struct myfb_par *par)
 +{
-+    writel(0x91004206, iomm.ccm + PLL_VIDEO_CTRL_REG);
++    writel(0x91002406, iomm.ccm + PLL_VIDEO_CTRL_REG);
 +    while((readl(iomm.ccm + PLL_VIDEO_CTRL_REG) & (1 << 28)) == 0){}
 +    while((readl(iomm.ccm + PLL_PERIPH_CTRL_REG) & (1 << 28)) == 0){}
 +
@@ -4942,7 +4971,7 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +
 +static int myfb_check_var(struct fb_var_screeninfo *var, struct fb_info *info)
 +{
-+    if((var->xres != 320) || (var->yres != 240) || (var->bits_per_pixel != 16)) {
++    if((var->xres != 240) || (var->yres != 320) || (var->bits_per_pixel != 16)) {
 +        return -EINVAL;
 +    }
 +
@@ -5037,9 +5066,9 @@ diff -uprN a/drivers/video/fbdev/v3s_gc9307.c b/drivers/video/fbdev/v3s_gc9307.c
 +    if(mode == NULL) {
 +        return -ENOMEM;
 +    }
-+    mode->name = "320x240";
-+    mode->xres = 320;
-+    mode->yres = 240;
++    mode->name = "240x320";
++    mode->xres = 240;
++    mode->yres = 320;
 +    mode->vmode = FB_VMODE_NONINTERLACED;
 +    pm_runtime_enable(&device->dev);
 +    pm_runtime_get_sync(&device->dev);
@@ -5568,7 +5597,7 @@ diff -uprN a/drivers/video/fbdev/v3s_st7789p3.c b/drivers/video/fbdev/v3s_st7789
 +    lcdc_wr(1, 0x20);
 +
 +    lcdc_wr(0, 0xc6);
-+    lcdc_wr(1, 0x05);
++    lcdc_wr(1, 0x08);
 +
 +    lcdc_wr(0, 0xd0);
 +    lcdc_wr(1, 0xa6);
@@ -6378,7 +6407,7 @@ diff -uprN a/drivers/video/fbdev/v3s_st7789v2.c b/drivers/video/fbdev/v3s_st7789
 +    lcdc_wr(1, 0x20);
 +
 +    lcdc_wr(0, 0xc6);
-+    lcdc_wr(1, 0x05);
++    lcdc_wr(1, 0x08);
 +
 +    lcdc_wr(0, 0xd0);
 +    lcdc_wr(1, 0xa6);
