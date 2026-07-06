@@ -1,6 +1,6 @@
 diff -uprN a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c b/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c
 --- a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c	2026-07-06 11:13:53.102051570 +0800
-+++ b/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c	2026-07-06 13:25:38.012039802 +0800
++++ b/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c	2026-07-06 13:31:24.692039286 +0800
 @@ -94,6 +94,11 @@ static void MMIYOO_VideoQuit(_THIS);
  static CUST_MENU drastic_menu = {0};
  static char *translate[MAX_LANG_LINE] = {0};
@@ -13,7 +13,7 @@ diff -uprN a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c b/sdl2/src/video/mmiyoo/SD
  #ifdef TRIMUI
  static uint32_t LUT_256x192_S10[256 * 192] = {0};
  static uint32_t LUT_256x192_S11[256 * 192] = {0};
-@@ -3608,57 +3613,65 @@ int GFX_Copy(const void *pixels, SDL_Rec
+@@ -3608,55 +3613,61 @@ int GFX_Copy(const void *pixels, SDL_Rec
  #endif
  
  #ifdef FUNKEYS
@@ -120,12 +120,8 @@ diff -uprN a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c b/sdl2/src/video/mmiyoo/SD
 -            dst+= (FB_W - srcrect.w);
          }
      }
-+    
-+    return 0;
  #endif
- 
- #ifdef TRIMUI
-@@ -4833,21 +4846,59 @@ int reload_bg(void)
+@@ -4833,21 +4844,59 @@ int reload_bg(void)
      }
  
      if (nds.theme.img) {
@@ -199,7 +195,7 @@ diff -uprN a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c b/sdl2/src/video/mmiyoo/SD
          }
      }
  #endif
-@@ -6178,3 +6229,4 @@ TEST_GROUP_RUNNER(sdl2_video_mmiyoo)
+@@ -6178,3 +6227,4 @@ TEST_GROUP_RUNNER(sdl2_video_mmiyoo)
      RUN_TEST_CASE(sdl2_video_mmiyoo, get_current_menu_layer);
  }
  #endif
