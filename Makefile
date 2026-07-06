@@ -36,7 +36,7 @@ ifeq ($(MOD),trimui)
 endif
 
 ifeq ($(MOD),funkeys)
-    export CROSS=/opt/mini/bin/arm-linux-gnueabihf-
+    export CROSS=/opt/mmiyoo/bin/arm-linux-gnueabihf-
 endif
 
 ifeq ($(MOD),pandora)
