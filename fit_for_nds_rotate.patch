@@ -1,0 +1,206 @@
+diff -uprN a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c b/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c
+--- a/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c	2026-07-06 11:13:53.102051570 +0800
++++ b/sdl2/src/video/mmiyoo/SDL_video_mmiyoo.c	2026-07-06 13:25:38.012039802 +0800
+@@ -94,6 +94,11 @@ static void MMIYOO_VideoQuit(_THIS);
+ static CUST_MENU drastic_menu = {0};
+ static char *translate[MAX_LANG_LINE] = {0};
+ 
++#ifdef FUNKEYS
++#define PHYS_W 240
++#define PHYS_H 320
++#endif
++
+ #ifdef TRIMUI
+ static uint32_t LUT_256x192_S10[256 * 192] = {0};
+ static uint32_t LUT_256x192_S11[256 * 192] = {0};
+@@ -3608,57 +3613,65 @@ int GFX_Copy(const void *pixels, SDL_Rec
+ #endif
+ 
+ #ifdef FUNKEYS
+-    if ((srcrect.w == 256) && (srcrect.h == 192)) {
+-        uint16_t *dst = (uint16_t *)gfx.hw.mem + (((FB_H - 192) >> 1) * FB_W);
+-        uint16_t *src = (uint16_t *)pixels;
+-
+-        asm volatile (
+-            "1:  add %1, #64            ;"
+-            "    vldmia %0!, {q0-q7}    ;"
+-            "    vldmia %0!, {q8-q15}   ;"
+-            "    vstmia %1!, {q0-q7}    ;"
+-            "    vstmia %1!, {q8-q15}   ;"
+-            "    vldmia %0!, {q0-q7}    ;"
+-            "    vldmia %0!, {q8-q15}   ;"
+-            "    vstmia %1!, {q0-q7}    ;"
+-            "    vstmia %1!, {q8-q15}   ;"
+-            "    add %1, #64            ;"
+-            "    subs %2, #1            ;"
+-            "    bne 1b                 ;"
+-            :
+-            : "r"(src), "r"(dst), "r"(192)
+-            : "r8", "q0", "q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12", "q13", "q14", "q15", "memory", "cc"
+-        );
+-    }
+-    else if ((srcrect.w == FB_W) && (srcrect.h == FB_H)) {
+-        int x = 0;
+-        int y = 0;
+-        uint32_t v = 0;
+-        uint16_t *dst = (uint16_t *)gfx.hw.mem;
+-        uint32_t *src = (uint32_t *)pixels;
+-
+-        for (y = 0; y < srcrect.h; y++) {
+-            for (x = 0; x < srcrect.w; x++) {
+-                v = *src++;
+-                *dst++ = ((v & 0xf80000) >> 8) | ((v & 0xfc00) >> 5) | ((v & 0xf8) >> 3);
++    /* ====== 所有变量声明放在函数开头 ====== */
++    int x, y;
++    int offset_x, offset_y;
++    int dst_x, dst_y;
++    int src_w, src_h;
++    uint16_t *dst;
++    uint16_t *src;
++    uint32_t pixel32;
++    uint16_t pixel16;
++    
++    dst = (uint16_t *)gfx.hw.mem;
++    src = (uint16_t *)pixels;
++    src_w = srcrect.w;
++    src_h = srcrect.h;
++    
++    /* ====== 256x192 不缩放，直接旋转居中 ====== */
++    if ((src_w == 256) && (src_h == 192)) {
++        offset_x = (PHYS_W - 192) / 2;  /* (240 - 192) / 2 = 24 */
++        offset_y = (PHYS_H - 256) / 2;  /* (320 - 256) / 2 = 32 */
++        
++        for (y = 0; y < 192; y++) {
++            for (x = 0; x < 256; x++) {
++                /* 逆时针90度：dst_x = src_y, dst_y = 255 - src_x */
++                dst_x = offset_x + y;
++                dst_y = offset_y + 255 - x;
++                if (dst_x >= 0 && dst_x < PHYS_W && dst_y >= 0 && dst_y < PHYS_H) {
++                    dst[dst_y * PHYS_W + dst_x] = src[y * 256 + x];
++                }
+             }
+         }
+-    }
+-    else {
+-        int x = 0;
+-        int y = 0;
+-        uint32_t v = 0;
+-        uint16_t *dst = (uint16_t *)gfx.hw.mem + (((FB_H - 192) >> 1) * FB_W);
+-        uint32_t *src = (uint32_t *)pixels;
+-
+-        for (y = 0; y < srcrect.h; y++) {
+-            for (x = 0; x < srcrect.w; x++) {
+-                v = *src++;
+-                *dst++ = ((v & 0xf80000) >> 8) | ((v & 0xfc00) >> 5) | ((v & 0xf8) >> 3);
++    } else if ((src_w == 320) && (src_h == 240)) {
++        for (y = 0; y < 240; y++) {
++            for (x = 0; x < 320; x++) {
++                /* src_x 范围 0~319，src_y 范围 0~239 */
++                /* dst_x = src_y (0~239) */
++                /* dst_y = 319 - src_x (0~319) */
++                dst_x = y;                 /* 0~239 */
++                dst_y = 319 - x;           /* 0~319，用319而不是239！ */
++                pixel32 = ((uint32_t *)src)[y * 320 + x];
++                pixel16 = ((pixel32 & 0xf80000) >> 8) | ((pixel32 & 0xfc00) >> 5) | ((pixel32 & 0xf8) >> 3);
++                dst[dst_y * PHYS_W + dst_x] = pixel16;
++            }
++        }
++    } else {
++        for (y = 0; y < src_h; y++) {
++            /* 使用 pitch 计算源行指针 */
++            uint16_t *src_row = (uint16_t *)((uint8_t *)src + y * pitch);
++            for (x = 0; x < src_w; x++) {
++                /* 逆时针90度旋转，靠左上角 */
++                dst_x = y;
++                dst_y = src_w - 1 - x;
++                if (dst_x >= 0 && dst_x < PHYS_W && dst_y >= 0 && dst_y < PHYS_H) {
++                    dst[dst_y * PHYS_W + dst_x] = src_row[x];
++                }
+             }
+-            dst+= (FB_W - srcrect.w);
+         }
+     }
++    
++    return 0;
+ #endif
+ 
+ #ifdef TRIMUI
+@@ -4833,21 +4846,59 @@ int reload_bg(void)
+     }
+ 
+     if (nds.theme.img) {
+-        int x = 0;
+-        int y = 0;
+-        uint32_t v = 0;
+-        uint16_t *dst = (uint16_t *)gfx.hw.mem;
+-        uint32_t *src = (uint32_t *)nds.theme.img->pixels;
+-
+-        for (y = 0; y < FB_H; y++) {
+-            src+= ((IMG_W - (FB_W << 1)) >> 1);
+-            for (x = 0; x < FB_W; x++) {
+-                v = *src;
+-                *dst++ = ((v & 0xf80000) >> 8) | ((v & 0xfc00) >> 5) | ((v & 0xf8) >> 3);
+-                src+= 2;
++        int x, y, img_w, img_h;
++        int src_y, src_x, rot_w, rot_h;
++        int scaled_w, scaled_h;
++        int offset_x, offset_y;
++        int dst_x, dst_y;
++        float scale_w, scale_h, scale;
++        uint32_t v;
++        uint16_t pixel;
++        uint16_t *dst;
++        uint32_t *src;
++        uint32_t *src_row;
++        
++        dst = (uint16_t *)gfx.hw.mem;
++        src = (uint32_t *)nds.theme.img->pixels;
++        
++        img_w = nds.theme.img->w;
++        img_h = nds.theme.img->h;
++        
++        scale_w = (float)PHYS_W / img_h;
++        scale_h = (float)PHYS_H / img_w;
++        scale = (scale_w < scale_h) ? scale_w : scale_h;
++        
++        /* 缩放后的尺寸（旋转前） */
++        scaled_w = (int)(img_w * scale);
++        scaled_h = (int)(img_h * scale);
++        
++        /* 旋转后尺寸（宽高互换） */
++        rot_w = scaled_h;
++        rot_h = scaled_w;
++        
++        /* 居中偏移 */
++        offset_x = (PHYS_W - rot_w) / 2;
++        offset_y = (PHYS_H - rot_h) / 2;
++        
++        for (y = 0; y < scaled_h; y++) {
++            src_y = (y * img_h) / scaled_h;
++            src_row = src + src_y * img_w;
++            
++            for (x = 0; x < scaled_w; x++) {
++                src_x = (x * img_w) / scaled_w;
++                v = src_row[src_x];
++                
++                pixel = ((v & 0xf80000) >> 8) | ((v & 0xfc00) >> 5) | ((v & 0xf8) >> 3);
++                
++                /* ====== 逆时针90度旋转 ====== */
++                /* 源 (x,y) -> 目标 (y, scaled_w - 1 - x) */
++                dst_x = offset_x + y;
++                dst_y = offset_y + scaled_w - 1 - x;
++                
++                if (dst_x >= 0 && dst_x < PHYS_W && dst_y >= 0 && dst_y < PHYS_H) {
++                    dst[dst_y * PHYS_W + dst_x] = pixel;
++                }
+             }
+-            src+= ((IMG_W - (FB_W << 1)) >> 1);
+-            src+= IMG_W;
+         }
+     }
+ #endif
+@@ -6178,3 +6229,4 @@ TEST_GROUP_RUNNER(sdl2_video_mmiyoo)
+     RUN_TEST_CASE(sdl2_video_mmiyoo, get_current_menu_layer);
+ }
+ #endif
++
