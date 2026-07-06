@@ -1,15 +1,15 @@
 TARGET = sdlpal
 
-HOST = /opt/mini/bin/arm-linux-gnueabihf-
+HOST = /opt/mmiyoo/bin/arm-linux-gnueabihf-
 
 SOURCES = . ./adplug
 CFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.c))
 CPPFILES = $(foreach dir, $(SOURCES), $(wildcard $(dir)/*.cpp))
 OFILES = $(CFILES:.c=.o) $(CPPFILES:.cpp=.o)
 
-CFLAGS = -g -Wall -O2 `/opt/mini/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags` -DDINGOO -DPAL_CLASSIC -D'PAL_SAVE_PREFIX="/mnt/FunKey/.sdlpal/"'
+CFLAGS = -g -Wall -O2 `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --cflags` -DDINGOO -DPAL_CLASSIC -D'PAL_SAVE_PREFIX="/mnt/FunKey/.sdlpal/"'
 CXXFLAGS = $(CFLAGS)
-LDFLAGS = `/opt/mini/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs`
+LDFLAGS = `/opt/mmiyoo/arm-buildroot-linux-gnueabihf/sysroot/usr/bin/sdl-config --libs`
 
 $(TARGET): $(OFILES)
 	$(HOST)g++ $(OFILES) -o $@ $(LDFLAGS)
