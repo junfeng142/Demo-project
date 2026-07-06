@@ -54,7 +54,7 @@ jobs:
         cd && wget https://github.com/junfeng142/Demo-project/releases/download/2025.01.21-2345/FunKey-sdk-2.3.0.tar.gz
         tar xvf FunKey-sdk-2.3.0.tar.gz
         sudo mv FunKey-sdk-2.3.0 /opt
-        cd && wget https://github.com/steward-fu/website/releases/download/miyoo-mini-plus/toolchain.tar.gz
+        cd && wget https://github.com/steward-fu/website/releases/download/miyoo-mini/toolchain.tar.gz
         tar xvf toolchain.tar.gz
         sudo mv mmiyoo /opt
         sudo mv prebuilt /opt
