@@ -5,33 +5,9 @@ diff -uprN a/build.sh b/build.sh
 +#!/bin/bash
 +
 +make -f Makefile.miyoo
-diff -uprN a/gfx/drivers/sdl_rs90_gfx.c b/gfx/drivers/sdl_rs90_gfx.c
---- a/gfx/drivers/sdl_rs90_gfx.c	2026-03-21 21:00:18.552716618 +0800
-+++ b/gfx/drivers/sdl_rs90_gfx.c	2026-03-21 21:00:08.262716552 +0800
-@@ -50,7 +50,7 @@
- #define unlikely(x) __builtin_expect(!!(x), 0)
- 
- #if defined(MIYOO)
--#define SDL_RS90_WIDTH  320
-+#define SDL_RS90_WIDTH  240
- #define SDL_RS90_HEIGHT 240
- #else
- #define SDL_RS90_WIDTH  240
-diff -uprN a/menu/drivers/rgui.c b/menu/drivers/rgui.c
---- a/menu/drivers/rgui.c	2026-03-21 21:02:32.882717476 +0800
-+++ b/menu/drivers/rgui.c	2026-03-21 21:02:24.282717421 +0800
-@@ -95,7 +95,7 @@
- /* Other Dingux devices (RG350 etc.) use a
-  * fixed framebuffer size of 320x240 */
- #define RGUI_DINGUX_ASPECT_RATIO RGUI_ASPECT_RATIO_4_3
--#define RGUI_DINGUX_FB_WIDTH     320
-+#define RGUI_DINGUX_FB_WIDTH     240
- #define RGUI_DINGUX_FB_HEIGHT    240
- #endif
- #endif
 diff -uprN a/Makefile.miyoo b/Makefile.miyoo
---- a/Makefile.miyoo	2026-03-05 19:50:30.955934087 +0800
-+++ b/Makefile.miyoo	2026-03-05 19:51:17.115933655 +0800
+--- a/Makefile.miyoo	2026-08-02 10:54:59.372013124 +0800
++++ b/Makefile.miyoo	2026-08-02 12:56:52.732108675 +0800
 @@ -3,7 +3,7 @@
  #########################
  
@@ -77,24 +53,57 @@ diff -uprN a/Makefile.miyoo b/Makefile.miyoo
  
  #########################
  #########################
-@@ -72,7 +70,7 @@ HAVE_GLSL = 0
+@@ -71,7 +69,7 @@ HAVE_GLSL = 0
  HAVE_HID = 0
- HAVE_IBXM = 1
+ HAVE_RMODTRACKER = 1
  HAVE_IMAGEVIEWER = 0
 -HAVE_LANGEXTRA = 0
 +HAVE_LANGEXTRA = 1
  HAVE_LIBRETRODB = 1
  HAVE_MENU = 1
  HAVE_MENU_COMMON = 1
-@@ -120,7 +118,7 @@ TARGET = retroarch
+@@ -84,7 +82,7 @@ HAVE_OPENGLES = 0
+ HAVE_OPENGLES3 = 0
+ HAVE_OPENGL_CORE = 0
+ HAVE_OPENSSL = 0
+-HAVE_OVERLAY = 0
++HAVE_OVERLAY = 1
+ HAVE_RBMP = 1
+ HAVE_RJPEG = 1
+ HAVE_RPILED = 0
+@@ -119,7 +117,7 @@ TARGET = retroarch
  
  OBJ :=
  LINK := $(CXX)
 -DEF_FLAGS := -march=armv5te -mtune=arm926ej-s -fomit-frame-pointer
 +DEF_FLAGS := -march=armv7-a+neon-vfpv4 -mtune=cortex-a7 -mfpu=neon-vfpv4 -ffast-math -fomit-frame-pointer
  DEF_FLAGS += -ffunction-sections -fdata-sections
- DEF_FLAGS += -I. -Ideps -Ideps/stb -DMIYOO=1 -DDINGUX -MMD
+ DEF_FLAGS += -I. -Ideps -DMIYOO=1 -DDINGUX -MMD
  DEF_FLAGS += -Wall -Wno-unused-variable -flto
+diff -uprN a/gfx/drivers/sdl_rs90_gfx.c b/gfx/drivers/sdl_rs90_gfx.c
+--- a/gfx/drivers/sdl_rs90_gfx.c	2026-08-02 10:43:14.882003919 +0800
++++ b/gfx/drivers/sdl_rs90_gfx.c	2026-08-02 12:46:41.092100684 +0800
+@@ -51,7 +51,7 @@
+ #define unlikely(x) __builtin_expect(!!(x), 0)
+ 
+ #if defined(MIYOO)
+-#define SDL_RS90_WIDTH  320
++#define SDL_RS90_WIDTH  320 
+ #define SDL_RS90_HEIGHT 240
+ #else
+ #define SDL_RS90_WIDTH  240
+diff -uprN a/menu/drivers/rgui.c b/menu/drivers/rgui.c
+--- a/menu/drivers/rgui.c	2026-08-02 10:54:46.162012951 +0800
++++ b/menu/drivers/rgui.c	2026-08-02 10:53:56.492012302 +0800
+@@ -96,7 +96,7 @@
+ /* Other Dingux devices (RG350 etc.) use a
+  * fixed framebuffer size of 320x240 */
+ #define RGUI_DINGUX_ASPECT_RATIO RGUI_ASPECT_RATIO_4_3
+-#define RGUI_DINGUX_FB_WIDTH     320
++#define RGUI_DINGUX_FB_WIDTH     320 
+ #define RGUI_DINGUX_FB_HEIGHT    240
+ #endif
+ #endif
 diff -uprN a/dingux/dingux_utils.c b/dingux/dingux_utils.c
 --- a/dingux/dingux_utils.c	2025-05-20 15:31:09.194452582 +0800
 +++ b/dingux/dingux_utils.c	2025-05-20 15:38:54.851192920 +0800
@@ -166,10 +175,10 @@ diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl
  #define SDL_DINGUX_SDLK_L      SDLK_TAB
  #define SDL_DINGUX_SDLK_R      SDLK_BACKSPACE
 -#define SDL_DINGUX_SDLK_L2     SDLK_PAGEUP
-+#define SDL_DINGUX_SDLK_L2     SDLK_RCTRL 
++#define SDL_DINGUX_SDLK_L2     SDLK_PAGEUP 
  #define SDL_DINGUX_SDLK_R2     SDLK_PAGEDOWN
 -#define SDL_DINGUX_SDLK_SELECT SDLK_ESCAPE
-+#define SDL_DINGUX_SDLK_SELECT SDLK_ESCAPE 
++#define SDL_DINGUX_SDLK_SELECT SDLK_RCTRL 
  #define SDL_DINGUX_SDLK_START  SDLK_RETURN
  #if defined(MIYOO)
  #define SDL_DINGUX_SDLK_L3     SDLK_RALT
@@ -178,7 +187,7 @@ diff -uprN a/input/drivers_joypad/sdl_dingux_joypad.c b/input/drivers_joypad/sdl
  #define SDL_DINGUX_SDLK_MENU   SDLK_END
  #elif defined(MIYOO)
 -#define SDL_DINGUX_SDLK_MENU   SDLK_RCTRL
-+#define SDL_DINGUX_SDLK_MENU   SDLK_HOME
++#define SDL_DINGUX_SDLK_MENU   SDLK_ESCAPE 
  #else
  #define SDL_DINGUX_SDLK_MENU   SDLK_HOME
  #endif
