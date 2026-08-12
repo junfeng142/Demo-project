@@ -29,7 +29,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh b/phoneme-funkey-o
      "$FUNKEY_CC" -Os -s \
 diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c
 --- a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-08-12 19:40:09.266049990 +0800
-+++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-08-12 19:53:02.446042752 +0800
++++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-08-12 20:32:57.046020332 +0800
 @@ -28,7 +28,7 @@
  #define BIN_DIR    "/mnt/FunKey/.pm/bin"
  #define RMS_DIR    "/mnt/FunKey/.pm/rms"
@@ -39,9 +39,11 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
  
  /* ── MIDP key codes (from phoneME keymap_input.h) ───── */
  #define K_UP     (-1)
-@@ -1021,13 +1021,20 @@ static int funkey_bind_index_from_sdl(in
+@@ -1019,15 +1019,21 @@ static int funkey_bind_index_from_sdl(in
+     case SDLK_r:
+     case SDLK_RIGHT:  return 3;
      case SDLK_a:
-     case SDLK_RETURN:
+-    case SDLK_RETURN:
      case SDLK_SPACE:  return 4;
 -    case SDLK_b:      return 5;
 -    case SDLK_x:      return 6;
@@ -67,7 +69,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
      default:          return -1;
      }
  }
-@@ -1669,7 +1676,7 @@ static void handle_key_resolution(SDL_Ke
+@@ -1669,7 +1675,7 @@ static void handle_key_resolution(SDL_Ke
          if (source_picker_sel >= (int)SOURCE_PRESET_COUNT)
              source_picker_sel = SOURCE_PRESET_COUNT - 1;
          break;
@@ -76,7 +78,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          /* cancel – go back to browser */
          launching_game_idx = -1;
          state = STATE_BROWSER;
-@@ -2037,6 +2044,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2037,6 +2043,7 @@ static void handle_key_browser(SDL_Keybo
  
      if (game_count <= 0) {
          switch (kev->keysym.sym) {
@@ -84,7 +86,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          case SDLK_b:
              if (!leave_folder()) scan_games();
              break;
-@@ -2067,7 +2075,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2067,7 +2074,7 @@ static void handle_key_browser(SDL_Keybo
          game_sel += 5;
          if (game_sel >= game_count) game_sel = game_count - 1;
          break;
@@ -93,7 +95,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (game_count > 0) {
              if (games[game_sel].is_dir) {
                  enter_selected_folder();
-@@ -2087,7 +2095,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2087,7 +2094,7 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -102,7 +104,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (game_count > 0) {
              if (games[game_sel].is_dir) {
                  enter_selected_folder();
-@@ -2102,7 +2110,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2102,7 +2109,7 @@ static void handle_key_browser(SDL_Keybo
              state = STATE_KEYBINDS;
          }
          break;
@@ -111,7 +113,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (game_count > 0 && !games[game_sel].is_dir) {
              if (toggle_favorite(games[game_sel].path)) {
                  if (browsing_favorites) {
-@@ -2113,7 +2121,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2113,7 +2120,7 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -120,7 +122,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (!leave_folder()) {
              scan_games();
          }
-@@ -2269,7 +2277,7 @@ static void handle_key_keybinds(SDL_Keyb
+@@ -2269,7 +2276,7 @@ static void handle_key_keybinds(SDL_Keyb
          }
          break;
  
