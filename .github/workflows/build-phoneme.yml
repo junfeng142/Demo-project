@@ -56,10 +56,9 @@ jobs:
       id: compile
       run: |
         cd $PKG_NAME/phoneme-funkey-opk-wrapper
+        mv ../phoneme-funkey-clean/FunKey-sdk-2.3.0/ ../phoneme-funkey-clean/zulu7.24.0.1-jdk7.0.191-linux_x64/ ./
         echo -e "$(nproc) thread compile"
-        FUNKEY_PHONEME_ROOT=/workdir/$PKG_NAME/phoneme-funkey-clean/phoneME-GP2X-SDL \
-        JDK_DIR=/workdir/$PKG_NAME/phoneme-funkey-clean/zulu7.24.0.1-ca-jdk7.0.191-linux_x64 \
-        FUNKEY_SDK_DIR=/workdir/$PKG_NAME/phoneme-funkey-clean/FunKey-sdk-2.3.0 \
+        FUNKEY_PHONEME_ROOT=../phoneme-funkey-clean/phoneME-GP2X-SDL \
         ./package-funkey-opk.sh
         echo "status=success" >> $GITHUB_OUTPUT
         echo "DEVICE_NAME=$PKG_NAME" >> $GITHUB_ENV
