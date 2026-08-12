@@ -25,7 +25,7 @@ jobs:
     - name: Initialization environment
       run: |
         sudo apt-get update
-        sudo apt-get install -y -q --no-install-recommends build-essential make cmake wget autogen autoconf automake gcc g++ file libc6-dev-i386
+        sudo apt-get install -y -q --no-install-recommends build-essential make cmake wget autogen autoconf automake gcc-multilib g++-multilib file libc6-dev-i386
         sudo apt-get -y autoremove
         sudo apt-get -y clean
         sudo rm -rf /var/lib/apt/lists/*
