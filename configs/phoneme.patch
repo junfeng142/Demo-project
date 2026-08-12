@@ -1,0 +1,131 @@
+diff -uprN a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh b/phoneme-funkey-opk-wrapper/package-funkey-opk.sh
+--- a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh	2026-08-12 19:38:33.406050888 +0800
++++ b/phoneme-funkey-opk-wrapper/package-funkey-opk.sh	2026-08-12 19:41:33.456049202 +0800
+@@ -159,12 +159,12 @@ inject_nokia_stubs() {
+     )
+ }
+ 
+-if [ -z "$FUNKEY_CC" ] && command -v arm-funkey-linux-musleabihf-gcc >/dev/null 2>&1; then
+-    FUNKEY_CC=$(command -v arm-funkey-linux-musleabihf-gcc)
++if [ -z "$FUNKEY_CC" ] && command -v arm-funkey-linux-gnueabihf-gcc >/dev/null 2>&1; then
++    FUNKEY_CC=$(command -v arm-funkey-linux-gnueabihf-gcc)
+ fi
+ 
+-if [ -z "$FUNKEY_CC" ] && [ -x "${FUNKEY_SDK_DIR:-/home/pq/FunKey-sdk-2.3.0}/bin/arm-funkey-linux-musleabihf-gcc" ]; then
+-    FUNKEY_CC=${FUNKEY_SDK_DIR:-/home/pq/FunKey-sdk-2.3.0}/bin/arm-funkey-linux-musleabihf-gcc
++if [ -z "$FUNKEY_CC" ] && [ -x "${FUNKEY_SDK_DIR:-FunKey-sdk-2.3.0}/bin/arm-funkey-linux-gnueabihf-gcc" ]; then
++    FUNKEY_CC=${FUNKEY_SDK_DIR:-FunKey-sdk-2.3.0}/bin/arm-funkey-linux-gnueabihf-gcc
+ fi
+ 
+ if [ ! -x "$MIDP_BIN/runMidlet" ] && [ ! -s "$RUNMIDLET_FALLBACK" ]; then
+@@ -293,7 +293,7 @@ cp -R "$MEHOME/build_output_funkey_s/mid
+ echo "Compiling SDL launcher (browser mode)"
+ 
+ FUNKEY_SDK_DIR=${FUNKEY_SDK_DIR:-$(dirname "$(dirname "$FUNKEY_CC")")}
+-SYSROOT=$FUNKEY_SDK_DIR/arm-funkey-linux-musleabihf/sysroot
++SYSROOT=$FUNKEY_SDK_DIR/arm-funkey-linux-gnueabihf/sysroot
+ LAUNCH_SRC=$ROOT/packaging/funkey-s/pm-launch.c
+ if [ -f "$LAUNCH_SRC" ]; then
+     "$FUNKEY_CC" -Os -s \
+diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c
+--- a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-08-12 19:40:09.266049990 +0800
++++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-08-12 19:53:02.446042752 +0800
+@@ -28,7 +28,7 @@
+ #define BIN_DIR    "/mnt/FunKey/.pm/bin"
+ #define RMS_DIR    "/mnt/FunKey/.pm/rms"
+ #define FAVORITES_FILE PM_DIR "/favorites.txt"
+-static char java_dir[PATH_MAX] = "/mnt/java";
++static char java_dir[PATH_MAX] = "/mnt/JAVA";
+ 
+ /* ── MIDP key codes (from phoneME keymap_input.h) ───── */
+ #define K_UP     (-1)
+@@ -1021,13 +1021,20 @@ static int funkey_bind_index_from_sdl(in
+     case SDLK_a:
+     case SDLK_RETURN:
+     case SDLK_SPACE:  return 4;
+-    case SDLK_b:      return 5;
+-    case SDLK_x:      return 6;
+-    case SDLK_y:      return 7;
+-    case SDLK_m:      return 8;
+-    case SDLK_n:      return 9;
+-    case SDLK_s:      return 10;
+-    case SDLK_k:      return 11;
++    case SDLK_b:
++    case SDLK_LCTRL:  return 5;
++    case SDLK_x:
++    case SDLK_LSHIFT: return 6;
++    case SDLK_y:
++    case SDLK_LALT:   return 7;
++    case SDLK_m:
++    case SDLK_TAB:    return 8;
++    case SDLK_n:
++    case SDLK_BACKSPACE: return 9;
++    case SDLK_s:
++    case SDLK_RETURN: return 10;
++    case SDLK_k:
++    case SDLK_RCTRL:  return 11;
+     default:          return -1;
+     }
+ }
+@@ -1669,7 +1676,7 @@ static void handle_key_resolution(SDL_Ke
+         if (source_picker_sel >= (int)SOURCE_PRESET_COUNT)
+             source_picker_sel = SOURCE_PRESET_COUNT - 1;
+         break;
+-    case SDLK_b:
++    case SDLK_LCTRL: case SDLK_b:
+         /* cancel – go back to browser */
+         launching_game_idx = -1;
+         state = STATE_BROWSER;
+@@ -2037,6 +2044,7 @@ static void handle_key_browser(SDL_Keybo
+ 
+     if (game_count <= 0) {
+         switch (kev->keysym.sym) {
++        case SDLK_LCTRL:
+         case SDLK_b:
+             if (!leave_folder()) scan_games();
+             break;
+@@ -2067,7 +2075,7 @@ static void handle_key_browser(SDL_Keybo
+         game_sel += 5;
+         if (game_sel >= game_count) game_sel = game_count - 1;
+         break;
+-    case SDLK_RETURN: case SDLK_SPACE: case SDLK_a: /* A = open/run */
++    case SDLK_SPACE: case SDLK_a: /* A = open/run */
+         if (game_count > 0) {
+             if (games[game_sel].is_dir) {
+                 enter_selected_folder();
+@@ -2087,7 +2095,7 @@ static void handle_key_browser(SDL_Keybo
+             }
+         }
+         break;
+-    case SDLK_s: /* START = open/keys */
++    case SDLK_RETURN: case SDLK_s: /* START = open/keys */
+         if (game_count > 0) {
+             if (games[game_sel].is_dir) {
+                 enter_selected_folder();
+@@ -2102,7 +2110,7 @@ static void handle_key_browser(SDL_Keybo
+             state = STATE_KEYBINDS;
+         }
+         break;
+-    case SDLK_k: /* SELECT = add/remove favorite */
++    case SDLK_RCTRL: case SDLK_k: /* SELECT = add/remove favorite */
+         if (game_count > 0 && !games[game_sel].is_dir) {
+             if (toggle_favorite(games[game_sel].path)) {
+                 if (browsing_favorites) {
+@@ -2113,7 +2121,7 @@ static void handle_key_browser(SDL_Keybo
+             }
+         }
+         break;
+-    case SDLK_b: /* B = back/refresh */
++    case SDLK_LCTRL: case SDLK_b: /* B = back/refresh */
+         if (!leave_folder()) {
+             scan_games();
+         }
+@@ -2269,7 +2277,7 @@ static void handle_key_keybinds(SDL_Keyb
+         }
+         break;
+ 
+-    case SDLK_b: /* back / cancel capture */
++    case SDLK_LCTRL: case SDLK_b: /* back / cancel capture */
+         if (capture_mode) {
+             capture_mode = 0;
+         } else if (delete_confirm) {
