@@ -51,13 +51,13 @@ jobs:
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE $PKG_NAME/.config
         mv configs/phoneme.patch $PKG_NAME
         cd $PKG_NAME && patch -p1 < phoneme.patch
+        cd phoneme-funkey-clean
+        ./build-funkey-s.sh
 
     - name: Compile the firmware
       id: compile
       run: |
-        cd $PKG_NAME/phoneme-funkey-clean
-        ./build-funkey-s.sh
-        cd ../phoneme-funkey-opk-wrapper
+        cd $PKG_NAME/phoneme-funkey-opk-wrapper
         mv ../phoneme-funkey-clean/FunKey-sdk-2.3.0/ ../phoneme-funkey-clean/zulu7.24.0.1-jdk7.0.191-linux_x64/ ./
         chmod +x ./package-funkey-opk.sh
         FUNKEY_PHONEME_ROOT=../phoneme-funkey-clean/phoneME-GP2X-SDL \
