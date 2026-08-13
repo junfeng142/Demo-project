@@ -1,4 +1,4 @@
-name: phoneme Build
+name: phoneme-opk Build
 
 on:
   workflow_dispatch:
