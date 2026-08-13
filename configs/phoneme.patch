@@ -1,3 +1,91 @@
+diff -uprN a/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/events/mastermode_port/sdl/native/midp_msgQueue_md.c b/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/events/mastermode_port/sdl/native/midp_msgQueue_md.c
+--- a/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/events/mastermode_port/sdl/native/midp_msgQueue_md.c	2026-08-13 19:29:56.063769451 +0800
++++ b/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/events/mastermode_port/sdl/native/midp_msgQueue_md.c	2026-08-13 19:50:05.023762892 +0800
+@@ -391,18 +391,7 @@ int KeyboardCheck(SDL_Event *event, Midp
+ { int Key = KEYMAP_KEY_INVALID;
+   int Physical = event->key.keysym.sym;
+   switch(event->key.keysym.sym)
+-        { case SDLK_TAB:
+-          case SDLK_LCTRL:  Key = KEYMAP_KEY_SOFT1; break;
+-          case SDLK_BACKSPACE:
+-          case SDLK_ESCAPE:
+-          case SDLK_RCTRL:  Key = KEYMAP_KEY_SOFT2; break;
+-          case SDLK_UP:     Key = KEYMAP_KEY_UP; break;
+-          case SDLK_DOWN:   Key = KEYMAP_KEY_DOWN; break;
+-          case SDLK_LEFT:   Key = KEYMAP_KEY_LEFT; break;
+-          case SDLK_RIGHT:  Key = KEYMAP_KEY_RIGHT; break;
+-          case SDLK_RETURN:
+-          case SDLK_SPACE:
+-          case SDLK_LALT:   Key = KEYMAP_KEY_SELECT; break;
++        { case SDLK_ESCAPE: Key = KEYMAP_KEY_SOFT2; break;
+           case SDLK_CLEAR:
+           case SDLK_DELETE: Key = KEYMAP_KEY_CLEAR; break;
+           case SDLK_0:      Key = KEYMAP_KEY_0; break;
+@@ -444,17 +433,29 @@ int KeyboardCheck(SDL_Event *event, Midp
+            * dpad -> directional game actions, A -> Select, side keys ->
+            * softkeys, dedicated center button -> 5, lower aux -> star/pound.
+            */
++          case SDLK_UP:
+           case SDLK_u:      Key = GP2X_Default_keys[0]; break;
++          case SDLK_RIGHT:
+           case SDLK_r:      Key = GP2X_Default_keys[6]; break;
++          case SDLK_DOWN:
+           case SDLK_d:      Key = GP2X_Default_keys[4]; break;
++          case SDLK_LEFT:
+           case SDLK_l:      Key = GP2X_Default_keys[2]; break;
++          case SDLK_RCTRL:
+           case SDLK_k:      Key = GP2X_Default_keys[9]; break;
++          case SDLK_RETURN:
+           case SDLK_s:      Key = GP2X_Default_keys[8]; break;
++          case SDLK_TAB:
+           case SDLK_m:      Key = GP2X_Default_keys[10]; break;
++          case SDLK_BACKSPACE:
+           case SDLK_n:      Key = GP2X_Default_keys[11]; break;
++          case SDLK_SPACE:
+           case SDLK_a:      Key = GP2X_Default_keys[12]; break;
++          case SDLK_LCTRL:
+           case SDLK_b:      Key = GP2X_Default_keys[13]; break;
++          case SDLK_LSHIFT:
+           case SDLK_x:      Key = GP2X_Default_keys[14]; break;
++          case SDLK_LALT:
+           case SDLK_y:      Key = GP2X_Default_keys[15]; break;
+           default: Key = KEYMAP_KEY_INVALID;
+         }
+diff -uprN a/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/highlevelui/lfjport/sdl/native/lfjport_st_export.c b/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/highlevelui/lfjport/sdl/native/lfjport_st_export.c
+--- a/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/highlevelui/lfjport/sdl/native/lfjport_st_export.c	2026-08-13 19:31:45.583768857 +0800
++++ b/phoneme-funkey-clean/phoneME-GP2X-SDL/phoneme_feature/midp/src/highlevelui/lfjport/sdl/native/lfjport_st_export.c	2026-08-13 19:40:54.893765877 +0800
+@@ -521,14 +521,14 @@ static int overlay_physical_bind_index(S
+     case SDLK_d: case SDLK_DOWN: return 1;
+     case SDLK_l: case SDLK_LEFT: return 2;
+     case SDLK_r: case SDLK_RIGHT: return 3;
+-    case SDLK_a: case SDLK_RETURN: case SDLK_SPACE: return 4;
+-    case SDLK_b: return 5;
+-    case SDLK_x: return 6;
+-    case SDLK_y: return 7;
+-    case SDLK_n: return 8;
+-    case SDLK_m: return 9;
+-    case SDLK_s: return 10;
+-    case SDLK_k: return 11;
++    case SDLK_a: case SDLK_SPACE: return 4;
++    case SDLK_b: case SDLK_LCTRL: return 5;
++    case SDLK_x: case SDLK_LSHIFT: return 6;
++    case SDLK_y: case SDLK_LALT: return 7;
++    case SDLK_n: case SDLK_BACKSPACE: return 8;
++    case SDLK_m: case SDLK_TAB: return 9;
++    case SDLK_s: case SDLK_RETURN: return 10;
++    case SDLK_k: case SDLK_RCTRL: return 11;
+     default: return -1;
+     }
+ }
+@@ -1218,7 +1218,7 @@ int PhoneMEOverlayHandleSDLEvent(SDL_Eve
+         overlay_back();
+         return 1;
+     }
+-    if (key == SDLK_b) {
++    if (key == SDLK_b || key == SDLK_LCTRL) {
+         overlay_back();
+         return 1;
+     }
 diff -uprN a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh b/phoneme-funkey-opk-wrapper/package-funkey-opk.sh
 --- a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh	2026-08-12 19:38:33.406050888 +0800
 +++ b/phoneme-funkey-opk-wrapper/package-funkey-opk.sh	2026-08-12 19:41:33.456049202 +0800
