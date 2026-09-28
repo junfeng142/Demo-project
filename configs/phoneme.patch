@@ -116,13 +116,24 @@ diff -uprN a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh b/phoneme-funkey-o
  if [ -f "$LAUNCH_SRC" ]; then
      "$FUNKEY_CC" -Os -s \
 diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c
---- a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-08-12 19:40:09.266049990 +0800
-+++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-08-12 20:32:57.046020332 +0800
-@@ -28,7 +28,7 @@
+--- a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-28 18:52:35.106264245 +0800
++++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-28 18:53:34.606264319 +0800
+@@ -19,7 +19,7 @@
+ #include "pm-unicode-font.h"
+ 
+ /* ── screen ─────────────────────────────────────────── */
+-#define SCR_W  240
++#define SCR_W  320
+ #define SCR_H  240
+ 
+ /* ── directories ────────────────────────────────────── */
+@@ -27,8 +27,8 @@
+ #define BIND_DIR   "/mnt/FunKey/.pm/keybinds"
  #define BIN_DIR    "/mnt/FunKey/.pm/bin"
  #define RMS_DIR    "/mnt/FunKey/.pm/rms"
- #define FAVORITES_FILE PM_DIR "/favorites.txt"
+-#define FAVORITES_FILE PM_DIR "/favorites.txt"
 -static char java_dir[PATH_MAX] = "/mnt/java";
++#define FAVORITES_FILE PM_DIR "/mnt/FunKey/.pm/favorites.txt"
 +static char java_dir[PATH_MAX] = "/mnt/JAVA";
  
  /* ── MIDP key codes (from phoneME keymap_input.h) ───── */
