@@ -117,7 +117,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh b/phoneme-funkey-o
      "$FUNKEY_CC" -Os -s \
 diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c
 --- a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-28 18:52:35.106264245 +0800
-+++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-28 21:14:00.866274857 +0800
++++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-28 22:06:01.236278759 +0800
 @@ -19,7 +19,7 @@
  #include "pm-unicode-font.h"
  
@@ -127,18 +127,69 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
  #define SCR_H  240
  
  /* ── directories ────────────────────────────────────── */
-@@ -27,8 +27,8 @@
+@@ -27,8 +27,9 @@
  #define BIND_DIR   "/mnt/FunKey/.pm/keybinds"
  #define BIN_DIR    "/mnt/FunKey/.pm/bin"
  #define RMS_DIR    "/mnt/FunKey/.pm/rms"
 -#define FAVORITES_FILE PM_DIR "/favorites.txt"
 -static char java_dir[PATH_MAX] = "/mnt/java";
++#define JAD_DIR    "/mnt/FunKey/.pm/jad"
 +#define FAVORITES_FILE PM_DIR "/mnt/FunKey/.pm/favorites.txt"
 +static char java_dir[PATH_MAX] = "/mnt/JAVA";
  
  /* ── MIDP key codes (from phoneME keymap_input.h) ───── */
  #define K_UP     (-1)
-@@ -1019,15 +1019,21 @@ static int funkey_bind_index_from_sdl(in
+@@ -311,6 +312,7 @@ static const FpsPreset fps_limits[] = {
+ #define MAX_GAMES   512
+ typedef struct {
+     char *path;
++    char orig_path[PATH_MAX];      /* 原始 /mnt/JAVA/... 路径，永不变 */
+     char label[PATH_MAX];
+     char config[PATH_MAX];
+     char title[128];
+@@ -543,6 +545,7 @@ static void add_folder(const char *full_
+     games[game_count].is_dir = 1;
+     games[game_count].is_favorites_folder = 0;
+     games[game_count].is_favorite = 0;
++    games[game_count].orig_path[0] = '\0';
+     game_count++;
+ }
+ 
+@@ -555,6 +558,7 @@ static void add_favorites_folder(void) {
+     games[game_count].is_dir = 1;
+     games[game_count].is_favorites_folder = 1;
+     games[game_count].is_favorite = 0;
++    games[game_count].orig_path[0] = '\0';
+     game_count++;
+ }
+ 
+@@ -571,6 +575,7 @@ static void add_game(const char *full_pa
+         snprintf(rel_path, sizeof(rel_path), "%s", name);
+     }
+     games[game_count].path = strdup(full_path);
++    snprintf(games[game_count].orig_path, sizeof(games[game_count].orig_path), "%s", full_path);
+     snprintf(games[game_count].label, sizeof(games[game_count].label), "%s", name);
+     snprintf(games[game_count].config, sizeof(games[game_count].config), "%s", rel_path);
+     sanitize_config_name(games[game_count].config);
+@@ -895,8 +900,16 @@ static int delete_selected_game_files(vo
+         return 0;
+     }
+ 
+-    snprintf(jar_path, sizeof(jar_path), "%s", games[game_sel].path);
++    snprintf(jar_path, sizeof(jar_path), "%s", games[game_sel].orig_path);
+     remove_favorite_path(jar_path);
++    unsigned int h = 2166136261u;
++    const unsigned char *s = (const unsigned char *)games[game_sel].orig_path;
++    char link_path[PATH_MAX];
++    while (*s) { h = (h ^ *s++) * 16777619u; }
++    snprintf(link_path, sizeof(link_path), "%s/j2me%08x.jar", JAD_DIR, h);
++    unlink(link_path);
++    snprintf(link_path, sizeof(link_path), "%s/j2me%08x.jad", JAD_DIR, h);
++    unlink(link_path);
+ 
+     if (unlink(jar_path) == 0) removed = 1;
+ 
+@@ -1019,15 +1032,21 @@ static int funkey_bind_index_from_sdl(in
      case SDLK_r:
      case SDLK_RIGHT:  return 3;
      case SDLK_a:
@@ -168,7 +219,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
      default:          return -1;
      }
  }
-@@ -1505,12 +1511,11 @@ static void draw_browser(void) {
+@@ -1505,12 +1524,11 @@ static void draw_browser(void) {
      }
  
      /* help bar */
@@ -176,14 +227,15 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
 -    stringColor(screen, 2, y, "SELECT:Favorite", 0x607078ff);
      y = SCR_H - 15;
      stringColor(screen, 2, y, "A:Run", 0x607078ff);
-     stringColor(screen, 64, y, "START:Keys", 0x607078ff);
+-    stringColor(screen, 64, y, "START:Keys", 0x607078ff);
 -    stringColor(screen, 158, y,
-+    stringColor(screen, 158, y, "SELECT:★", 0x607078ff);
-+    stringColor(screen, 218, y,
++    stringColor(screen, 60, y, "START:Keys", 0x607078ff);
++    stringColor(screen, 158, y, "SELECT:*F*", 0x607078ff);
++    stringColor(screen, 238, y,
                  (browsing_favorites || current_rel_dir[0]) ? "B:Back" : "B:Refresh",
                  0x607078ff);
  
-@@ -1669,7 +1674,7 @@ static void handle_key_resolution(SDL_Ke
+@@ -1669,7 +1687,7 @@ static void handle_key_resolution(SDL_Ke
          if (source_picker_sel >= (int)SOURCE_PRESET_COUNT)
              source_picker_sel = SOURCE_PRESET_COUNT - 1;
          break;
@@ -192,7 +244,89 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          /* cancel – go back to browser */
          launching_game_idx = -1;
          state = STATE_BROWSER;
-@@ -2037,6 +2042,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -1791,10 +1809,81 @@ static void copy_dir(const char *src_bas
+     closedir(d);
+ }
+ 
++/* 统一为一个游戏建立 ASCII 链接。
++ * 用 orig_path 的哈希做 ASCII 名，重复调用是幂等的。
++ * 成功后 games[idx].path 和 games[idx].config 会被就地改写为 ASCII。 */
++static void ensure_ascii_link(int idx) {
++    char ascii_name[32];
++    char ascii_jar[PATH_MAX];
++    unsigned int h;
++    const unsigned char *s;
++    struct stat st_src, st_dst;
++    int need_build;
++
++    if (idx < 0 || idx >= game_count) return;
++    if (games[idx].is_dir) return;
++    if (games[idx].orig_path[0] == '\0') return;
++
++    /* 已经处理过：path 已经在 jad/ 里 */
++    if (strncmp(games[idx].path, JAD_DIR "/", strlen(JAD_DIR) + 1) == 0) {
++        return;
++    }
++
++    /* 用原始路径的 FNV-1a 哈希做 ASCII 名 */
++    h = 2166136261u;
++    s = (const unsigned char *)games[idx].orig_path;
++    while (*s) { h = (h ^ *s++) * 16777619u; }
++    snprintf(ascii_name, sizeof(ascii_name), "j2me%08x", h);
++    snprintf(ascii_jar, sizeof(ascii_jar), "%s/%s.jar", JAD_DIR, ascii_name);
++
++    mkdir(PM_DIR, 0777);
++    mkdir(JAD_DIR, 0777);
++
++    /* 链接不存在，或者源文件比链接新，就重建 */
++    need_build = (access(ascii_jar, F_OK) != 0);
++    if (!need_build) {
++        if (stat(games[idx].orig_path, &st_src) == 0 &&
++            stat(ascii_jar, &st_dst) == 0 &&
++            st_src.st_mtime > st_dst.st_mtime) {
++            need_build = 1;
++        }
++    }
++
++    if (need_build) {
++        unlink(ascii_jar);
++        if (link(games[idx].orig_path, ascii_jar) != 0) {
++            if (copy_file(games[idx].orig_path, ascii_jar) != 0) return;
++        }
++        /* 如果原 jar 旁边有 .jad，也一起链接 */
++        {
++            int n = strlen(games[idx].orig_path);
++            if (n > 4 && strcasecmp(games[idx].orig_path + n - 4, ".jar") == 0) {
++                char orig_jad[PATH_MAX], link_jad[PATH_MAX];
++                snprintf(orig_jad, sizeof(orig_jad),
++                         "%.*s.jad", n - 4, games[idx].orig_path);
++                if (access(orig_jad, F_OK) == 0) {
++                    snprintf(link_jad, sizeof(link_jad),
++                             "%s/%s.jad", JAD_DIR, ascii_name);
++                    unlink(link_jad);
++                    if (link(orig_jad, link_jad) != 0) {
++                        copy_file(orig_jad, link_jad);
++                    }
++                }
++            }
++        }
++    }
++
++    /* 就地替换 path 和 config */
++    free(games[idx].path);
++    games[idx].path = strdup(ascii_jar);
++    snprintf(games[idx].config, sizeof(games[idx].config), "%s", ascii_name);
++}
++
+ /* ─────────────────────────────────────────────────────
+  *  launch
+  * ──────────────────────────────────────────────────── */
+ static void launch_game(int idx) {
++    ensure_ascii_link(idx);
+     const char *jar_path = games[idx].path;
+ 
+     draw_launching();
+@@ -2037,6 +2126,7 @@ static void handle_key_browser(SDL_Keybo
  
      if (game_count <= 0) {
          switch (kev->keysym.sym) {
@@ -200,7 +334,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          case SDLK_b:
              if (!leave_folder()) scan_games();
              break;
-@@ -2067,7 +2073,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2067,12 +2157,13 @@ static void handle_key_browser(SDL_Keybo
          game_sel += 5;
          if (game_sel >= game_count) game_sel = game_count - 1;
          break;
@@ -209,7 +343,13 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (game_count > 0) {
              if (games[game_sel].is_dir) {
                  enter_selected_folder();
-@@ -2087,7 +2093,7 @@ static void handle_key_browser(SDL_Keybo
+                 break;
+             }
++            ensure_ascii_link(game_sel);   /* ← 只加这一行 */
+             if (!games[game_sel].is_favorites_folder &&
+                 !config_file_exists(games[game_sel].config)) {
+                 /* first launch – show resolution picker */
+@@ -2087,12 +2178,13 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -218,7 +358,13 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (game_count > 0) {
              if (games[game_sel].is_dir) {
                  enter_selected_folder();
-@@ -2102,7 +2108,7 @@ static void handle_key_browser(SDL_Keybo
+                 break;
+             }
++            ensure_ascii_link(game_sel);   /* ← 只加这一行 */
+             load_binds(games[game_sel].config, games[game_sel].path);
+             bind_sel = 0;
+             bind_scroll = 0;
+@@ -2102,7 +2194,7 @@ static void handle_key_browser(SDL_Keybo
              state = STATE_KEYBINDS;
          }
          break;
@@ -227,7 +373,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (game_count > 0 && !games[game_sel].is_dir) {
              if (toggle_favorite(games[game_sel].path)) {
                  if (browsing_favorites) {
-@@ -2113,7 +2119,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2113,7 +2205,7 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -236,7 +382,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (!leave_folder()) {
              scan_games();
          }
-@@ -2269,7 +2275,7 @@ static void handle_key_keybinds(SDL_Keyb
+@@ -2269,7 +2361,7 @@ static void handle_key_keybinds(SDL_Keyb
          }
          break;
  
