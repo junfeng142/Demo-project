@@ -230,7 +230,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
 -    stringColor(screen, 64, y, "START:Keys", 0x607078ff);
 -    stringColor(screen, 158, y,
 +    stringColor(screen, 58, y, "START:Keys", 0x607078ff);
-+    stringColor(screen, 154, y, "SELECT:*F*", 0x607078ff);
++    stringColor(screen, 154, y, "SELECT:^o^", 0x607078ff);
 +    stringColor(screen, 240, y,
                  (browsing_favorites || current_rel_dir[0]) ? "B:Back" : "B:Refresh",
                  0x607078ff);
