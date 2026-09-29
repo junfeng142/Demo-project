@@ -156,7 +156,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh b/phoneme-funkey-o
      "$FUNKEY_CC" -Os -s \
 diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c
 --- a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-28 18:52:35.106264245 +0800
-+++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-29 12:25:13.042124562 +0800
++++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-29 12:45:57.802122709 +0800
 @@ -17,9 +17,10 @@
  #include <unistd.h>
  
@@ -312,11 +312,8 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
              if (i == game_sel) {
                  boxColor(screen, 0, y - 1, SCR_W - 1, y + PM_FONT_LINE_H - 2, 0x003366ff);
                  stringColor(screen, 6, y, name, 0x00ff88ff);
-@@ -1502,15 +1538,13 @@ static void draw_browser(void) {
-             stringColor(screen, 6, y, name, 0xff6060ff);
-             y += PM_FONT_LINE_H;
-         }
--    }
+@@ -1505,12 +1541,11 @@ static void draw_browser(void) {
+     }
  
      /* help bar */
 -    y = SCR_H - 30;
@@ -331,7 +328,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
                  (browsing_favorites || current_rel_dir[0]) ? "B:Back" : "B:Refresh",
                  0x607078ff);
  
-@@ -1669,7 +1703,7 @@ static void handle_key_resolution(SDL_Ke
+@@ -1669,7 +1704,7 @@ static void handle_key_resolution(SDL_Ke
          if (source_picker_sel >= (int)SOURCE_PRESET_COUNT)
              source_picker_sel = SOURCE_PRESET_COUNT - 1;
          break;
@@ -340,7 +337,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          /* cancel – go back to browser */
          launching_game_idx = -1;
          state = STATE_BROWSER;
-@@ -1791,10 +1825,77 @@ static void copy_dir(const char *src_bas
+@@ -1791,10 +1826,102 @@ static void copy_dir(const char *src_bas
      closedir(d);
  }
  
@@ -376,7 +373,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
 +        st_dst.st_dev == st_src.st_dev) {
 +        /* 已挂载，无需重建 */
 +    } else {
-+        /* 创建空文件作为挂载点（如果不存在） */
++        /* 挂载点文件不存在就创建 */
 +        if (access(ascii_jar, F_OK) != 0) {
 +            fd = open(ascii_jar, O_WRONLY | O_CREAT | O_TRUNC, 0755);
 +            if (fd < 0) {
@@ -390,6 +387,9 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
 +            }
 +            close(fd);
 +        }
++
++        /* 如果之前 mount 过但源变了，先卸载再挂 */
++        umount2(ascii_jar, MNT_DETACH);
 +
 +        /* 尝试 bind mount */
 +        errno = 0;
@@ -410,6 +410,28 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
 +    snprintf(games[idx].config, sizeof(games[idx].config), "%s", ascii_name);
 +}
 +
++/* 退出游戏时调用：卸载挂载点，但不删挂载点文件，也不删 jad */
++static void unmount_game_mount(int idx) {
++    char jar_path[PATH_MAX];
++    unsigned int h;
++    const unsigned char *s;
++
++    if (idx < 0 || idx >= game_count) return;
++    if (games[idx].is_dir) return;
++    if (games[idx].orig_path[0] == '\0') return;
++
++    h = 2166136261u;
++    s = (const unsigned char *)games[idx].orig_path;
++    while (*s) { h = (h ^ *s++) * 16777619u; }
++
++    snprintf(jar_path, sizeof(jar_path), "%s/j2me%08x.jar", JAD_DIR, h);
++
++    /* 只卸载，不 unlink —— 挂载点文件保留 */
++    if (umount2(jar_path, MNT_DETACH) != 0) {
++        /* 没挂载或已卸载，忽略 */
++    }
++}
++
  /* ─────────────────────────────────────────────────────
   *  launch
   * ──────────────────────────────────────────────────── */
@@ -418,7 +440,17 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
      const char *jar_path = games[idx].path;
  
      draw_launching();
-@@ -2037,6 +2138,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2021,6 +2148,9 @@ static void launch_game(int idx) {
+         int status;
+         waitpid(pid, &status, 0);
+         sync();
++        
++        /* 关键：卸载挂载点，否则 UMS 导出分区会出错 */
++        unmount_game_mount(idx);
+ 
+         /* re-init SDL for browser */
+         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
+@@ -2037,6 +2167,7 @@ static void handle_key_browser(SDL_Keybo
  
      if (game_count <= 0) {
          switch (kev->keysym.sym) {
@@ -426,7 +458,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          case SDLK_b:
              if (!leave_folder()) scan_games();
              break;
-@@ -2067,12 +2169,13 @@ static void handle_key_browser(SDL_Keybo
+@@ -2067,12 +2198,13 @@ static void handle_key_browser(SDL_Keybo
          game_sel += 5;
          if (game_sel >= game_count) game_sel = game_count - 1;
          break;
@@ -441,7 +473,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
              if (!games[game_sel].is_favorites_folder &&
                  !config_file_exists(games[game_sel].config)) {
                  /* first launch – show resolution picker */
-@@ -2087,12 +2190,13 @@ static void handle_key_browser(SDL_Keybo
+@@ -2087,12 +2219,13 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -456,7 +488,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
              load_binds(games[game_sel].config, games[game_sel].path);
              bind_sel = 0;
              bind_scroll = 0;
-@@ -2102,9 +2206,9 @@ static void handle_key_browser(SDL_Keybo
+@@ -2102,9 +2235,9 @@ static void handle_key_browser(SDL_Keybo
              state = STATE_KEYBINDS;
          }
          break;
@@ -468,7 +500,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
                  if (browsing_favorites) {
                      scan_games();
                  } else {
-@@ -2113,7 +2217,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2113,7 +2246,7 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -477,7 +509,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (!leave_folder()) {
              scan_games();
          }
-@@ -2269,7 +2373,7 @@ static void handle_key_keybinds(SDL_Keyb
+@@ -2269,7 +2402,7 @@ static void handle_key_keybinds(SDL_Keyb
          }
          break;
  
