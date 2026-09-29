@@ -156,7 +156,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/package-funkey-opk.sh b/phoneme-funkey-o
      "$FUNKEY_CC" -Os -s \
 diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c
 --- a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-28 18:52:35.106264245 +0800
-+++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-29 12:45:57.802122709 +0800
++++ b/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c	2026-09-29 13:23:52.782119322 +0800
 @@ -17,9 +17,10 @@
  #include <unistd.h>
  
@@ -440,17 +440,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
      const char *jar_path = games[idx].path;
  
      draw_launching();
-@@ -2021,6 +2148,9 @@ static void launch_game(int idx) {
-         int status;
-         waitpid(pid, &status, 0);
-         sync();
-+        
-+        /* 关键：卸载挂载点，否则 UMS 导出分区会出错 */
-+        unmount_game_mount(idx);
- 
-         /* re-init SDL for browser */
-         SDL_Init(SDL_INIT_VIDEO | SDL_INIT_JOYSTICK);
-@@ -2037,6 +2167,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2037,6 +2164,7 @@ static void handle_key_browser(SDL_Keybo
  
      if (game_count <= 0) {
          switch (kev->keysym.sym) {
@@ -458,7 +448,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          case SDLK_b:
              if (!leave_folder()) scan_games();
              break;
-@@ -2067,12 +2198,13 @@ static void handle_key_browser(SDL_Keybo
+@@ -2067,12 +2195,13 @@ static void handle_key_browser(SDL_Keybo
          game_sel += 5;
          if (game_sel >= game_count) game_sel = game_count - 1;
          break;
@@ -473,7 +463,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
              if (!games[game_sel].is_favorites_folder &&
                  !config_file_exists(games[game_sel].config)) {
                  /* first launch – show resolution picker */
-@@ -2087,12 +2219,13 @@ static void handle_key_browser(SDL_Keybo
+@@ -2087,12 +2216,13 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -488,7 +478,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
              load_binds(games[game_sel].config, games[game_sel].path);
              bind_sel = 0;
              bind_scroll = 0;
-@@ -2102,9 +2235,9 @@ static void handle_key_browser(SDL_Keybo
+@@ -2102,9 +2232,9 @@ static void handle_key_browser(SDL_Keybo
              state = STATE_KEYBINDS;
          }
          break;
@@ -500,7 +490,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
                  if (browsing_favorites) {
                      scan_games();
                  } else {
-@@ -2113,7 +2246,7 @@ static void handle_key_browser(SDL_Keybo
+@@ -2113,7 +2243,7 @@ static void handle_key_browser(SDL_Keybo
              }
          }
          break;
@@ -509,7 +499,7 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (!leave_folder()) {
              scan_games();
          }
-@@ -2269,7 +2402,7 @@ static void handle_key_keybinds(SDL_Keyb
+@@ -2269,7 +2399,7 @@ static void handle_key_keybinds(SDL_Keyb
          }
          break;
  
@@ -518,3 +508,27 @@ diff -uprN a/phoneme-funkey-opk-wrapper/packaging/funkey-s/pm-launch.c b/phoneme
          if (capture_mode) {
              capture_mode = 0;
          } else if (delete_confirm) {
+@@ -2295,6 +2425,15 @@ static void handle_key_keybinds(SDL_Keyb
+     }
+ }
+ 
++/* 退出 launcher 时调用：卸载所有挂载点，避免 UMS 导出分区出错 */
++static void unmount_all_game_mounts(void) {
++    int i;
++    for (i = 0; i < game_count; i++) {
++        unmount_game_mount(i);
++    }
++    sync();
++}
++
+ /* ─────────────────────────────────────────────────────
+  *  main
+  * ──────────────────────────────────────────────────── */
+@@ -2316,6 +2455,7 @@ int main(int argc, char **argv) {
+         return 1;
+     }
+     atexit(SDL_Quit);
++    atexit(unmount_all_game_mounts);
+ 
+     screen = SDL_SetVideoMode(SCR_W, SCR_H, 16, SDL_SWSURFACE);
+     if (!screen) {
